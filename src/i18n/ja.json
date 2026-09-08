@@ -420,7 +420,7 @@
   "indicator_no_data": "指標データはまだありません。レポートをアップロードするか、データソースを連携して始めましょう。",
   "indicator_no_match": "検索条件に一致する指標が見つかりませんでした。",
   "indicator_unavailable": "この環境では健康指標APIが公開されていません。",
-  "indicator_partial": "件数は直近{{scanned}}件の記録に基づきます",
+  "indicator_truncated": "{{total}} 件のうち {{shown}} 件を表示",
   "indicator_no_data_title": "指標はまだありません",
   "indicator_no_match_hint": "略称でも正式名称でも検索できます。どの言語でも対応しています。",
   "files_tab": "ファイル",

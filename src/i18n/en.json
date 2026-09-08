@@ -420,7 +420,7 @@
   "indicator_no_data": "No indicator data yet. Upload a report or connect a source to get started.",
   "indicator_no_match": "No indicator matched that search.",
   "indicator_unavailable": "This deployment does not expose the health-indicator API.",
-  "indicator_partial": "Counts cover the {{scanned}} most recent readings",
+  "indicator_truncated": "Showing {{shown}} of {{total}}",
   "indicator_no_data_title": "No indicators yet",
   "indicator_no_match_hint": "Try the abbreviation or the full name — both work, in any language.",
   "files_tab": "Files",

@@ -14,6 +14,7 @@ import api from "../../../api";
 import { useDriveStore } from "../../../store/Drive";
 import { useAccountStore } from "../../../store/account";
 import { openProtectedFile } from "../../../utils/protectedFile";
+import { toTableRows, toReadingList, truncationOf } from "./rows";
 import styles from "./index.module.scss";
 
 /**
@@ -51,9 +52,9 @@ const IndicatorsPanel = ({
   // opensource deployments may not ship the endpoint at all, and a bare empty
   // table would silently misreport that as "you have nothing".
   const [unavailable, setUnavailable] = useState(false);
-  // >0 when the backend had more readings than we were willing to page through:
-  // counts then describe that many most-recent readings, and say so.
-  const [partial, setPartial] = useState(0);
+  // {shown, total} when the server capped the answer, so the summary can say
+  // "60 of 244" instead of presenting a slice as the whole.
+  const [truncated, setTruncated] = useState(null);
 
   const [selected, setSelected] = useState(null);
   const [readings, setReadings] = useState([]);
@@ -90,11 +91,11 @@ const IndicatorsPanel = ({
               signal: controller.signal,
             });
 
-        // The service answers with `catalog` when asked "what exists" and with
-        // `indicators` when asked a question — same row shape either way.
-        const list = res?.catalog || res?.indicators || [];
-        setRows(Array.isArray(list) ? list : []);
-        setPartial(res?.partial ? res.scanned : 0);
+        // Both grains of the answer — the catalog and per-reading rows — are
+        // folded into one row model in rows.js, which is also where the two
+        // key names live. Reading them inline here is what issue #62 was.
+        setRows(toTableRows(res));
+        setTruncated(truncationOf(res));
         setUnavailable(false);
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -141,8 +142,7 @@ const IndicatorsPanel = ({
         indicator: row.indicator,
         target_user_id: current_drive_user_id,
       });
-      const match = res?.indicators?.[0];
-      setReadings(match?.readings || []);
+      setReadings(toReadingList(res));
     } catch (error) {
       consola.error("ERROR: load indicator readings", error);
     } finally {
@@ -166,7 +166,7 @@ const IndicatorsPanel = ({
         indicator: selected.indicator,
         target_user_id: current_drive_user_id,
       });
-      setReadings(res?.indicators?.[0]?.readings || []);
+      setReadings(toReadingList(res));
     } catch (error) {
       consola.error("ERROR: refresh readings", error);
     }
@@ -252,10 +252,10 @@ const IndicatorsPanel = ({
               indicators: rows.length,
               readings: total,
             })}
-            {partial > 0 && (
+            {truncated && (
               <span className={styles.partial}>
                 {" "}
-                {t("indicator_partial", { scanned: partial })}
+                {t("indicator_truncated", truncated)}
               </span>
             )}
           </div>
@@ -316,16 +316,7 @@ const IndicatorsPanel = ({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
-                // Two shapes reach this table. A SEARCH returns readings, so
-                // the newest one is readings[0]. The CATALOG returns one row
-                // per indicator with `latest_value` instead — carrying the
-                // whole series just to show its last value would be wasteful.
-                // Without this fallback the catalog rendered a column of
-                // em-dashes next to counts that proved data existed.
-                const latest = row.readings?.[0]
-                  || (row.latest_value ? { value: row.latest_value, time: row.last_time } : null);
-                return (
+              {rows.map((row) => (
                   <tr
                     key={`${row.indicator}-${row.code || ""}`}
                     onClick={() => openDetail(row)}
@@ -336,23 +327,19 @@ const IndicatorsPanel = ({
                   >
                     <td className={styles.name}>{row.indicator}</td>
                     <td>
-                      {latest ? (
+                      {row.latest_value !== "" ? (
                         <>
-                          <span className={styles.value}>{latest.value}</span>
-                          {(latest.unit || row.unit) && (
-                            <span className={styles.unit}>
-                              {latest.unit || row.unit}
-                            </span>
+                          <span className={styles.value}>{row.latest_value}</span>
+                          {row.unit && (
+                            <span className={styles.unit}>{row.unit}</span>
                           )}
                         </>
                       ) : (
                         <span className={styles.muted}>—</span>
                       )}
                     </td>
-                    <td>{row.count ?? "—"}</td>
-                    <td className={styles.muted}>
-                      {formatDate(row.last_time || latest?.time)}
-                    </td>
+                    <td>{row.count || "—"}</td>
+                    <td className={styles.muted}>{formatDate(row.latest_time)}</td>
                     {showCode && (
                       <td className={styles.muted}>
                         {row.code
@@ -361,8 +348,7 @@ const IndicatorsPanel = ({
                       </td>
                     )}
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>
@@ -399,12 +385,12 @@ const IndicatorsPanel = ({
               )}
               <div>
                 <dt>{t("indicator_records")}</dt>
-                <dd>{selected.count ?? readings.length}</dd>
+                <dd>{selected.count || readings.length}</dd>
               </div>
-              {(selected.last_time || readings[0]?.time) && (
+              {(selected.latest_time || readings[0]?.time) && (
                 <div>
                   <dt>{t("indicator_last_seen")}</dt>
-                  <dd>{formatDate(selected.last_time || readings[0]?.time)}</dd>
+                  <dd>{formatDate(selected.latest_time || readings[0]?.time)}</dd>
                 </div>
               )}
             </dl>

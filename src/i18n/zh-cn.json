@@ -420,7 +420,7 @@
   "indicator_no_data": "暂无指标数据。上传报告或连接数据源后即可查看。",
   "indicator_no_match": "没有匹配的指标。",
   "indicator_unavailable": "当前部署未开放指标查询接口。",
-  "indicator_partial": "统计基于最近 {{scanned}} 条记录",
+  "indicator_truncated": "显示 {{total}} 项中的 {{shown}} 项",
   "indicator_no_data_title": "还没有指标数据",
   "indicator_no_match_hint": "试试缩写或全称——中英文都可以。",
   "files_tab": "文件",

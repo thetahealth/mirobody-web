@@ -4,7 +4,6 @@ import * as upload from "./upload";
 import * as chat from "./chat";
 import * as vital from "./vital";
 import * as webauthn from "./webauthn";
-import * as data from "./data";
 import * as family from "./family";
 import * as indicators from "./indicators";
 import * as mcp from "./mcp";
@@ -46,7 +45,6 @@ export default {
   ...chat,
   ...vital,
   ...webauthn,
-  ...data,
   ...family,
   ...indicators,
   ...mcp,

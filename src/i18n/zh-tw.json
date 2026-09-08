@@ -420,7 +420,7 @@
   "indicator_no_data": "還沒有指標資料。上傳報告或連線資料來源即可開始。",
   "indicator_no_match": "沒有符合搜尋條件的指標。",
   "indicator_unavailable": "此部署未開放健康指標 API。",
-  "indicator_partial": "統計基於最近 {{scanned}} 筆紀錄",
+  "indicator_truncated": "顯示 {{total}} 項中的 {{shown}} 項",
   "indicator_no_data_title": "還沒有指標資料",
   "indicator_no_match_hint": "試試縮寫或全名——中英文都可以。",
   "files_tab": "檔案",
