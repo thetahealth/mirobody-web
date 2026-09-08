@@ -19,7 +19,8 @@ export const createVirtualUser = ({ name, email, gender, birth, blood }) => {
   return mcpRequestInstance.post("/api/user/virtual", body);
 };
 
-/* members I manage (owner→member): [{ share_id, query_user_id, nickname, email, status, ... }] */
+/* members I manage (owner→member):
+   { members: [{ share_id, query_user_id, nickname, email, status, ... }] } */
 export const listSharedByMe = (signal) =>
   mcpRequestInstance.post("/invitation/shared-by-me/list", {}, { signal });
 
