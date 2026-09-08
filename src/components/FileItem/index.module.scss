@@ -1,0 +1,100 @@
+.file_item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 16px;
+  width: 240px;
+  min-width: 240px;
+  // height: 67px;
+  background-color: var(--color-bg-soft);
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  overflow: hidden;
+  transition: border 0.2s ease;
+
+  &:hover {
+    border: 1px solid var(--color-accent);
+  }
+
+  &.success {
+    // border: 1px solid var(--color-success);
+  }
+
+  &.error {
+    border: 1px solid var(--color-danger);
+    background-color: var(--color-danger-soft);
+  }
+
+  .file_delete_icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 10;
+  }
+
+  .file_name {
+    color: #000;
+    font-size: 16px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  .progress_container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .progress_bar {
+    flex: 1;
+    height: 4px;
+    background-color: var(--color-border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress_fill {
+    height: 100%;
+    background-color: var(--color-accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .progress_text {
+    font-size: 12px;
+    color: var(--color-accent);
+    font-weight: 500;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .status_text {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .error_text {
+    font-size: 12px;
+    color: var(--color-danger);
+    font-weight: 400;
+  }
+
+  .file_info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.60);
+    font-weight: 400;
+  }
+}

@@ -1,0 +1,367 @@
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tableWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.tableLoading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background: none;
+}
+
+.table th {
+  padding: 0 var(--space-4) var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  text-align: left;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.thUploadTime {
+  width: 210px;
+}
+
+.headerIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.thReportDate {
+  width: 150px;
+}
+
+.thFileTitle {
+  width: 300px;
+}
+
+.thType {
+  width: 122px;
+}
+
+.thSize {
+  width: 144px;
+}
+
+.thStatus {
+  width: auto;
+}
+
+.thActions {
+  width: 162px;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+.uploadingRow {
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.progressBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #F9FAFB;
+  z-index: 0;
+  transition: width 0.3s ease;
+  pointer-events: none;
+}
+
+.uploadingRow td {
+  position: relative;
+  z-index: 1;
+}
+
+.uploadingRow .tdFileTitle {
+  position: static;
+}
+
+.tdFileTitle {
+  position: relative;
+}
+
+.fileNameText {
+  position: relative;
+  z-index: 1;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tdFileTitle {
+  max-width: 429px;
+  word-wrap: break-word;
+}
+
+.tdType {
+  font-weight: 400;
+}
+
+.typeEmphasis {
+  font-weight: 500;
+  color: #303030;
+}
+
+.tdSize {
+  font-weight: 500;
+}
+
+.badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 12px;
+  text-align: center;
+}
+
+.badgeYellow {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.badgeBlue {
+  background: var(--color-bg-soft);
+  color: var(--color-accent);
+}
+
+.badgeGreen {
+  background: var(--color-success-soft);
+  color: #065F46;
+}
+
+.statusContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressText {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.failedContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.failedText {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--color-danger);
+}
+
+.retryButton {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  height: 28px;
+  background: var(--color-accent);
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: #FFFFFF;
+  width: fit-content;
+}
+
+.retryButton:hover {
+  background: var(--color-accent);
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viewButton,
+.deleteButton {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 0;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+}
+
+.viewButton {
+  color: var(--color-accent);
+  background: transparent;
+}
+
+
+.deleteButton {
+  color: var(--color-danger);
+}
+
+.tdType {
+  width: 100px;
+  min-width: 100px;
+}
+
+.tdSize {
+  width: 120px;
+  min-width: 120px;
+}
+
+.tdStatus {
+  width: 110px;
+  min-width: 110px;
+}
+.tdActions {
+  width: 120px;
+  min-width: 120px;
+}
+
+// Phone: the file list becomes vertical cards, replacing a 1000px+ wide table
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #fff;
+
+  // Upload progress: a thin bar at the top of the card (overrides the
+  // full-row fill the table uses)
+  .progressBar {
+    bottom: auto;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .cardName {
+    position: relative;
+    z-index: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    word-break: break-all;
+  }
+
+  .cardMeta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .cardFooter {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+}
+/* report date column (#53): the day the readings are filed under */
+.tdReportDate {
+  width: 150px;
+  min-width: 150px;
+}
+.reportDate {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.reportDateHint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.tdReportDate .badge {
+  display: inline-flex;
+  margin-top: 4px;
+}

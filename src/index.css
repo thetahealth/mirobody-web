@@ -1,0 +1,92 @@
+@import "./styles/tokens.css";
+@import "tailwindcss";
+
+/* Pins Tailwind's built-in max-md: variant to @media (max-width: 768px) so it
+   means the same thing as the SCSS phone mixin. */
+@theme {
+  --breakpoint-md: 769px;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+}
+
+input, textarea {
+  border: none;
+  outline: none;
+  padding: 0;
+  resize: none;
+}
+
+/* Prevent iOS Safari from auto-zooming on focus: focusable form controls must
+   be >=16px on small screens. Desktop-first — only at the phone breakpoint. */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px;
+  }
+}
+
+
+/* Visually hidden but available to screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+  /* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+  
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+  
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+  
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+}
+
+::-webkit-scrollbar-thumb {
+  transition: background-color 0.2s ease;
+}
+
+/* Ensure Ant Design message displays above modals */
+.ant-message {
+  z-index: 10000 !important;
+}
+
+.ant-message-notice-wrapper {
+  z-index: 10000 !important;
+}

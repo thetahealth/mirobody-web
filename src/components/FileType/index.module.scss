@@ -1,0 +1,16 @@
+.file_type {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .type {
+    color: rgba(0, 0, 0, 0.60);
+    font-size: 13px;
+    font-weight: 400;
+  }
+}

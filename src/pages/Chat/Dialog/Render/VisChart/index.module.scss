@@ -1,0 +1,48 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+  margin: 12px 0;
+}
+
+.chart {
+  width: 100%;
+  height: 320px;
+}
+
+.download {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 2;
+
+  svg {
+    display: block;
+    width: 28px;
+    height: 28px;
+  }
+
+  &:hover {
+    transform: scale(1.06);
+  }
+}
+
+// Desktop: appears on hover, to keep the chart clean
+.wrapper:hover .download {
+  opacity: 1;
+}
+
+// Touch devices have no hover: always visible (toned down), so mobile can
+// still download
+@media (hover: none) {
+  .download {
+    opacity: 0.55;
+  }
+}

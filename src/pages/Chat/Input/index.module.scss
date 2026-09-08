@@ -1,0 +1,116 @@
+.input_wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  padding: 0 var(--layout-gutter);
+
+  @include phone {
+    padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+.input_container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  // Was a hand-set 968px while ContentList above used --layout-max (1200),
+  // so the box you type in did not line up with the answers you were reading.
+  max-width: var(--layout-max);
+  border-radius: 12px;
+  border: 0.8px solid var(--color-text-secondary);
+  padding: 12px 8px 12px 12px;
+  overflow: hidden;
+  .input {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    resize: none;
+    outline: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    &:focus {
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+}
+.btns {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  .upload_wrapper {
+    position: relative;
+    &:hover {
+      .upload_tip {
+        display: flex;
+      }
+    }
+    .upload_icon {
+      cursor: pointer;
+    }
+    .upload_tip {
+      position: absolute;
+      top: -50px;
+      left: 0px;
+      display: none;
+      width: 306px;
+      padding: 4px 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 400;
+      background-color: rgba(44, 44, 44, 1);
+      border-radius: 4px;
+      box-shadow: 0 0 48px 0 rgba(0, 0, 0, 0.12);
+
+      @include phone {
+        width: max-content;
+        max-width: calc(100vw - 32px);
+      }
+    }
+  }
+  .right {
+    display: flex;
+  }
+  .btn {
+    cursor: pointer;
+    margin-left: 16px;
+  }
+  .btn_dis {
+    cursor: not-allowed;
+    margin-left: 16px;
+  }
+}
+
+.dragging_container {
+  background-color: var(--color-bg-soft);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: var(--layout-max);
+  border-radius: 12px;
+  border: 0.8px dashed var(--color-accent);
+  padding: 34px 0;
+  gap: 4px;
+  .dragging_title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+  .dragging_des {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+
+  }
+}

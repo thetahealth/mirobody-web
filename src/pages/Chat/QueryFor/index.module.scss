@@ -1,0 +1,125 @@
+.wrapper {
+  position: relative;
+  width: 180px;
+  height: 40px;
+
+  // Mobile: shares row 2 with the model selector, right-aligned. Fixed,
+  // slightly narrower box so it sits as the right column.
+  @include phone {
+    width: 150px;
+  }
+}
+.query_for {
+  width: 180px;
+  height: 40px;
+  display: flex;
+  cursor: pointer;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  user-select: none;
+
+  @include phone {
+    width: 100%;
+  }
+  .query_title {
+    position: absolute;
+    top: -10px;
+    left: 13px;
+    color: rgba(60, 60, 67, 0.60);
+    font-size: 14px;
+    font-weight: 500;
+    background-color: #fff;
+    padding: 0 4px;
+  }
+  .query_dropdown {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 13px;
+    .query_for_cur {
+      color: var(--color-text-primary);
+      font-size: 16px;
+      font-weight: 400;
+      flex: 1;
+    }
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 16px);
+  right: 0;
+  width: 356px;
+
+  @include phone {
+    width: calc(100vw - 24px);
+    right: 0;
+    left: auto;
+  }
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.20);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  user-select: none;
+  z-index: 9999;
+  .dropdown_item {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+    &:hover {
+      background-color: var(--color-bg-soft);
+    }
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+  .item_tag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    height: 24px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background-color: var(--color-info-soft);
+    color: var(--color-accent);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .item_name {
+    color: var(--color-text-primary);
+    font-size: 18px;
+    font-weight: 500;
+
+  }
+  .item_detail {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: flex-start;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    height: 40px;
+    background-color: var(--color-bg-soft);
+    margin-top: 16px;
+    color: var(--color-accent);
+    font-size: 18px;
+    font-weight: 600;
+  }
+}

@@ -1,0 +1,197 @@
+// Shared auth control patterns, exposed as @mixins so the login
+// sub-components do not each restate them across CSS modules.
+// Controls are uniformly 44px tall, 12px radius, on warm-cream tokens.
+
+@mixin field-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  transition:
+    border-color var(--t-fast),
+    box-shadow var(--t-fast);
+  box-sizing: border-box;
+  font-family: inherit;
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+  &:hover {
+    border-color: var(--color-border-strong);
+  }
+  &:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+    outline: none;
+  }
+}
+
+// Secondary inline button (send-code). Surface bg, strong border, navy on hover.
+@mixin button-secondary {
+  flex-shrink: 0;
+  min-width: 108px;
+  height: 44px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast),
+    border-color var(--t-fast),
+    color var(--t-fast);
+  user-select: none;
+  font-family: inherit;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-surface);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  &:disabled {
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    background-color: var(--color-bg-light);
+  }
+}
+
+// Primary navy CTA (submit).
+@mixin button-primary {
+  width: 100%;
+  height: 44px;
+  background-color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-on-accent);
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast),
+    border-color var(--t-fast);
+  user-select: none;
+  font-family: inherit;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+// Social button base + Google (outlined) / Apple (solid ink) variants.
+@mixin social-base {
+  width: 100%;
+  height: 44px;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast),
+    border-color var(--t-fast),
+    color var(--t-fast);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-sizing: border-box;
+  font-family: inherit;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+@mixin social-google {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  &:hover:not(:disabled) {
+    background-color: var(--color-bg-light);
+    border-color: var(--color-border-strong);
+  }
+}
+
+@mixin social-apple {
+  background-color: var(--color-text-primary);
+  border: 1px solid var(--color-text-primary);
+  color: var(--color-text-on-accent);
+  &:hover:not(:disabled) {
+    background-color: #000000;
+    border-color: #000000;
+  }
+}
+
+@mixin auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 24px 0 20px;
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: 0;
+  }
+  span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-bg);
+    padding: 0 14px;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+}
+
+@mixin error-text {
+  color: var(--color-danger);
+  font-size: 12px;
+  margin-top: -4px;
+  margin-bottom: 10px;
+}
+
+// Animated "..." suffix for loading labels. Includes its own keyframes; CSS
+// modules scope the name per file, so duplication across modules is harmless.
+@mixin loading-dots {
+  &::after {
+    content: "...";
+    display: inline-block;
+    animation: auth-dots 1.5s steps(4, end) infinite;
+  }
+  @keyframes auth-dots {
+    0%,
+    20% {
+      content: "";
+    }
+    40% {
+      content: ".";
+    }
+    60% {
+      content: "..";
+    }
+    80%,
+    100% {
+      content: "...";
+    }
+  }
+}

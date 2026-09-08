@@ -1,0 +1,25 @@
+@keyframes blink {
+  0%, 100% {
+    background-color: var(--color-bg-soft);
+  }
+  25%, 75% {
+    background-color: #FFFFFF;
+  }
+  50% {
+    background-color: var(--color-bg-soft);
+  }
+}
+
+.highlight_blink {
+  animation: blink 1.5s ease-in-out;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  /* No max-width of its own: the page shell owns the content column now, so
+     this section stops sticking out past everything above it. */
+  gap: var(--space-6);
+  width: 100%;
+}
+

@@ -1,0 +1,23 @@
+/* One scrolling area, one content column. Every child aligns to the same left
+   and right edge — the page used to have three different right edges (750 /
+   1416 / 1440 px) because each section invented its own width. */
+.scroll {
+  flex: 1;
+  overflow: auto;
+  min-width: 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--layout-max);
+  margin: 0 auto;
+  padding: var(--space-6) var(--layout-gutter) var(--space-12);
+}
+
+
+.highlight_blink {
+  animation: blink 1.5s ease-in-out;
+}

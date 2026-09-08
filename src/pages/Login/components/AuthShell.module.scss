@@ -1,0 +1,139 @@
+.shell {
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 32px;
+}
+
+.actions {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+}
+
+.inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 36px;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.brandLink {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.brandLock {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandIcon {
+  height: 30px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
+
+.brandWordmark {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+
+.brandPill {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-text-primary);
+  color: var(--color-text-on-accent);
+}
+
+.brandSubtitle {
+  font-size: 17px;
+  color: var(--color-text-secondary);
+  margin: 18px auto 0;
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+/* Hero scale — entry page. */
+.hero {
+  .brandIcon {
+    height: 54px;
+  }
+  .brandWordmark {
+    height: 46px;
+  }
+  .brandSubtitle {
+    font-size: 19px;
+    margin-top: 22px;
+  }
+}
+
+.footer {
+  margin-top: 22px;
+  text-align: center;
+}
+
+@include phone {
+  .topbar {
+    padding: 0 18px;
+  }
+  .brand {
+    margin-bottom: 28px;
+  }
+  .brandIcon {
+    height: 26px;
+  }
+  .brandWordmark {
+    height: 22px;
+  }
+  .brandSubtitle {
+    font-size: 15px;
+  }
+  .brandPill {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  .hero .brandIcon {
+    height: 40px;
+  }
+  .hero .brandWordmark {
+    height: 34px;
+  }
+}

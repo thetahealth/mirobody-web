@@ -1,0 +1,66 @@
+.member_form {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  box-shadow: 0 0 48px 0 rgba(0, 0, 0, 0.12);
+  padding: 24px;
+  background-color: #fff;
+  gap: 24px;
+  user-select: none;
+}
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  .title {
+    color: var(--color-text-primary);
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .desc {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+}
+.content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 20px;
+  row-gap: 28px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  .btn_cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 94px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+  }
+  .btn_submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 94px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-accent);
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+  }
+}

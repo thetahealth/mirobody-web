@@ -1,0 +1,30 @@
+@use "@/styles/auth-primitives" as auth;
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  @include auth.social-base;
+}
+
+.google {
+  @include auth.social-google;
+}
+
+.apple {
+  @include auth.social-apple;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.loading {
+  @include auth.loading-dots;
+}

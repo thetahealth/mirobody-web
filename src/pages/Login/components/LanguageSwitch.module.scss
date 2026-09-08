@@ -1,0 +1,38 @@
+// Discreet enough to sit in the corner of a near-empty page, big enough to be
+// the thing a reader who cannot read the current language goes looking for.
+.wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.select {
+  appearance: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-family: inherit;
+  // Right padding leaves room for the caret drawn by the background image.
+  padding: 6px 28px 6px 12px;
+  cursor: pointer;
+  line-height: 1.2;
+
+  // Inline SVG caret: no icon dependency, and it inherits nothing that could
+  // break when the palette flips.
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+
+  &:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-text-muted);
+  }
+
+  // Keyboard users must see where they are; this is the only control in the
+  // corner, so the ring is the whole affordance.
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,13 @@
+.file_list {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 38px;
+  background-color: #fff;
+  border-radius: 16px;
+}
+.header {
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}

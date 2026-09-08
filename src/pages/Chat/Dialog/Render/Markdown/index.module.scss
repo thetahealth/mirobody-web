@@ -1,0 +1,36 @@
+.link {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 6px;
+  background-color: rgba(230, 230, 230, 1);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  &:hover {
+    background-color: rgba(200, 200, 200, 1);
+    transform: scale(1.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+}
+/* Running text gets a reading measure (~72ch). Answers used to span the full
+   column — around 180 characters per line, where the comfortable range is
+   45-75; the eye loses its place on every return sweep, which is most of why
+   long analyses read as "ugly".
+
+   Tables, code and charts are exempt: they are scanned, not read, and a lab
+   table squeezed into a prose column is worse than a wide one. */
+.prose {
+  > p,
+  > ul,
+  > ol,
+  > blockquote,
+  > h1,
+  > h2,
+  > h3,
+  > h4 {
+    max-width: var(--layout-prose);
+  }
+}

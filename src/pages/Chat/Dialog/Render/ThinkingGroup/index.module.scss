@@ -1,0 +1,59 @@
+.thinking_group:first-child {
+  margin-top: 0 !important;
+}
+
+.thinking_wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.thinking_header {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  .thinking_title {
+    color: #000;
+    font-size: 14px;
+  }
+  .arrow_icon {
+    display: flex;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s ease;
+    margin-left: 4px;
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--color-text-secondary);
+    }
+  }
+}
+
+
+.thinking_content {
+  animation: slideDown 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thinking_content_hidden {
+  display: none;
+}
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 5000px;
+  }
+}

@@ -1,0 +1,58 @@
+.uploadContainer {
+  /* A drop target, not a billboard: this was a ~380px tall panel sitting above
+     the file list it feeds. One compact row states the action and the limits,
+     and gives the list back its space. */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  background: var(--color-bg-soft);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  cursor: pointer;
+  transition: border-color var(--t-fast), background-color var(--t-fast);
+}
+
+.uploadContainer:hover {
+  border-color: var(--color-accent);
+}
+
+.uploadContainerDragging {
+  background: var(--color-bg-soft);
+  border: 2px solid var(--color-accent);
+  border-style: solid;
+}
+
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.title {
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--color-text-primary);
+}
+
+.description {
+  /* No max-width: the 78ch cap was tuned for the old two-paragraph English
+     copy; on the one-line CJK copy it wrapped at half the row and looked
+     broken. The container itself bounds the line now. */
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+/* Icon sits inline with the copy now, at a size that supports it rather than
+   competing with it. */
+.uploadIcon {
+  font-size: 28px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}

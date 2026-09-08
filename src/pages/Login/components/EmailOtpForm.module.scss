@@ -1,0 +1,41 @@
+@use "@/styles/auth-primitives" as auth;
+
+.form {
+  width: 100%;
+}
+
+.field {
+  margin-bottom: 12px;
+
+  input {
+    @include auth.field-input;
+  }
+}
+
+.codeRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  input {
+    @include auth.field-input;
+    flex: 1;
+    min-width: 0;
+  }
+  button {
+    @include auth.button-secondary;
+  }
+}
+
+.error {
+  @include auth.error-text;
+}
+
+.submit {
+  @include auth.button-primary;
+  margin-top: 6px;
+}
+
+.loading {
+  @include auth.loading-dots;
+}

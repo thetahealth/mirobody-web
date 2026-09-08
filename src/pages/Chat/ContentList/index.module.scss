@@ -1,0 +1,21 @@
+.wrapper {
+  width: 100%;
+  flex: 1;
+  min-height: 0; // Fix Safari flexbox scroll issue
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+}
+
+.content_list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: var(--layout-max);
+  container-type: inline-size;
+  container-name: content-list;
+}

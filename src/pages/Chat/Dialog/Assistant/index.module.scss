@@ -1,0 +1,31 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  gap: 16px;
+  @container content-list (max-width: 1012px) {
+    flex-direction: column;
+  }
+}
+
+// single
+.single_wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.single_content {
+  display: flex;
+  flex-direction: column;
+  padding-left: 40px;
+}
+.btn {
+  cursor: pointer;
+}
+
+.empty_state {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  text-align: left;
+}

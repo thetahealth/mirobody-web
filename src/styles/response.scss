@@ -1,0 +1,71 @@
+// mixin
+@mixin response($breakpoint) {
+  // phone
+  @if $breakpoint == mobile {
+    @media (max-width: 480px) {
+      @content;
+    }
+  }
+  // large phone
+  @if $breakpoint == mobile-large {
+    @media (min-width: 481px) and (max-width: 768px) {
+      @content;
+    }
+  }
+  // tablet
+  @if $breakpoint == tablet {
+    @media (min-width: 769px) and (max-width: 1024px) {
+      @content;
+    }
+  }
+  // tablet, portrait
+  @if $breakpoint == tablet-portrait {
+    @media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+      @content;
+    }
+  }
+  // desktop
+  @if $breakpoint == desktop {
+    @media (min-width: 1025px) and (max-width: 1440px) {
+      @content;
+    }
+  }
+  // large desktop
+  @if $breakpoint == desktop-large {
+    @media (min-width: 1441px) {
+      @content;
+    }
+  }
+}
+// One "phone" bracket (phone + large phone, ≤768px) — the same cut as
+// Tailwind's max-md:
+@mixin phone {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+// contact button
+@mixin contact-button {
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 300;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+// Responsive between two explicit widths
+@mixin response-width($min-width, $max-width) {
+  
+  @media (min-width: $min-width) and (max-width: $max-width) {
+    @content;
+  }
+}

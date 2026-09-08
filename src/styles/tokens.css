@@ -1,0 +1,108 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Design tokens — variables only (no scrollbar/global resets), so a page can
+   opt in without inheriting layout.
+
+   Fonts are self-hosted via @fontsource-variable/* (imported in main.jsx), not
+   pulled from a font CDN: a CDN the browser cannot reach costs first paint and
+   is one more thing a self-hosted install has to be able to talk to. Those
+   packages register the family names "Source Sans 3 Variable" / "Fraunces
+   Variable", so the stacks below list the Variable name first, then the plain
+   name + system fallbacks (incl. CJK).
+   ──────────────────────────────────────────────────────────────────────── */
+:root {
+  /* brand — navy (matches Theta Smart iOS ThemeTokens.swift v4.1) */
+  --color-accent: #0e3880; /* active — primary CTA */
+  --color-accent-hover: #0d1e3a; /* navy — deeper brand */
+  --color-navy: #0d1e3a;
+
+  /* surfaces */
+  --color-bg: #f4f1ec; /* warm bg — page */
+  --color-bg-light: #fbfaf7; /* paper — alt surface */
+  --color-surface: #fbfaf7; /* paper — cards / inputs */
+
+  /* borders */
+  --color-border: #e8e4dc; /* line */
+  --color-border-soft: #efece5; /* line-soft */
+  --color-border-strong: #9b9894; /* ink-faint — hover/strong border */
+  --color-border-ink: #1a1a1a; /* ink — high-contrast secondary button border */
+
+  /* text */
+  --color-text-primary: #1a1a1a; /* ink */
+  --color-text-secondary: #5c5a57; /* ink-soft */
+  --color-text-muted: #9b9894; /* ink-faint */
+  --color-text-on-accent: #efece5; /* line-soft on primary */
+
+  /* semantic status */
+  --color-success: #2f4a3a; /* forest */
+  --color-warning: #c07a3a; /* warm caramel */
+  --color-danger: #b03a2e; /* error */
+  --color-info: #3b6b9c; /* muted blue */
+
+  /* soft status backgrounds — tints of the semantic colors (badges / chips) */
+  --color-bg-soft: #f1efe8;
+  --color-info-soft: rgba(59, 107, 156, 0.12);
+  --color-warning-soft: rgba(192, 122, 58, 0.12);
+  --color-success-soft: rgba(47, 74, 58, 0.12);
+  --color-danger-soft: rgba(176, 58, 46, 0.12);
+
+  /* focus ring (15% navy) */
+  --color-focus-ring: rgba(14, 56, 128, 0.15);
+
+  /* primary action color — aliases navy, can swap independently later */
+  --color-action: var(--color-accent);
+  --color-action-hover: var(--color-accent-hover);
+  --color-action-fg: #ffffff;
+
+  /* typography — self-hosted variable fonts (see header) + CJK fallbacks */
+  --font-sans: "Source Sans 3 Variable", "Source Sans 3", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei",
+    "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Fraunces Variable", "Fraunces", "Iowan Old Style", Baskerville,
+    Georgia, "Times New Roman", serif;
+
+  /* radius — Theta v4.1 scale */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* transition */
+  --t-fast: 0.18s ease;
+
+  /* elevation — flat system: prefer borders; reserve shadows for overlays
+     (dropdowns / sheets / modals). In dark mode these are dropped entirely. */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.09);
+  --shadow-lg: 0 4px 18px rgba(0, 0, 0, 0.11);
+  --shadow-xl: 0 8px 28px rgba(0, 0, 0, 0.14);
+
+  /* spacing — a 4px scale. It was specified long before anything used it, so
+     every screen invented its own padding and they disagreed; these exist so
+     new work has one ladder to pick from. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* layout — one content column for every route, so the page stops having
+     three different right edges. */
+  /* 1360, was 1200: on wide displays the 1200px column left a hand-span of
+     dead margin each side (reported as "大片空白但内容拥挤"). Still bounded —
+     unbounded chat text was the original "ugly long lines" bug. */
+  --layout-max: 1360px;
+  --layout-gutter: var(--space-6);
+  /* running text. 72ch was right for Latin but CJK glyphs are ~2ch wide, so
+     Chinese answers broke at ~36 汉字 — half the container — while charts and
+     tables in the same message ran the full width, which read as a bug (and
+     was reported as one). 100ch ≈ 50 汉字 / ~100 Latin chars: wider than
+     classic print measure, but consistent with the charts beside it. */
+  --layout-prose: 100ch;
+  --control-h: 52px;
+}

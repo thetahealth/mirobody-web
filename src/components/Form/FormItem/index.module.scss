@@ -1,0 +1,114 @@
+.form_item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+.label {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+  .label_text {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+  }
+  .required {
+    color: var(--color-danger);
+    font-size: 14px;
+    font-weight: 400;
+  }
+}
+.input_wrapper {
+  position: relative;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  max-width: 380px;
+  height: 46px;
+  border-radius: 12px;
+  padding-left: 12px;
+  gap: 8px;
+}
+.form_item_error {
+  .input_wrapper {
+    border: 1px solid var(--color-danger);
+  }
+}
+.error {
+  position: absolute;
+  bottom: -16px;
+  left: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-danger);
+}
+
+// input
+.input {
+  flex: 1;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 400;
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+}
+.counter {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 400;
+  padding-right: 12px;
+}
+
+
+// date
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  padding-right: 12px;
+  height: 100%;
+  cursor: pointer;
+}
+.calendar {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background-color: #fff;
+  overflow: hidden;
+  padding: 0 8px;
+}
+
+// select
+.options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  // &::-webkit-scrollbar {
+  //   display: none;
+  // }
+}
+.option {
+  padding: 12px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  &:hover {
+    background-color: var(--color-border);
+  }
+}

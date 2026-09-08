@@ -1,0 +1,95 @@
+.title {
+  background: linear-gradient(90deg, var(--color-accent) 0%, #5EB7EE 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 40px;
+  font-weight: 300;
+  // margin-bottom: 64px;
+  text-align: center;
+  user-select: none;
+  // margin-top: 136px;
+}
+
+.upload {
+  width: 100%;
+  max-width: 600px;
+  border-radius: 12px;
+  border: 1px dashed var(--color-accent);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 0 50px;
+  user-select: none;
+  &:hover {
+    background: var(--color-bg-soft);
+  }
+  &.upload_dragging {
+    background: var(--color-bg-soft);
+    border-style: solid;
+    border-width: 2px;
+  }
+  .upload_title {
+    margin-bottom: 4px;
+    color: var(--color-text-primary);
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .upload_desc {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 24px;
+    margin-top: 4px;
+  }
+  .upload_icon {
+    width: 168px;
+  }
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 0 22px;
+  .tag {
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    display: flex;
+    height: 36px;
+    padding: 7px 20px;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+// ── Mobile: the desktop greeting + upload drop-zone are oversized and stiff
+// on a phone. Scale the greeting down, soften the drop-zone into a compact
+// card, and shrink the illustration so it matches the rest of the mobile UI.
+@media (max-width: 768px) {
+  .title {
+    font-size: 26px;
+    line-height: 1.3;
+    padding: 0 16px;
+  }
+  .upload {
+    max-width: 100%;
+    padding: 22px 20px;
+    border-radius: 16px;
+    .upload_icon {
+      width: 96px;
+    }
+    .upload_title {
+      font-size: 16px;
+    }
+    .upload_desc {
+      font-size: 12.5px;
+      line-height: 1.5;
+      margin-bottom: 0;
+      text-align: center;
+    }
+  }
+}

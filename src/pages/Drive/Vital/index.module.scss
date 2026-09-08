@@ -1,0 +1,47 @@
+@keyframes blink {
+  0%, 100% {
+    background-color: var(--color-bg-soft);
+  }
+  25%, 75% {
+    background-color: #FFFFFF;
+  }
+  50% {
+    background-color: var(--color-bg-soft);
+  }
+}
+
+.highlight_blink {
+  animation: blink 1.5s ease-in-out;
+}
+
+.connected {
+  position: relative;
+  color: var(--color-success);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 12px;
+  width: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  .unlink_icon {
+    display: none;
+    margin-left: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    // Touch devices have no hover: keep it visible so it stays tappable
+    @media (hover: none) {
+      display: block;
+    }
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+  &:hover {
+    width: auto;
+    .unlink_icon {
+      display: block;
+    }
+  }
+}

@@ -1,0 +1,125 @@
+.vs_wrapper {
+  border-radius: 20px;
+  background-color: var(--color-bg-soft);
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  .vs_list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+}
+.dropdown_content {
+  /* A model picker, not a panel: this was 500px wide and 600px tall for a
+     handful of one-word names. */
+  width: fit-content;
+  min-width: min(260px, calc(100vw - 24px));
+  max-height: 420px;
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 0;
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.20);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.dropdown_item {
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  height: 36px;
+  min-height: 36px;
+  gap: var(--space-3);
+  user-select: none;
+  .dropdown_item_text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dropdown_item_actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    // Touch devices can't hover — keep item actions visible.
+    @media (hover: none) {
+      opacity: 1;
+    }
+  }
+  &:hover {
+    background-color: var(--color-bg-soft);
+    .dropdown_item_actions {
+      opacity: 1;
+    }
+  }
+}
+.checkbox_unchecked {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: #FFF;
+}
+.checkbox_disabled {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: rgba(230, 230, 230, 1);
+}
+.footer {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.all {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.confirm {
+  display: flex;
+  padding: 7px 20px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  background: var(--color-bg-soft);
+  font-size: 16px;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+.disabled_btn {
+  cursor: not-allowed;
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+.tip {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 400;
+}
+.vs_tip {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+.vs_tip_name {
+  color: var(--color-text-primary);
+  font-size: 13px;
+  padding: 0 4px;
+}

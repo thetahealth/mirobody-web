@@ -1,0 +1,21 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+.content {
+  display: flex;
+  flex-direction: column;
+}
+.content_wrapper {
+  border-radius: 16px 16px 2px 16px;
+  background: var(--color-bg-soft);
+  padding: 12px;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 400;
+}

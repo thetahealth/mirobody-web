@@ -1,0 +1,17 @@
+.content_wrapper {
+  border-radius: 16px 16px 16px 2px;
+  // padding: 12px;
+  font-size: 18px;
+  font-weight: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.empty_state {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  text-align: center;
+  padding: 24px 0;
+}
