@@ -41,23 +41,6 @@ export const newChatSession = ({ query_user_id, session_id }) => {
   return mcpRequestInstance.post("/api/session", body);
 };
 
-// rating chat /api/rating
-export const ratingChat = ({
-  session_id,
-  rating,
-  questionId,
-  responseId,
-  user_id,
-}) => {
-  // No `agent`: the backend never read it, and there is one agent since 1.4.0.
-  return mcpRequestInstance.post("/api/rating", {
-    session_id,
-    rating,
-    questionId,
-    responseId,
-    user_id,
-  });
-};
 
 // /api/history_by_person
 export const historyByPerson = ({ user_id, user_name, signal }) => {

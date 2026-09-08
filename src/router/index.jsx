@@ -5,7 +5,6 @@ import RouteError from "./RouteError.jsx";
 import { LegacyChatRedirect, LegacyDriveRedirect } from "./LegacyRedirects.jsx";
 
 // Lazy load all page components for code splitting
-const Home = lazy(() => import("../pages/Home/index.jsx"));
 const Login = lazy(() => import("../pages/Login/index.jsx"));
 const Chat = lazy(() => import("../pages/Chat/index.jsx"));
 const Drive = lazy(() => import("../pages/Drive/index.jsx"));
@@ -70,9 +69,13 @@ export const routes = [
             path: "/drive",
             Component: LegacyDriveRedirect,
           },
+          // /home was this page's first shape (a data bar, an upload box and a
+          // file list) before /data absorbed all three. Nothing has linked to it
+          // for a long time; it stays as a redirect because bookmarks do not
+          // know that.
           {
             path: "/home",
-            Component: Home,
+            Component: LegacyDriveRedirect,
           },
           {
             path: "/developer",

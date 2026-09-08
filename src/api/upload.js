@@ -20,27 +20,6 @@ export const uploadSingleFileWithProgress = (file, onUploadProgress) => {
   });
 };
 
-// /files/upload - multiple files
-export const uploadFilesToS3 = ({ files, onUploadProgress }) => {
-  const formData = new FormData();
-  for (const file of files) {
-    formData.append("files", file);
-  }
-  return mcpRequestInstance.post("/files/upload", formData, {
-    onUploadProgress: (progressEvent) => {
-      if (onUploadProgress && progressEvent.total) {
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total,
-        );
-        onUploadProgress({
-          loaded: progressEvent.loaded,
-          total: progressEvent.total,
-          percentage: percentCompleted,
-        });
-      }
-    },
-  });
-};
 
 /* get uploaded files */
 export const getUploadedFiles = ({ limit, offset, signal, user_id }) => {

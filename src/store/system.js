@@ -39,34 +39,19 @@ export const useSystemStore = create(
     // webauthn / mfa
     isShowWebAuthn: false,
     // Device providers (Garmin / Oura / Whoop / 300+ via Vital, Apple Health).
-    // Default ON: the backend only emits three keys, so a missing flag used to
-    // be indistinguishable from "off" and this whole surface — a headline
-    // capability of the engine — never rendered for any self-hoster. The list
-    // degrades to an honest empty state when nothing is installed, so showing
-    // it costs nothing when it is genuinely absent.
+    // Default ON: a missing flag used to be indistinguishable from "off", and
+    // this whole surface — a headline capability of the engine — never
+    // rendered for any self-hoster. The list degrades to an honest empty state
+    // when nothing is installed, so showing it costs nothing when it is
+    // genuinely absent.
     isShowMobileSource: true,
     // api config
     isShowAPIConfig: true,
-    // new features
-    isShowNewFeatures: [],
-    // mirobody config default
-    mirobody_config: {
-      __IS_API_CONFIG_ON__: false,
-      __IS_GOOGLE_LOGIN_ON__: false,
-      __IS_APPLE_LOGIN_ON__: false,
-      __IS_NEW_FEATURES_ON__: [],
-      __IS_WEBAUTHN_ON__: false,
-      __IS_MOBILE_SOURCE_ON__: true,
-    },
     initMirobodyConfig: async () => {
       try {
         const data = await api.getMirobodyConfig();
         set((state) => {
-          state.mirobody_config = data;
           state.isShowAPIConfig = !!data.__IS_API_CONFIG_ON__;
-          state.isShowNewFeatures = Array.isArray(data.__IS_NEW_FEATURES_ON__)
-            ? data.__IS_NEW_FEATURES_ON__
-            : [];
           state.isShowWebAuthn = !!data.__IS_WEBAUTHN_ON__;
           // Absent key ≠ off (see above): only an explicit false hides it.
           if (data.__IS_MOBILE_SOURCE_ON__ !== undefined) {
