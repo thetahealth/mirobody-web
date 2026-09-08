@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # One version, not a matrix: this is a private repo and Actions
+          # minutes are billed. package.json declares a >=20.19 floor; if that
+          # floor ever matters, test it here explicitly.
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      # The build is its own step: it is the only one of the three that fails on
+      # a broken import path, a deleted asset or a worker that stops resolving.
+      - run: npm run build
