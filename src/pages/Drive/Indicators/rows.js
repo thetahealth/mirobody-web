@@ -1,44 +1,23 @@
 /**
- * The indicator endpoint answers in two GRAINS, and this folds both into the
- * one row model the table renders.
+ * `GET /api/v1/health-indicators` answers in two grains — catalog rows
+ * (one per indicator) without `keywords`/`indicators`, reading rows with them —
+ * and folds both into the one row model the table renders.
  *
- *   GET /api/v1/health-indicators
- *     no keywords / no indicators  → CATALOG rows, one per indicator:
- *       {indicator, system, code, count, unit, latest_value,
- *        first_date, last_date, total, day_known}
- *     keywords=… | indicators=…    → READING rows, one per measurement:
- *       {indicator, time, value, unit, file_key, row_id, system, code,
- *        total, day_known, provenance}
+ * The grain is sniffed per response, not inferred from the request: a search
+ * that matches nothing answers with the catalog instead of an empty table, and
+ * the envelope does not say which it chose. Only a reading has `row_id`, only a
+ * catalog row has `last_date`.
  *
- * Both arrive as `{rows, count, total, truncated, …}`.
- *
- * **Why the grain is sniffed per response rather than decided by the caller.**
- * A search that matches nothing does not come back empty: the server answers
- * with the catalog instead, so the person sees what they actually have rather
- * than a blank table. So "I asked with keywords" does not imply reading rows,
- * and the envelope does not say which grain it chose. The rows themselves do:
- * only a reading carries `row_id`, only a catalog row carries `last_date`.
- *
- * This module exists because the previous client read `res.catalog` and
- * `res.indicators` — keys the server never sent — and then fed the rows through
- * a reading-aggregator that had nothing to aggregate. The list rendered "no
- * indicator data" against a healthy endpoint holding six indicators, and the
- * readings drawer and the edit buttons were broken the same way (issue #62).
- * Every field mapping here is pinned by rows.test.js.
+ * The previous client read `res.catalog` / `res.indicators`, keys the route
+ * never sends (issue #62). rows.test.js pins every mapping here.
  */
 
 /** A catalog row never has `row_id`; a reading row always does. */
 const isCatalogRow = (row) =>
   !!row && row.row_id == null && ("last_date" in row || "latest_value" in row);
 
-/**
- * One reading, as the drawer and the correction buttons want it.
- *
- * `row_id` becomes `id`: it is the `th_series_data` primary key that
- * `POST /health-indicators/reading` edits and soft-deletes. Reading `id` — the
- * name an older response used — left every row's edit and delete button
- * unrendered, because the UI only offers them when `id != null`.
- */
+// `row_id` → `id`: the key `POST /health-indicators/reading` edits. The UI only
+// offers edit/delete when `id != null`, so looking for `id` hid both buttons.
 const toReading = (row) => ({
   id: row.row_id ?? null,
   indicator: row.indicator || "",
@@ -59,7 +38,7 @@ const emptyRow = (row) => ({
   readings: [],
 });
 
-/** Catalog rows → table rows. `last_date` is a date, `time` on a reading is a timestamp. */
+// Catalog rows: `last_date` is a date; a reading's `time` is a timestamp.
 const fromCatalog = (rows) =>
   rows.map((row) => ({
     ...emptyRow(row),
@@ -68,15 +47,9 @@ const fromCatalog = (rows) =>
     latest_time: row.last_date || "",
   }));
 
-/**
- * Reading rows → one table row per indicator, carrying the readings that came
- * with them so opening the drawer needs no second request.
- *
- * `count` comes from the row's own `total` (the per-indicator total, computed
- * server-side over the whole series) and NOT from how many readings arrived:
- * the response is capped by `limit`, so counting the array reports "1 record"
- * for an indicator with six.
- */
+// Reading rows → one row per indicator, keeping their readings so the drawer
+// needs no second request. `count` is the row's `total` (the server's count over
+// the whole series), not the array length, which `limit` caps.
 const fromReadings = (rows) => {
   const byName = new Map();
   for (const row of rows) {
@@ -91,8 +64,7 @@ const fromReadings = (rows) => {
     }
     entry.readings.push(toReading(row));
     entry.count = Number(row.total) || entry.readings.length;
-    // Pick the latest by comparing timestamps rather than trusting the order
-    // rows arrive in — "YYYY-MM-DD HH:mm:ss" sorts lexically.
+    // Latest by timestamp, not by arrival order ("YYYY-MM-DD HH:mm:ss" sorts).
     if (row.time && row.time > entry.latest_time) {
       entry.latest_time = row.time;
       entry.latest_value = row.value ?? "";
@@ -108,21 +80,16 @@ export const toTableRows = (res) => {
   return isCatalogRow(rows[0]) ? fromCatalog(rows) : fromReadings(rows);
 };
 
-/**
- * The drawer's readings for one indicator. A catalog answer (what a no-match
- * search falls back to) carries no readings, so it yields none — rather than
- * one blank row per indicator.
- */
+// The drawer's readings. A catalog answer carries none, so it yields none
+// rather than a blank row per indicator.
 export const toReadingList = (res) => {
   const rows = Array.isArray(res?.rows) ? res.rows : [];
   if (rows.length === 0 || isCatalogRow(rows[0])) return [];
   return rows.map(toReading);
 };
 
-/**
- * `{shown, total}` when the server capped the answer, else null — so the page
- * can say "60 of 244" instead of quietly presenting a slice as the whole.
- */
+// `{shown, total}` only when something was actually left out: the server sets
+// `truncated` even when `rows == total`.
 export const truncationOf = (res) => {
   if (!res?.truncated) return null;
   const shown = Array.isArray(res.rows) ? res.rows.length : 0;

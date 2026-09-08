@@ -1,23 +1,13 @@
 /**
  * Cross-subdomain shared session — opt-in, off by default.
  *
- * Two apps on sibling subdomains of one registrable domain can share a
- * signed-in session: whichever app the user authenticated on writes the token
- * to a cookie scoped to the shared parent domain, and the other reads it.
- * localStorage is per-origin and cannot cross subdomains, so the cookie is the
- * only carrier.
- *
- * A single-app install has nobody to share with, and a cookie on the parent
- * domain would hand the access token to every other host under it — so this is
- * configuration, and unset means every function here is a no-op:
+ * Two apps on sibling subdomains share a signed-in session through a cookie on
+ * their common parent domain, because localStorage cannot cross subdomains. A
+ * single-app install has nobody to share with, and that cookie would hand the
+ * access token to every other host under the domain — so it is configuration,
+ * and unset makes every function here a no-op:
  *
  *   VITE_SHARED_SESSION_DOMAIN=.example.com
- *
- * Set it to the shared parent domain (leading dot optional). Both apps must
- * agree on COOKIE_NAME and the cookie attributes.
- *
- * The pure helpers (parseCookie / buildSetCookie / isAllowedRedirect) are
- * unit-tested; the document.cookie wrappers are thin glue.
  */
 
 export const COOKIE_NAME = "mb_at";
@@ -61,13 +51,10 @@ export function buildSetCookie(
 }
 
 /**
- * Open-redirect guard. Accepts only absolute http(s) URLs whose host is the
- * allowed registrable domain or one of its subdomains (dot-boundary enforced).
- *
- * An empty suffix rejects everything except localhost. That case is now
- * reachable — the suffix is configuration and defaults to empty — and
- * `hostname.endsWith("")` is true for every host, so the guard has to
- * short-circuit before it.
+ * Open-redirect guard: absolute http(s) only, host equal to the allowed domain
+ * or a subdomain of it (dot boundary enforced). An empty suffix rejects
+ * everything but localhost — that case is reachable now, and
+ * `hostname.endsWith("")` is true for every host.
  */
 export function isAllowedRedirect(
   rawUrl,
@@ -81,10 +68,8 @@ export function isAllowedRedirect(
     return false;
   }
   if (u.protocol !== "https:" && u.protocol !== "http:") return false;
-  // Local dev: the two apps run on localhost (different ports). A localhost
-  // redirect target is the user's own machine; the session token lives in the
-  // cookie (which a localhost app cannot read off the shared domain), so
-  // nothing can leak through it — safe to allow.
+  // Local dev: the two apps run on localhost. A localhost target is the user's
+  // own machine and cannot read the shared-domain cookie, so nothing leaks.
   if (u.hostname === "localhost" || u.hostname === "127.0.0.1") return true;
   if (!allowedHostSuffix) return false;
   const bare = allowedHostSuffix.startsWith(".")

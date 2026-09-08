@@ -1,12 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { toTableRows, toReadingList, truncationOf } from "./rows";
 
-// Fixtures are the server's own row builders, field for field:
-// `_catalog_row` and `_reading_row` in mirobody/pulse/query.py, wrapped in the
-// `render_rest` envelope from mirobody/agent/tools/health_indicators_service.py.
-// If the server changes a key, these fail here — which is the point: the page
-// used to read keys that did not exist and reported "no data" for a healthy
-// endpoint (issue #62).
+// Fixtures copy the server's own row builders field for field (`_catalog_row` /
+// `_reading_row` in mirobody/pulse/query.py, wrapped in `render_rest`), so a
+// changed key fails here instead of on screen (issue #62).
 const catalogEnvelope = {
   rows: [
     {
@@ -85,8 +82,7 @@ describe("toTableRows — catalog grain", () => {
   it("keeps one row per indicator, with its own count", () => {
     expect(rows).toHaveLength(2);
     expect(rows.map((r) => r.indicator)).toEqual(["bodyMasss", "hemoglobin"]);
-    // Not 1: the count is the row's, not the length of a readings array that
-    // a catalog answer does not carry.
+    // The row's count, not the length of a readings array it does not carry.
     expect(rows[0].count).toBe(6);
   });
 
@@ -117,7 +113,7 @@ describe("toTableRows — readings grain", () => {
   });
 
   it("counts the whole series, not the returned page", () => {
-    // `limit` caps what arrives; `total` is the server's count over everything.
+    // `limit` caps what arrives; `total` counts everything.
     expect(rows[0].count).toBe(6);
   });
 
@@ -149,8 +145,7 @@ describe("toReadingList", () => {
   });
 
   it("returns nothing for a catalog answer", () => {
-    // What a no-match search falls back to. Mapping it would produce one
-    // valueless row per indicator in the drawer.
+    // What a no-match search falls back to.
     expect(toReadingList(catalogEnvelope)).toEqual([]);
   });
 });

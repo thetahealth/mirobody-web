@@ -77,9 +77,8 @@ export const useAccountStore = create((set, get) => ({
       // These carry share_id + is_managed so the UI can offer a remove action.
       let managed = [];
       try {
-        // `{members: [...]}`, not a bare array: the envelope's `data` is an
-        // object, which is why this route used to answer "Could not list your
-        // circle." to every call and this merge always came back empty.
+        // `{members: [...]}`, not a bare array — the envelope's `data` is an
+        // object, which is why this route used to fail every call.
         const sent = await api.listSharedByMe(signal);
         managed = (sent?.members || [])
           .filter((i) => i.status === "authorized" && i.query_user_id)

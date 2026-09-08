@@ -12,12 +12,9 @@ export const useSystemStore = create(
   immer((set, get) => ({
     isPC: true,
     isCNEnvironment: false,
-    // Developer / API-platform link-out. Three places read this — the Settings
-    // card, the login footer link, and the /developer route guard — and none of
-    // them ever rendered, because the key was read but never defined: the
-    // deployment flag it was supposed to come from does not exist. The URL is
-    // the only thing that decides whether those entry points can work at all,
-    // so it is the gate (see config/cdm.js).
+    // Read in three places (Settings card, login footer, /developer guard) and
+    // never defined until now, so none of them ever rendered. The configured URL
+    // is the only thing that decides whether they can work — see config/cdm.js.
     isShowDeveloper: IS_CDM_ENABLED,
     api_base_url: (() => {
       // Initialize from sessionStorage or env
@@ -38,12 +35,9 @@ export const useSystemStore = create(
     isShowAppleLogin: false,
     // webauthn / mfa
     isShowWebAuthn: false,
-    // Device providers (Garmin / Oura / Whoop / 300+ via Vital, Apple Health).
-    // Default ON: a missing flag used to be indistinguishable from "off", and
-    // this whole surface — a headline capability of the engine — never
-    // rendered for any self-hoster. The list degrades to an honest empty state
-    // when nothing is installed, so showing it costs nothing when it is
-    // genuinely absent.
+    // Device providers. Default ON: a missing flag read as "off" and this whole
+    // surface never rendered for any self-hoster. It degrades to an empty state
+    // when nothing is installed, so showing it costs nothing.
     isShowMobileSource: true,
     // api config
     isShowAPIConfig: true,
