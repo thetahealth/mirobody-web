@@ -5,7 +5,6 @@ import { isCnEnvironment } from "../utils";
 import { API_BASE_URL } from "../enum/storage";
 import api from "../api";
 import { consola } from "consola";
-import { initializeFirebase } from "../utils/login.js";
 import { IS_CDM_ENABLED } from "../config/cdm.js";
 
 export const useSystemStore = create(
@@ -29,10 +28,6 @@ export const useSystemStore = create(
         state.api_base_url = api_base_url;
       });
     },
-    // login — driven entirely by what the deployment configured, reported in
-    // /mirobody.json.
-    isShowGoogleLogin: false,
-    isShowAppleLogin: false,
     // webauthn / mfa
     isShowWebAuthn: false,
     // Device providers. Default ON: a missing flag read as "off" and this whole
@@ -52,15 +47,6 @@ export const useSystemStore = create(
             state.isShowMobileSource = !!data.__IS_MOBILE_SOURCE_ON__;
           }
         });
-        // Only offer the Google/Apple buttons once Firebase actually
-        // initialised — otherwise the button leads nowhere.
-        const { firebaseApp } = initializeFirebase(data);
-        if (firebaseApp) {
-          set((state) => {
-            state.isShowGoogleLogin = !!data.__IS_GOOGLE_LOGIN_ON__;
-            state.isShowAppleLogin = !!data.__IS_APPLE_LOGIN_ON__;
-          });
-        }
       } catch (error) {
         consola.error("ERROR: Init Mirobody Config", error);
       }

@@ -109,7 +109,7 @@ Client-side routes: `/login`, `/mcplogin`, `/share/:shareSessionId`, `/ask`,
   in code is how a build ends up shipping a URL it can never reach (that is
   exactly what `config/cdm.js` used to do). Fonts and assets are served from
   the app's own origin; the only outbound exceptions are opt-in and off unless
-  configured (Firebase sign-in, Sentry).
+  configured (Sentry).
 - **Four locales or the build fails.** Every user-visible string goes through
   `t()` with an entry in `en`, `zh-cn`, `zh-tw`, `ja`; `src/i18n/parity.test.js`
   enforces it. Note that some keys are reached dynamically — ``t(`report_date_source_${x}`)``,

@@ -1,21 +1,7 @@
 import { useAccountStore } from "../store/account";
-import device from "current-device";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  OAuthProvider,
-} from "firebase/auth";
-import { handleFirebaseResultEffect } from "../utils/login";
 import api from "../api";
 import consola from "consola";
-import {
-  saveAccessToken,
-  getOAuthRedirectInfo,
-  isMobileDevice,
-  isRedirectError,
-} from "../utils/auth";
+import { saveAccessToken, getOAuthRedirectInfo } from "../utils/auth";
 import {
   isWebAuthnSupported,
   startRegistration,
@@ -34,73 +20,6 @@ const useAuth = () => {
   const saveAuthData = (data) => {
     saveAccessToken(data.access_token);
     setUserInfo(data);
-  };
-
-  /**
-   * Perform Firebase OAuth login (shared logic for Google/Apple)
-   * @param {Object} provider - Firebase auth provider
-   * @returns {Promise<Object>} - Auth result data
-   */
-  const performFirebaseLogin = async (provider) => {
-    const auth = getAuth();
-    if (!auth) {
-      throw new Error("Firebase Auth not initialized");
-    }
-
-    // Mobile/tablet: use redirect flow
-    if (isMobileDevice(device)) {
-      await signInWithRedirect(auth, provider);
-      throw new Error("redirect");
-    }
-
-    // Desktop: use popup flow.
-    // Pass a no-op callback — we handle auth data saving via processAuthResponse.
-    const result = await signInWithPopup(auth, provider);
-    const res = await handleFirebaseResultEffect(result, () => {});
-    return await processAuthResponse(res);
-  };
-
-  /**
-   * Handle Google login
-   */
-  const handleGoogleLogin = async () => {
-    try {
-      return await performFirebaseLogin(new GoogleAuthProvider());
-    } catch (error) {
-      if (isRedirectError(error)) {
-        consola.warn("Google Login: Redirecting");
-        return;
-      }
-      consola.error("ERROR: Google Login", error);
-      throw error;
-    }
-  };
-
-  /**
-   * Handle Apple login
-   */
-  const handleAppleLogin = async () => {
-    try {
-      return await performFirebaseLogin(new OAuthProvider("apple.com"));
-    } catch (error) {
-      if (isRedirectError(error)) {
-        consola.warn("Apple Login: Redirecting");
-        return;
-      }
-      consola.error("ERROR: Apple Login", error);
-      throw error;
-    }
-  };
-
-  /**
-   * Handle Google One Tap callback
-   */
-  const googleOneTapCallback = async ({ credential }) => {
-    try {
-      await api.googleVerify({ token: credential });
-    } catch (error) {
-      consola.error("ERROR: Google One Tap Callback", error);
-    }
   };
 
   /**
@@ -238,12 +157,9 @@ const useAuth = () => {
   };
 
   return {
-    handleGoogleLogin,
-    handleAppleLogin,
     handleEmailLogin,
     handlePasswordLogin,
     handleOauthAuthorize,
-    googleOneTapCallback,
     registerWebAuthn,
     processAuthResponse,
     saveAuthData,

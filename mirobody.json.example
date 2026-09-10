@@ -1,16 +1,9 @@
 {
-  "_comment": "What the backend serves at GET /mirobody.json — the runtime feature/identity config this app reads on boot. Copy to your server's static root only for frontend-only development; a real deployment has the mirobody backend generate it. Firebase values below are placeholders: Google/Apple sign-in stays hidden until they are real, and every other capability works without them.",
+  "_comment": "What the backend serves at GET /mirobody.json — the runtime feature config this app reads on boot. Copy to your server's static root only for frontend-only development; a real deployment has the mirobody backend generate it. __IS_GOOGLE_LOGIN_ON__ / __IS_APPLE_LOGIN_ON__ are emitted by the backend and ignored by this client, which signs in by email code or password only.",
   "__IS_API_CONFIG_ON__": true,
   "__IS_WEBAUTHN_ON__": false,
   "__IS_MOBILE_SOURCE_ON__": true,
   "__IS_NEW_FEATURES_ON__": [],
   "__IS_GOOGLE_LOGIN_ON__": false,
-  "__IS_APPLE_LOGIN_ON__": false,
-  "__FIREBASE_API_KEY__": "",
-  "__FIREBASE_AUTH_DOMAIN__": "LOCAL",
-  "__FIREBASE_PROJECT_ID__": "",
-  "__FIREBASE_STORAGE_BUCKET__": "",
-  "__FIREBASE_MESSAGING_SENDER_ID__": "",
-  "__FIREBASE_APP_ID__": "",
-  "__FIREBASE_MEASUREMENT_ID__": ""
+  "__IS_APPLE_LOGIN_ON__": false
 }

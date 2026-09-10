@@ -122,20 +122,6 @@ export const getOAuthRedirectInfo = (data, oauthParams) => {
 };
 
 /**
- * Check if device is mobile or tablet
- * @param {Object} device - Device detection object
- * @returns {boolean}
- */
-export const isMobileDevice = (device) => device.mobile() || device.tablet();
-
-/**
- * Check if error is a redirect (not an actual error)
- * @param {Error} error
- * @returns {boolean}
- */
-export const isRedirectError = (error) => error.message === "redirect";
-
-/**
  * Get all localStorage keys as array
  * @returns {string[]}
  */

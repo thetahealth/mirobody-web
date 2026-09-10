@@ -178,11 +178,6 @@ export default defineConfig(({ mode }) => {
               return;
             }
 
-            // Firebase SDK - large, no React dependency
-            if (id.includes("firebase") || id.includes("@firebase")) {
-              return "vendor-firebase";
-            }
-
             // Eruda - debug tool, dynamically loaded
             if (id.includes("eruda")) {
               return "vendor-eruda";

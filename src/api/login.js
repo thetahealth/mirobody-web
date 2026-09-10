@@ -3,18 +3,6 @@ import { mcpRequestInstance } from "../service/request.js";
 /*
  * Google Verify
  */
-export const googleVerify = (data) => {
-  return mcpRequestInstance.post("/google/verify", data);
-};
-
-/**
- * Apple Verify
- */
-
-export const appleVerify = (data) => {
-  return mcpRequestInstance.post("/apple/verify", data);
-};
-
 /**
  * Email Login
  */
