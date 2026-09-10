@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import legacy from "@vitejs/plugin-legacy";
 import svgr from "vite-plugin-svgr";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -45,9 +44,18 @@ export default defineConfig(({ mode }) => {
         plugins: ["babel-plugin-react-compiler"],
       },
     }),
-    legacy({
-      targets: ["defaults", "not IE 11"],
-    }),
+    // No @vitejs/plugin-legacy. It emitted a second, transpiled copy of every
+    // bundle (3.3 MB, 17 of 59 files) for browsers that cannot render this app
+    // anyway: the plugin transforms JAVASCRIPT ONLY, and the stylesheet Tailwind
+    // v4 produces uses @property (36x), color-mix() (9x), @layer, oklch() and
+    // @container — a hard floor of Chrome 111 / Safari 16.4 / Firefox 128 that
+    // no JS transpilation can lift. `targets: ["defaults", "not IE 11"]`
+    // resolved to six targets below that floor (chrome 109, and_qq 14.9,
+    // and_uc 15.5, kaios, op_mini, op_mob 80); every one of them got working
+    // JS painting an unstyled page. Modern browsers never downloaded the
+    // legacy chunks — they are `nomodule` — so removing them changes nothing
+    // for anyone who can use the app today. The floor is now written down, in
+    // package.json's browserslist, instead of being implied by a dependency.
     svgr(),
     tailwindcss(),
     // HTML injection plugin for build info
