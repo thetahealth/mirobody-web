@@ -167,6 +167,13 @@ export default defineConfig(({ mode }) => {
           "/files": opts,
           "/invitation": opts,
           "/email": opts,
+          // api/login.js calls /password/login and /password/register, and
+          // .env.development ships VITE_BASE_URL_MCP empty so those go through
+          // this proxy. Without this line they hit the dev server itself and
+          // 404 — i.e. the one sign-in route that needs no mail provider (the
+          // comment in api/login.js calls it "the way in that works out of the
+          // box") was the one route local dev could not reach.
+          "/password": opts,
           "/google": opts,
           "/apple": opts,
           "/oauth": opts,
