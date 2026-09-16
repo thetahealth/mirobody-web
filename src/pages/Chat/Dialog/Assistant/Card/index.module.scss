@@ -29,26 +29,48 @@
       align-items: center;
       gap: 8px;
       flex: 1;
+      /* min-width:0 + ellipsis: the card itself is overflow:hidden, so a long
+         provider display name was simply sliced off mid-glyph with no
+         indication, and it pushed the copy / expand buttons out of the card. */
+      min-width: 0;
       height: 100%;
       color: var(--color-text-primary);
       font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
   .btns {
     display: flex;
   }
+  /* <button>s now, so the default chrome is cleared here. */
   .copy_btn {
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    gap: 8px;
+    color: var(--color-text-secondary);
+    padding: 0;
+    transition: background-color var(--t-fast), color var(--t-fast);
     &:hover {
       background-color: var(--color-bg-soft);
+      color: var(--color-text-primary);
     }
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: -2px;
+    }
+  }
+
+  .copied_icon {
+    color: var(--color-success);
   }
 }
 .content {

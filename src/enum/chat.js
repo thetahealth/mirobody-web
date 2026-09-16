@@ -27,6 +27,11 @@ export const CHART_MESSAGE_TYPE = {
   // the agent asked the user a question (ask_user) and the run is paused:
   // question + one-tap options; a tap sends an ordinary message that resumes it
   INTERRUPT: "interrupt",
+  // the system talking to the user ("the model you picked isn't configured, so
+  // I used the default"), not the model talking. It used to be folded into
+  // `thinking`, where a reader could not tell the two apart — telling them
+  // apart is the whole reason this block exists, so it renders differently.
+  NOTICE: "notice",
   ERROR: "error",
   END: "end",
   // th_messages.message_type, which says what a USER row holds
@@ -54,6 +59,7 @@ const BLOCK_TEXT_FIELD = {
   [CHART_MESSAGE_TYPE.TOOL_CALL]: "name",
   [CHART_MESSAGE_TYPE.TOOL_RESULT]: "content",
   [CHART_MESSAGE_TYPE.ERROR]: "message",
+  [CHART_MESSAGE_TYPE.NOTICE]: "message",
 };
 
 /** A block's own text payload, whatever the block type calls it. */

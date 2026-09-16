@@ -1,28 +1,60 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Typography for an assistant reply — the most-read surface in the product.
+
+   It used to be typeset by `public/github-markdown-light.css`: 1006 vendored
+   lines carrying GitHub's whole design system. That sheet hardcoded GitHub's
+   ink (#24292f), its link blue (#0969da), its greys (#f6f8fa / #d0d7de) and
+   `-apple-system` — so an answer was rendered in a different typeface and a
+   different palette than the page around it, and the wrapper had to fight it
+   back with `!important` on font-size, color and background. It also shipped
+   octicon data-URIs and GitHub's heading-anchor hover machinery, none of which
+   this app has ever used.
+
+   Everything below is expressed in this project's tokens and inherits the
+   wrapper's font-size / line-height / color, so a reply looks like the app.
+
+   NOTE — this sheet must be exhaustive. Tailwind's preflight (index.css imports
+   tailwindcss) resets `h1..h6 { font-size: inherit; font-weight: inherit }`,
+   `ol, ul { list-style: none }` and the margins on p / h* / blockquote / pre /
+   hr. Anything not restated here renders as unstyled body text, which is why
+   the list markers and heading sizes are set explicitly rather than left to the
+   browser default the way the reference app can.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* A link used to render as a bare 20x20 glyph with the author's link text
+   thrown away, so every link in an answer looked identical and you could not
+   tell where it went before clicking. The glyph stays as the affordance; the
+   text comes back next to it. */
 .link {
-  width: 20px;
-  height: 20px;
-  margin-bottom: 6px;
-  background-color: rgba(230, 230, 230, 1);
-  border-radius: 4px;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  vertical-align: middle;
+  gap: 3px;
+  vertical-align: baseline;
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  /* A bare autolink's text IS the URL, and those run long. */
+  word-break: break-all;
+  transition: color var(--t-fast);
+
+  svg {
+    flex-shrink: 0;
+  }
+
   &:hover {
-    background-color: rgba(200, 200, 200, 1);
-    transform: scale(1.1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    color: var(--color-accent-hover);
   }
 }
-/* Running text gets a reading measure (~72ch). Answers used to span the full
-   column — around 180 characters per line, where the comfortable range is
-   45-75; the eye loses its place on every return sweep, which is most of why
-   long analyses read as "ugly".
 
-   Tables, code and charts are exempt: they are scanned, not read, and a lab
-   table squeezed into a prose column is worse than a wide one. */
 .prose {
+  /* Running text gets a reading measure. Answers used to span the full column —
+     around 180 characters per line, where the comfortable range is 45-75; the
+     eye loses its place on every return sweep, which is most of why long
+     analyses read as "ugly".
+
+     Tables, code and charts are exempt: they are scanned, not read, and a lab
+     table squeezed into a prose column is worse than a wide one. */
   > p,
   > ul,
   > ol,
@@ -32,5 +64,216 @@
   > h3,
   > h4 {
     max-width: var(--layout-prose);
+  }
+
+  /* No leading or trailing gap inside the reply's own box. */
+  > :first-child {
+    margin-top: 0;
+  }
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  p {
+    margin: 0 0 12px;
+    /* A single newline inside a paragraph is a soft break in CommonMark — it
+       collapses to a space. Models write addresses, dosages and un-blank-lined
+       step lists with exactly that, and they arrived as one run-on line.
+       pre-wrap renders the newline the author meant without adding a parser
+       plugin to the streaming render path. */
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  /* em-relative so headings track the wrapper's font-size instead of pinning a
+     second, independent scale into the middle of the page. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 20px 0 8px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-text-primary);
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h1 {
+    font-size: 1.3em;
+  }
+  h2 {
+    font-size: 1.2em;
+  }
+  h3 {
+    font-size: 1.1em;
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: 1em;
+  }
+
+  /* list-style is restated because preflight strips it (see header note). */
+  ul,
+  ol {
+    margin: 0 0 12px;
+    padding-left: 22px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  ul ul {
+    list-style: circle;
+  }
+
+  li {
+    margin: 2px 0;
+
+    > ul,
+    > ol {
+      margin: 4px 0;
+    }
+  }
+
+  /* GFM task list — the checkbox replaces the marker. */
+  li:has(> input[type="checkbox"]) {
+    list-style: none;
+    margin-left: -22px;
+    padding-left: 2px;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  del {
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+
+  /* Inline code: tinted from the ink token, so it sits on whatever surface the
+     reply is on rather than punching a grey hole in it. */
+  code {
+    padding: 1px 5px;
+    border-radius: var(--radius-xs);
+    background-color: color-mix(
+      in srgb,
+      var(--color-text-primary) 8%,
+      transparent
+    );
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+      monospace;
+    font-size: 0.88em;
+  }
+
+  pre {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    border-radius: var(--radius-sm);
+    background-color: color-mix(
+      in srgb,
+      var(--color-text-primary) 6%,
+      var(--color-surface)
+    );
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    code {
+      padding: 0;
+      background: none;
+      font-size: 0.85em;
+      line-height: 1.5;
+    }
+  }
+
+  blockquote {
+    margin: 0 0 12px;
+    padding: 2px 12px;
+    border-left: 3px solid var(--color-border);
+    color: var(--color-text-secondary);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  hr {
+    margin: 16px 0;
+    border: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* GFM table — lab results, so cells stay dense. `display: block` + overflow-x
+     is what contains a wide one: the previous `width: 100%` stretched a
+     three-column table across the whole 1360px column and crushed a
+     twelve-column one, because nothing scrolled. */
+  table {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    margin: 8px 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 0.92em;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  th,
+  td {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    line-height: 1.4;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    font-weight: 600;
+    background-color: var(--color-bg-soft);
+  }
+
+  /* Zebra striping, tinted from the page's own warm neutral rather than
+     GitHub's cool #f6f8fa. */
+  tbody tr:nth-child(2n) {
+    background-color: color-mix(
+      in srgb,
+      var(--color-bg-soft) 55%,
+      transparent
+    );
+  }
+
+  img {
+    max-width: 100%;
+    border-radius: var(--radius-sm);
   }
 }

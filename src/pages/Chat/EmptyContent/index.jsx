@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useOutletContext } from "react-router";
 import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
 import {
@@ -11,6 +12,10 @@ import consola from "consola";
 
 const EmptyContent = () => {
   const { t } = useTranslation();
+  // The composer, handed down by the chat page so it can sit between the
+  // greeting and the drop zone (see pages/Chat/index.jsx). Optional: this route
+  // is only ever rendered with it, but a missing context should not throw.
+  const { composer } = useOutletContext() || {};
   const [isDragging, setIsDragging] = useState(false);
   const startUploadFilesToServer = useChartInputStore(
     (state) => state.startUploadFilesToServer,
@@ -47,10 +52,13 @@ const EmptyContent = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center w-full overflow-auto max-md:px-4">
-      <div className="min-h-[366px] flex-1 flex flex-col items-center justify-center gap-[64px] max-md:min-h-0 max-md:gap-[32px]">
+    <div className={styles.page}>
+      <div className={styles.stack}>
         <div className={styles.title}>{t("hi_how_can_i_help_you_today")}</div>
-        <div
+        {/* Asking is the primary action, so it comes first and widest. */}
+        {composer}
+        <button
+          type="button"
           className={`${styles.upload} ${isDragging ? styles.upload_dragging : ""}`}
           onClick={onClickUploadArea}
           onDragEnter={onDragEnter}
@@ -59,13 +67,15 @@ const EmptyContent = () => {
           onDrop={onDrop}
         >
           <img src={uploadIcon} alt="" className={styles.upload_icon} />
-          <div className={styles.upload_title}>{t("upload_files")}</div>
-          <div className={styles.upload_desc}>
-            {t(
-              "you_can_click_this_area_to_upload_from_your_computer_or_drag_and_drop_here",
-            )}
-          </div>
-        </div>
+          <span className={styles.upload_body}>
+            <span className={styles.upload_title}>{t("upload_files")}</span>
+            <span className={styles.upload_desc}>
+              {t(
+                "you_can_click_this_area_to_upload_from_your_computer_or_drag_and_drop_here",
+              )}
+            </span>
+          </span>
+        </button>
       </div>
     </div>
   );

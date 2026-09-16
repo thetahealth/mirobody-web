@@ -7,14 +7,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px;
+  /* One side gutter for the whole chat column — the header, this transcript and
+     the composer all put --layout-gutter on their un-capped outer element and
+     --layout-max on the inner one. This was 12px while the composer used 24px,
+     so below ~1400px the messages and the box you type in had different left
+     and right edges. */
+  padding: var(--space-3) var(--layout-gutter);
+
+  @include phone {
+    padding: var(--space-3) 12px;
+  }
 }
 
 .content_list {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* Between turns. The gap inside a turn (question -> answer) stays at 12px in
+     List/index.module.scss, so a turn now reads as one unit; both were 12px,
+     which made a long conversation one undifferentiated column of text. */
+  gap: var(--space-6);
   max-width: var(--layout-max);
   container-type: inline-size;
   container-name: content-list;

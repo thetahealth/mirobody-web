@@ -9,7 +9,7 @@ import ThinkingRender from "./Thinking";
 import UserQuestion from "./UserQuestion";
 import UserFileList from "./UserFileList";
 import AskUser from "./AskUser";
-import "../../../../../public/github-markdown-light.css";
+import Notice from "./Notice";
 import consola from "consola";
 import ProtectedImage from "../../../../components/ProtectedImage";
 
@@ -36,7 +36,7 @@ const ContentRender = ({ datasource }) => {
   // the answer, streamed as markdown
   if (type === CHART_MESSAGE_TYPE.TEXT) {
     return (
-      <div dir="auto" className={`${styles.markdown_wrapper} markdown-body`}>
+      <div dir="auto" className={styles.markdown_wrapper}>
         <Markdown content={content} />
       </div>
     );
@@ -92,6 +92,10 @@ const ContentRender = ({ datasource }) => {
       </div>
     );
   }
+  // the system talking to the user, not the model
+  if (type === CHART_MESSAGE_TYPE.NOTICE) {
+    return <Notice content={content} />;
+  }
   // token usage — not in the message flow; the AssistantCard header shows it
   if (type === CHART_MESSAGE_TYPE.USAGE) {
     return null;
@@ -99,7 +103,7 @@ const ContentRender = ({ datasource }) => {
   // error message - markdown on a separate line with error styling
   if (type === CHART_MESSAGE_TYPE.ERROR) {
     return (
-      <div dir="auto" className={`${styles.error_wrapper} markdown-body`}>
+      <div dir="auto" className={styles.error_wrapper}>
         <Markdown content={content} />
       </div>
     );

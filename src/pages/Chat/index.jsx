@@ -1,21 +1,23 @@
 import styles from "./index.module.scss";
 import ChatHeader from "./ChatHeader";
 import Input from "./Input";
-import Menu from "./Menu";
 import { useCallback, useEffect } from "react";
 import FileViewer from "./FileViewer";
-import Header from "../../components/Header";
-import ResponsiveSidebar from "../../components/ResponsiveSidebar";
+import Sidebar, { MobileTopBar } from "../../components/Sidebar";
 import AssistantCard from "./Dialog/Assistant/AssistantCard";
 import { useChatStore } from "../../store/Chart/index";
 import { useAccountStore } from "../../store/account";
 import { useChatHistoryStore } from "../../store/Chart/history";
 import { useChatPreviewStore } from "../../store/Chart/preview";
 import { useModelStore } from "../../store/model";
-import { Outlet, useNavigate } from "react-router";
+import { Outlet, useMatch, useNavigate } from "react-router";
 
 function Chat() {
   const navigate = useNavigate();
+  // The welcome state is the index route (/ask with no session). Matching the
+  // route rather than reading the store keeps this in step with whichever of
+  // EmptyContent / ContentList the Outlet is actually rendering.
+  const isWelcome = Boolean(useMatch({ path: "/ask", end: true }));
   const isShowPreview = useChatPreviewStore((s) => s.is_show_preview);
 
   const currentSessionId = useChatStore((s) => s.current_session_id);
@@ -62,11 +64,9 @@ function Chat() {
 
   return (
     <div className={styles.wrapper}>
-      <Header />
+      <MobileTopBar />
       <div className={styles.chat}>
-        <ResponsiveSidebar drawerWidth={300}>
-          <Menu />
-        </ResponsiveSidebar>
+        <Sidebar />
         <div className={styles.content_wrapper}>
           <div
             className={`${styles.normal_content} ${
@@ -75,8 +75,19 @@ function Chat() {
             key="normal_content"
           >
             <ChatHeader />
-            <Outlet />
-            <Input />
+            {/* Empty page: greeting, composer and drop zone are one centred
+                stack, and the composer is handed to EmptyContent through the
+                outlet context so it can sit between the other two. Once there
+                is a conversation the transcript takes the space and the
+                composer returns to the floor. */}
+            {isWelcome ? (
+              <Outlet context={{ composer: <Input variant="welcome" /> }} />
+            ) : (
+              <>
+                <Outlet />
+                <Input />
+              </>
+            )}
           </div>
           <div
             className={`${styles.fullpage_content} ${

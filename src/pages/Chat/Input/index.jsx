@@ -14,7 +14,9 @@ import { useChartDataStore } from "../../../store/Chart/data";
 import consola from "consola";
 const { TextArea } = Input;
 
-function ChatInput() {
+// `variant="welcome"` is the centred composer on the empty chat page: same
+// control, narrower column, no bottom margin (the stack owns its spacing).
+function ChatInput({ variant }) {
   const { t } = useTranslation();
 
   /* new */
@@ -121,7 +123,9 @@ function ChatInput() {
   return (
     <div
       id="chat-input-wrapper"
-      className={styles.input_wrapper}
+      className={`${styles.input_wrapper} ${
+        variant === "welcome" ? styles.welcome : ""
+      }`}
       onDragEnter={onDragEnter}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
@@ -161,15 +165,19 @@ function ChatInput() {
           />
           <div className={styles.btns}>
             <Tooltip placement="topRight" title={t("upload_tip")}>
-              <div className={styles.upload_wrapper}>
-                <ChatUploadSVG
-                  className={styles.upload_icon}
-                  onClick={onClickUploadBtn}
-                />
-              </div>
+              {/* A real button: attaching a file was a bare SVG with an
+                  onClick, so it was not in the accessibility tree and Tab
+                  could not reach it. */}
+              <button
+                type="button"
+                className={styles.upload_wrapper}
+                aria-label={t("upload_files")}
+                onClick={onClickUploadBtn}
+              >
+                <ChatUploadSVG className={styles.upload_icon} aria-hidden="true" />
+              </button>
             </Tooltip>
             <div className={styles.right}>
-              {/* <MicSVG className={styles.btn} /> */}
               <SendButton onClick={onSendClick} onStopClick={onStopClick} />
             </div>
           </div>

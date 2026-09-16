@@ -8,7 +8,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-3) 0;
+  /* The side gutter belongs on this un-capped outer element, the way
+     .input_wrapper and ContentList's .wrapper do it. It used to sit on .inner,
+     i.e. INSIDE the --layout-max box, so the title and "query for" were
+     indented 24px further than the messages and the composer they claim to
+     line up with. */
+  padding: var(--space-3) var(--layout-gutter);
   border-bottom: 1px solid var(--color-border);
 
   // Mobile: stack into two rows (see ChatHeader.jsx) so history and "query for"
@@ -60,16 +65,11 @@
   width: 100%;
   max-width: var(--layout-max);
   margin: 0 auto;
-  padding: 0 var(--layout-gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
   min-width: 0;
-
-  @include phone {
-    padding: 0;
-  }
 }
 
 .left {

@@ -82,7 +82,17 @@ const ModelDropdown = () => {
   // switch to. The list IS the models.
   return (
     <div id="chat_vs_model" className="relative" ref={dropdownRef}>
-      <div className={styles.vs_wrapper} onClick={() => setIsOpen(!is_open)}>
+      {/* A real button with listbox semantics. This control decides which
+          model answers the next message, and it was a bare <div onClick> —
+          unreachable by keyboard, and announced as nothing. */}
+      <button
+        type="button"
+        className={styles.vs_wrapper}
+        aria-haspopup="listbox"
+        aria-expanded={is_open}
+        aria-label={t("models")}
+        onClick={() => setIsOpen(!is_open)}
+      >
         <div className="flex items-center gap-[4px]">
           {vs_list.length === 0 && (
             <div className="text-[var(--color-text-secondary)] text-[13px] font-[500]">
@@ -102,10 +112,11 @@ const ModelDropdown = () => {
             </Fragment>
           ))}
         </div>
-        <ChatModelDropdownSVG className="ml-[8px]" />
-      </div>
+        <ChatModelDropdownSVG className="ml-[8px]" aria-hidden="true" />
+      </button>
       <div
         className={styles.dropdown_content}
+        role="listbox"
         style={{ display: is_open ? "flex" : "none" }}
       >
         {/* No title block and no two-line instructions: a picker that needs a
@@ -116,8 +127,12 @@ const ModelDropdown = () => {
           <div className="flex-1 flex flex-col py-[var(--space-2)]">
             <div className="flex flex-col flex-1 overflow-y-auto">
               {model_list.map((model) => (
-                <div
+                <button
+                  type="button"
                   key={model.id}
+                  role="option"
+                  aria-selected={model.is_selected}
+                  disabled={model.is_disabled}
                   className={`${styles.dropdown_item} ${
                     model.is_disabled ? styles.disabled : ""
                   }`}
@@ -151,7 +166,7 @@ const ModelDropdown = () => {
                   <div className={styles.dropdown_item_text}>
                     {model.provider || model.show_name}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>

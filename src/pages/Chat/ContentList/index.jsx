@@ -6,6 +6,9 @@ import { useChartDataStore } from "../../../store/Chart/data";
 import { useChatStore } from "../../../store/Chart";
 import { useParams } from "react-router";
 
+// How close to the bottom still counts as "following the live reply".
+const NEAR_BOTTOM_PX = 120;
+
 function ContentList() {
   const { sessionId } = useParams();
   const contentListRef = useRef(null);
@@ -33,26 +36,60 @@ function ContentList() {
     }
   }, [conversationsLength]);
 
+  // Has the reader deliberately moved away from the live end of the transcript?
+  // Tracked from `wheel` / `touchmove` rather than `scroll` on purpose: the
+  // programmatic scrollIntoView below fires `scroll` too, so a scroll listener
+  // cannot tell the reader's intent from our own.
+  const readerHeldPositionRef = useRef(false);
+  const lastSessionRef = useRef(null);
+
+  useEffect(() => {
+    const el = contentListRef.current;
+    if (!el) return;
+    const onReaderScroll = () => {
+      const distanceFromBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight;
+      readerHeldPositionRef.current = distanceFromBottom > NEAR_BOTTOM_PX;
+    };
+    el.addEventListener("wheel", onReaderScroll, { passive: true });
+    el.addEventListener("touchmove", onReaderScroll, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", onReaderScroll);
+      el.removeEventListener("touchmove", onReaderScroll);
+    };
+  }, []);
+
   // Scroll to last user question when chat data changes
   useEffect(() => {
     const hasUserMessages = historyLength > 0 || conversationsLength > 0;
+    if (!contentListRef.current || !hasUserMessages) return;
 
-    if (contentListRef.current && hasUserMessages) {
-      // Use setTimeout to ensure DOM is fully rendered after async data load
-      setTimeout(() => {
-        if (!contentListRef.current) return;
-
-        const userMessages =
-          contentListRef.current.querySelectorAll('[data-role="user"]');
-        if (userMessages.length > 0) {
-          const lastUserMessage = userMessages[userMessages.length - 1];
-          lastUserMessage.scrollIntoView({
-            block: "start",
-            behavior: "smooth",
-          });
-        }
-      }, 100);
+    // Opening or switching a conversation always lands on the newest turn,
+    // whatever the reader was doing in the one before it.
+    const isSessionChange = lastSessionRef.current !== current_session_id;
+    if (isSessionChange) {
+      lastSessionRef.current = current_session_id;
+      readerHeldPositionRef.current = false;
+    } else if (readerHeldPositionRef.current) {
+      // Scrolling back to read an earlier turn is deliberate. A reply
+      // streaming in used to yank the view off it several times a second.
+      return;
     }
+
+    // Use setTimeout to ensure DOM is fully rendered after async data load
+    setTimeout(() => {
+      if (!contentListRef.current) return;
+
+      const userMessages =
+        contentListRef.current.querySelectorAll('[data-role="user"]');
+      if (userMessages.length > 0) {
+        const lastUserMessage = userMessages[userMessages.length - 1];
+        lastUserMessage.scrollIntoView({
+          block: "start",
+          behavior: "smooth",
+        });
+      }
+    }, 100);
   }, [historyLength, conversationsLength, current_session_id]);
 
   return (

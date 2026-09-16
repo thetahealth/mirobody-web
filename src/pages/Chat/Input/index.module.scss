@@ -7,7 +7,7 @@
   padding: 0 var(--layout-gutter);
 
   @include phone {
-    padding: 0 8px;
+    padding: 0 12px;
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
@@ -19,9 +19,21 @@
   // so the box you type in did not line up with the answers you were reading.
   max-width: var(--layout-max);
   border-radius: 12px;
-  border: 0.8px solid var(--color-text-secondary);
+  /* --color-border-strong, not --color-text-secondary: this is a border, and
+     the text token drew it as dark as the body copy. */
+  border: 0.8px solid var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
   padding: 12px 8px 12px 12px;
   overflow: hidden;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+
+  /* The most-used control in the product had no focus state at all — clicking
+     into it and out of it looked identical. --color-focus-ring was already
+     defined and already used on the login form. */
+  &:focus-within {
+    border-color: var(--color-text-primary);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
   .input {
     font-size: 16px;
     font-weight: 400;
@@ -35,6 +47,10 @@
     &:focus {
       outline: none;
       border: none;
+      /* antd's TextArea draws its own focus shadow. The ring belongs to the
+         frame (.input_container:focus-within) — leaving both on rendered two
+         concentric rings. Suppressing it here cannot cancel the frame's, they
+         are different elements. */
       box-shadow: none;
     }
     &::placeholder {
@@ -49,6 +65,17 @@
   margin-top: 12px;
   .upload_wrapper {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+      border-radius: var(--radius-xs);
+    }
     &:hover {
       .upload_tip {
         display: flex;
@@ -80,14 +107,6 @@
   .right {
     display: flex;
   }
-  .btn {
-    cursor: pointer;
-    margin-left: 16px;
-  }
-  .btn_dis {
-    cursor: not-allowed;
-    margin-left: 16px;
-  }
 }
 
 .dragging_container {
@@ -112,5 +131,19 @@
     font-size: 14px;
     font-weight: 400;
 
+  }
+}
+/* Centred on the empty chat page: the composer IS the page's primary action
+   there, so it sits in the middle of the column with the greeting rather than
+   pinned to the floor. 720px, not --layout-max: at 1360 a lone input box in
+   the middle of the screen reads as a search engine, not a question you are
+   about to ask. */
+.input_wrapper.welcome {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+
+  .input_container {
+    max-width: 720px;
   }
 }

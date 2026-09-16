@@ -1,7 +1,9 @@
+import { useEffect, useRef, useState } from "react";
 import styles from "./index.module.scss";
 import ContentRender from "../Render";
 import RenderErrorBoundary from "../Render/ErrorBoundary";
 import CopySVG from "../../../../assets/chat-copy.svg?react";
+import { CheckOutlined } from "@ant-design/icons";
 import AssistantCard from "./AssistantCard";
 import { CHART_MESSAGE_TYPE } from "../../../../enum/chat";
 import Analyzing from "./Analyzing";
@@ -21,6 +23,13 @@ function AssistantDialog({
   const { t } = useTranslation();
   const getModelShowName = useModelStore((state) => state.getModelShowName);
 
+  // Copying an answer was a silent no-op visually, so people clicked it twice
+  // and still did not know. ShareModal already had this exact acknowledgement
+  // (a "copied" flag on a timer) and the `copied` string is already translated.
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(copyTimerRef.current), []);
+
   const onCopyClick = (messages) => {
     // copy all messages content to clipboard
     const content = messages
@@ -29,6 +38,9 @@ function AssistantDialog({
       .filter(Boolean)
       .join("\n");
     navigator.clipboard.writeText(content);
+    setCopied(true);
+    clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
   };
 
   if (isSingle) {
@@ -49,9 +61,7 @@ function AssistantDialog({
         </div>
       );
     }
-    const usage = messages.find(
-      (msg) => msg.type === CHART_MESSAGE_TYPE.USAGE,
-    );
+    const usage = messages.find((msg) => msg.type === CHART_MESSAGE_TYPE.USAGE);
     const groupedMessages = transformMessagesToThinkingGroup(messages);
 
     return (
@@ -71,10 +81,18 @@ function AssistantDialog({
             </div>
             <div className="flex-1 flex items-center justify-end">
               {usage && <CostIcon datasource={usage} />}
-              <CopySVG
-                className="cursor-pointer"
+              <button
+                type="button"
+                className={styles.copy_btn}
+                aria-label={copied ? t("copied") : t("copy")}
                 onClick={() => onCopyClick(messages)}
-              />
+              >
+                {copied ? (
+                  <CheckOutlined className={styles.copied_icon} />
+                ) : (
+                  <CopySVG aria-hidden="true" />
+                )}
+              </button>
               {/* <ThumbsUpSVG className={styles.btn} /> */}
               {/* <ThumbsDownSVG className={styles.btn} /> */}
             </div>

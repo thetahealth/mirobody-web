@@ -33,7 +33,9 @@ export const mergeConsecutiveSameTypeMessages = (messages) => {
     prev.type === curr.type &&
     APPENDABLE_MESSAGE_TYPES.includes(curr.type);
 
-  // Helper: join two blocks on the field their type carries text in
+  // Helper: join two blocks on the field their type carries text in — each
+  // block names its own payload the way LangChain names it, so there is no
+  // single `content` to concatenate any more.
   const mergeMessages = (prev, curr) => {
     const field = prev.type === CHART_MESSAGE_TYPE.TEXT ? "text" : "reasoning";
     return { ...prev, [field]: (prev[field] ?? "") + (curr[field] ?? "") };
@@ -93,6 +95,13 @@ export const useChatHistoryStore = create(
     // panes into one item; this keeps the per-session ids for sibling lookup
     // (switchSession / delete).
     conversation_list_raw: [],
+    // An empty list and a failed fetch used to render identically — a blank
+    // panel with nothing to explain it and no way to retry. These three say
+    // which it is; `history_loaded` stays false until the first attempt
+    // settles, so the first paint shows a skeleton rather than "no history".
+    history_loading: false,
+    history_loaded: false,
+    history_error: false,
     /**
      * fetch history by conversation list
      * @returns {void}
@@ -101,6 +110,7 @@ export const useChatHistoryStore = create(
       const { _historyController } = get();
 
       try {
+        set({ history_loading: true, history_error: false });
         // Cancel previous request if exists
         if (_historyController) {
           _historyController.abort();
@@ -152,6 +162,9 @@ export const useChatHistoryStore = create(
           );
           // Clear controller after successful completion
           state._historyController = null;
+          state.history_loading = false;
+          state.history_loaded = true;
+          state.history_error = false;
         });
 
         // Sync summary to chartData (outside history store's set callback).
@@ -175,10 +188,17 @@ export const useChatHistoryStore = create(
         }
       } catch (error) {
         if (error.name === "AbortError" || error.name === "CanceledError") {
+          // A superseded request is not a failure — leave the flags to the
+          // request that replaced it.
           return;
         }
         consola.error("ERROR: fetchHistoryByConversationList", error);
-        set({ _historyController: null });
+        set({
+          _historyController: null,
+          history_loading: false,
+          history_loaded: true,
+          history_error: true,
+        });
       }
     },
     person_list: [],

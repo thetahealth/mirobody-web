@@ -1,3 +1,6 @@
+/* .vs_wrapper and .dropdown_item are <button>s now, so the browser's default
+   button chrome (border, background, centred text, inherited-but-not font) has
+   to be cleared here. */
 .vs_wrapper {
   border-radius: 20px;
   background-color: var(--color-bg-soft);
@@ -5,9 +8,22 @@
   display: flex;
   align-items: center;
   padding: 0 12px;
+  border: none;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
   user-select: none;
   position: relative;
+  transition: background-color var(--t-fast);
+
+  &:hover {
+    background-color: var(--color-border-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
   .vs_list {
     display: flex;
     align-items: center;
@@ -37,11 +53,27 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
   height: 36px;
   min-height: 36px;
   gap: var(--space-3);
   user-select: none;
+  transition: background-color var(--t-fast);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
   .dropdown_item_text {
     font-size: 14px;
     color: var(--color-text-secondary);

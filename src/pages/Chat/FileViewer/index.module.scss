@@ -50,11 +50,27 @@
     justify-content: center;
     align-items: center;
     gap: 12px;
+    /* Shared by the download <a> and the close <button>, so the default button
+       chrome is cleared here. */
     .btn {
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 4px;
+      border: none;
+      border-radius: var(--radius-xs);
+      background: transparent;
+      transition: background-color var(--t-fast);
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+      }
+
+      &:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
     }
   }
 

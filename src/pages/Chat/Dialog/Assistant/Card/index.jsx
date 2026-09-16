@@ -3,7 +3,9 @@ import styles from "./index.module.scss";
 import CopySVG from "../../../../../assets/chat-copy.svg?react";
 import FullSVG from "../../../../../assets/chat-full.svg?react";
 import CollapseSVG from "../../../../../assets/chat-collapse.svg?react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CheckOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import CostIcon from "../CostIcon";
 
 function AssistantCard({
@@ -15,6 +17,10 @@ function AssistantCard({
   modelShowName = "",
 }) {
   const contentRef = useRef(null);
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(copyTimerRef.current), []);
 
   // click copy to clipboard
   const onClickCopy = (datasource) => {
@@ -24,6 +30,9 @@ function AssistantCard({
       .filter(Boolean)
       .join("\n");
     navigator.clipboard.writeText(content);
+    setCopied(true);
+    clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
   };
 
   // Auto-scroll to bottom when content changes
@@ -33,7 +42,7 @@ function AssistantCard({
   //   }
   // }, [children, datasource?.content]);
 
-  // Find cost statistics message from datasource
+  // The turn's token usage — one block, at the end of the run.
   const usage = datasource?.messages?.find(
     (msg) => msg.type === CHART_MESSAGE_TYPE.USAGE,
   );
@@ -59,18 +68,37 @@ function AssistantCard({
       className={`${styles.card} ${isThisCardFullpage ? styles.fullpage : ""}`}
     >
       <div className={styles.header}>
-        <div className={styles.header_left}>
+        {/* title: the full name is still reachable on hover once the header
+            ellipsises it. */}
+        <div className={styles.header_left} title={modelShowName || undefined}>
           {modelShowName ? `${modelShowName}` : ""}
-          {/* <Stars rating={datasource?.rating || 0} onClick={onClickRatingStar} /> */}
         </div>
         <div className={styles.btns}>
           {usage && <CostIcon datasource={usage} />}
-          <div className={styles.copy_btn}>
-            <CopySVG onClick={() => onClickCopy(datasource)} />
-          </div>
-          <div className={styles.copy_btn} onClick={onClickFullpage}>
-            {isThisCardFullpage ? <CollapseSVG /> : <FullSVG />}
-          </div>
+          <button
+            type="button"
+            className={styles.copy_btn}
+            aria-label={copied ? t("copied") : t("copy")}
+            onClick={() => onClickCopy(datasource)}
+          >
+            {copied ? (
+              <CheckOutlined className={styles.copied_icon} />
+            ) : (
+              <CopySVG aria-hidden="true" />
+            )}
+          </button>
+          <button
+            type="button"
+            className={styles.copy_btn}
+            aria-label={isThisCardFullpage ? t("collapse") : t("expand")}
+            onClick={onClickFullpage}
+          >
+            {isThisCardFullpage ? (
+              <CollapseSVG aria-hidden="true" />
+            ) : (
+              <FullSVG aria-hidden="true" />
+            )}
+          </button>
         </div>
       </div>
       <div className={styles.content} ref={contentRef}>

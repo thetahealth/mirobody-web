@@ -20,19 +20,26 @@ function Markdown({ content }) {
         // relaxes the delimiter test for CJK text.
         remarkPlugins={[remarkGfm, remarkCjkFriendly]}
         components={{
+          // The glyph marks it as a link; the label says where it goes. Only
+          // the glyph was rendered before, so every link in an answer was the
+          // same anonymous 20x20 square.
           a: (props) => {
-            const { href } = props;
+            const { href, children } = props;
             return (
               <span
                 className={styles.link}
+                role="link"
+                tabIndex={0}
                 onClick={() => handleLinkClick(href)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleLinkClick(href);
+                  }
+                }}
               >
-                <MarkdownLinkSVG
-                  style={{
-                    verticalAlign: "middle",
-                    display: "inline-block",
-                  }}
-                />
+                <MarkdownLinkSVG aria-hidden="true" />
+                {children}
               </span>
             );
           },

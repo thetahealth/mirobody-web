@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
 import FileType from "../../../components/FileType";
 import PreviewDownloadSVG from "../../../assets/preview-download.svg?react";
@@ -5,6 +6,7 @@ import PreviewCloseSVG from "../../../assets/preview-close.svg?react";
 import { useChatPreviewStore } from "../../../store/Chart/preview";
 
 function FileViewer() {
+  const { t } = useTranslation();
   const preview_file = useChatPreviewStore((state) => state.preview_file);
   const setPreviewFile = useChatPreviewStore((state) => state.setPreviewFile);
   const setIsShowPreview = useChatPreviewStore(
@@ -29,11 +31,27 @@ function FileViewer() {
           </div>
         </div>
         <div className={styles.btns}>
-          <a href={url} download className={styles.btn} target="_blank">
-            <PreviewDownloadSVG />
+          <a
+            href={url}
+            download
+            className={styles.btn}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("download")}
+          >
+            <PreviewDownloadSVG aria-hidden="true" />
           </a>
 
-          <PreviewCloseSVG className={styles.btn} onClick={handleClose} />
+          {/* Closing the preview is the only way out of it, and it was a bare
+              SVG with an onClick — not focusable, and announced as nothing. */}
+          <button
+            type="button"
+            className={styles.btn}
+            aria-label={t("close")}
+            onClick={handleClose}
+          >
+            <PreviewCloseSVG aria-hidden="true" />
+          </button>
         </div>
       </div>
       {type === "pdf" && (

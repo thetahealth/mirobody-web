@@ -4,11 +4,6 @@ import getWebSocketManager from "../../utils/websocket/WebSocketManager";
 import { useUploadStore } from "../upload";
 
 export const useDriveStore = create((set, get) => ({
-  menu_expanded: false,
-  setMenuExpanded: (expanded) =>
-    set((state) => ({
-      menu_expanded: typeof expanded === "boolean" ? expanded : !state.menu_expanded,
-    })),
   current_drive_user_id: localStorage.getItem(USER_ID) || "",
   setCurrentDriveUserId: (userId) => {
     const oldUserId = get().current_drive_user_id;

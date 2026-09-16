@@ -2,11 +2,32 @@
   position: relative;
   width: 100%;
   margin: 12px 0;
+  /* Lets .chart size itself off this box's width. Done as a container query
+     rather than from JS because index.jsx deliberately keeps the width bucket
+     in a ref — putting it in state would re-render the chart on every resize
+     frame, which is the jitter that comment is guarding against. */
+  container-type: inline-size;
+  container-name: vis-chart;
 }
 
+/* A flat 320px meant a chart in a narrow column read tall and thin while the
+   same chart across a wide one read squat. The thresholds match bucketOf() in
+   index.jsx, so the height changes on the same widths the option does. */
 .chart {
   width: 100%;
   height: 320px;
+}
+
+@container vis-chart (max-width: 560px) {
+  .chart {
+    height: 260px;
+  }
+}
+
+@container vis-chart (max-width: 380px) {
+  .chart {
+    height: 220px;
+  }
 }
 
 .download {
@@ -20,7 +41,7 @@
   background: transparent;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: opacity var(--t-fast), transform var(--t-fast);
   z-index: 2;
 
   svg {
@@ -31,6 +52,15 @@
 
   &:hover {
     transform: scale(1.06);
+  }
+
+  /* opacity:0 hides it but leaves it focusable, so a keyboard user could tab
+     onto a control they cannot see. Focus reveals it, like hover does. */
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
   }
 }
 

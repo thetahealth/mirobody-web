@@ -56,42 +56,77 @@ function QueryFor() {
   return (
     <>
       <div className={styles.wrapper} ref={dropdownRef}>
-        <div className={styles.query_for} onClick={onClickQueryFor}>
-          <div className={styles.query_title}>{t("query_for")}</div>
-          <div className={styles.query_dropdown}>
-            <div className={styles.query_for_cur}>
+        {/* A real button with listbox semantics, matching ModelDropdown: this
+            picks whose records the next question is answered from, and it was
+            a bare <div onClick> that Tab could not reach. */}
+        <button
+          type="button"
+          className={styles.query_for}
+          aria-haspopup="listbox"
+          aria-expanded={dropdownVisible}
+          aria-label={t("query_for")}
+          onClick={onClickQueryFor}
+        >
+          <span className={styles.query_title}>{t("query_for")}</span>
+          <span className={styles.query_dropdown}>
+            <span className={styles.query_for_cur}>
               {user_id === current_query_user_id || !current_query_user_id
                 ? t("me")
                 : current_query_user_name}
-            </div>
-            <QueryForDropdownSVG />
-          </div>
-        </div>
+            </span>
+            <QueryForDropdownSVG aria-hidden="true" />
+          </span>
+        </button>
         <div
           className={styles.dropdown}
+          role="listbox"
           style={{ display: dropdownVisible ? "flex" : "none" }}
         >
-          {beneficiary_users.map((user) => (
-            <div
-              className={styles.dropdown_item}
-              key={user.id}
-              onClick={() => onClickDropdownItem(user)}
-            >
-              <div className={styles.item_tag}>
-                {user.is_current_user
-                  ? t("me")
-                  : user.nickname || user.name || ""}
-              </div>
-              <div className={styles.item_name}>{user.email || ""}</div>
-              <div className={styles.item_detail}>
-                <div>{user.gender || ""}</div>
-                {user.gender && <div>•</div>}
-                <div>{user.age ? `${t("age")} ${user.age}` : ""}</div>
-                {user.age && <div>•</div>}
-                <div>{user.blood_type || ""}</div>
-              </div>
-            </div>
-          ))}
+          {beneficiary_users.map((user) => {
+            const name = user.nickname || user.name || "";
+            // Same synthetic address the sidebar hides: an internal key, not
+            // something anyone can write to.
+            const email = /^member_[0-9a-f]+@/i.test(user.email || "")
+              ? ""
+              : user.email;
+            const details = [
+              email,
+              user.gender,
+              user.age ? `${t("age")} ${user.age}` : "",
+              user.blood_type,
+            ].filter(Boolean);
+            const isActive = user.id === current_query_user_id;
+
+            return (
+              <button
+                type="button"
+                role="option"
+                aria-selected={isActive}
+                className={`${styles.dropdown_item} ${
+                  isActive ? styles.dropdown_item_active : ""
+                }`}
+                key={user.id}
+                onClick={() => onClickDropdownItem(user)}
+              >
+                <span className={styles.item_avatar}>
+                  {(name || email || "").trim().charAt(0).toUpperCase() || "?"}
+                </span>
+                <div className={styles.item_body}>
+                  <div className={styles.item_name_row}>
+                    <span className={styles.item_name}>{name}</span>
+                    {user.is_current_user && (
+                      <span className={styles.item_tag}>{t("me")}</span>
+                    )}
+                  </div>
+                  {details.length > 0 && (
+                    <div className={styles.item_detail}>
+                      {details.join(" · ")}
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
 
           {/* <div className={styles.btn} onClick={onClickAddMember}>
             <ChatNewBlueSVG />
