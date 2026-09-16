@@ -8,39 +8,42 @@ import ChatThinkStepSVG from "../../../../../assets/chat_think_step.svg?react";
 import { CHART_MESSAGE_TYPE } from "../../../../../enum/chat";
 import { useTranslation } from "react-i18next";
 
-// Preprocess thinking data to merge QUERY_TITLE and QUERY_DETAIL into QUERY_GROUP
+// Pair each tool_call with its tool_result into one collapsible QUERY_GROUP.
+// The two blocks are joined on the call id, which `tool_call` carries as `id`
+// and `tool_result` as `tool_call_id` — LangChain's names for the same thing.
 const preprocessThinkingData = (datasource) => {
   if (!datasource || datasource.length === 0) return datasource;
 
   const isHistoricalData = datasource.some((item) => item.isHistorical);
 
-  const detailMap = new Map();
+  const resultByCallId = new Map();
   datasource.forEach((item) => {
-    if (item.type === CHART_MESSAGE_TYPE.QUERY_DETAIL && item.tool_id) {
-      detailMap.set(item.tool_id, item.content);
+    if (item.type === CHART_MESSAGE_TYPE.TOOL_RESULT && item.tool_call_id) {
+      resultByCallId.set(item.tool_call_id, item.content);
     }
   });
 
   const result = [];
-  datasource.forEach((item) => {
-    if (item.type === CHART_MESSAGE_TYPE.QUERY_TITLE) {
-      const detail = item.tool_id ? detailMap.get(item.tool_id) || "" : "";
-
+  datasource.forEach((item, index) => {
+    if (item.type === CHART_MESSAGE_TYPE.TOOL_CALL) {
+      const detail = item.id ? resultByCallId.get(item.id) || "" : "";
+      // Spin while the call is the last thing that happened and has no result
+      // yet: that is a tool still running. Anything arriving after it stops the
+      // spinner, so a turn that dies mid-tool cannot leave one turning forever.
+      // The condition this replaces read `item.status === "streaming"`, a field
+      // no block has ever carried, so the spinner never once appeared.
       const isQueryDetailStreaming =
-        !detail && !isHistoricalData && item.status === "streaming";
+        !detail && !isHistoricalData && index === datasource.length - 1;
 
       result.push({
         type: CHART_MESSAGE_TYPE.QUERY_GROUP,
         id: item.id,
-        title: item.content,
+        title: item.name,
         detail: detail,
         isQueryDetailStreaming: isQueryDetailStreaming,
       });
-    } else if (item.type === CHART_MESSAGE_TYPE.QUERY_DETAIL) {
-      // Skip QUERY_DETAIL items as they are merged into QUERY_GROUP
-      // Do nothing
-    } else {
-      // Keep other items as is
+    } else if (item.type !== CHART_MESSAGE_TYPE.TOOL_RESULT) {
+      // a tool_result is folded into its call's group above
       result.push(item);
     }
   });
@@ -81,7 +84,7 @@ const ThinkingGroup = ({ datasource }) => {
   const queryCount = processedDatasource.filter(
     (item) =>
       item.type === CHART_MESSAGE_TYPE.QUERY_GROUP ||
-      item.type === CHART_MESSAGE_TYPE.THINKING,
+      item.type === CHART_MESSAGE_TYPE.REASONING,
   ).length;
 
   return (

@@ -3,7 +3,7 @@ import { createFrameCoalescer } from "./frameCoalescer";
 
 // B1 contract (WEB_LESSONS_FROM_MINIPROGRAM_2026-08-06): many frames → one
 // store update per 60ms window; explicit flush is synchronous and preserves
-// arrival order, so control-flow writes (widget/end/error/close) can flush
+// arrival order, so control-flow writes (interrupt/end/error/close) can flush
 // first and never overtake content.
 
 describe("createFrameCoalescer", () => {
@@ -19,7 +19,7 @@ describe("createFrameCoalescer", () => {
     const { push } = createFrameCoalescer(apply, 60);
 
     for (let i = 0; i < 100; i++) {
-      push({ type: "reply", content: `t${i}` });
+      push({ type: "text", text: `t${i}` });
     }
     expect(apply).not.toHaveBeenCalled(); // nothing lands mid-window
 
@@ -32,15 +32,15 @@ describe("createFrameCoalescer", () => {
     const apply = vi.fn();
     const { push, flush } = createFrameCoalescer(apply, 60);
 
-    push({ type: "queryTitle", content: "grep", tool_id: "t1" });
-    push({ type: "queryArguments", content: '{"que', tool_id: "t1" });
-    push({ type: "queryArguments", content: 'ry":"x"}', tool_id: "t1" });
+    push({ type: "tool_call", id: "t1", name: "grep", args: { query: "x" } });
+    push({ type: "tool_result", tool_call_id: "t1", content: "rows" });
+    push({ type: "text", text: "done" });
     flush();
 
-    expect(apply.mock.calls[0][0].map((f) => f.content)).toEqual([
-      "grep",
-      '{"que',
-      'ry":"x"}',
+    expect(apply.mock.calls[0][0].map((f) => f.type)).toEqual([
+      "tool_call",
+      "tool_result",
+      "text",
     ]);
   });
 
@@ -48,7 +48,7 @@ describe("createFrameCoalescer", () => {
     const apply = vi.fn();
     const { push, flush } = createFrameCoalescer(apply, 60);
 
-    push({ type: "reply", content: "a" });
+    push({ type: "text", text: "a" });
     flush();
     expect(apply).toHaveBeenCalledTimes(1); // immediate, before any timer
 
@@ -67,13 +67,13 @@ describe("createFrameCoalescer", () => {
     const apply = vi.fn();
     const { push, flush } = createFrameCoalescer(apply, 60);
 
-    push({ type: "reply", content: "a" });
+    push({ type: "text", text: "a" });
     flush();
-    push({ type: "reply", content: "b" });
+    push({ type: "text", text: "b" });
     vi.advanceTimersByTime(60);
 
     expect(apply).toHaveBeenCalledTimes(2);
-    expect(apply.mock.calls[1][0]).toEqual([{ type: "reply", content: "b" }]);
+    expect(apply.mock.calls[1][0]).toEqual([{ type: "text", text: "b" }]);
   });
 
   it("an apply guarded by an abort flag drops the tail instead of bleeding into the next turn", () => {
@@ -88,7 +88,7 @@ describe("createFrameCoalescer", () => {
       applied.push(...frames);
     }, 60);
 
-    push({ type: "reply", content: "before stop" });
+    push({ type: "text", text: "before stop" });
     signal.aborted = true; // user hit Stop before the window elapsed
     vi.advanceTimersByTime(60);
 
@@ -101,7 +101,7 @@ describe("createFrameCoalescer", () => {
 
     // 600ms of streaming at one frame every 5ms = 120 frames
     for (let i = 0; i < 120; i++) {
-      push({ type: "reply", content: "x" });
+      push({ type: "text", text: "x" });
       vi.advanceTimersByTime(5);
     }
     vi.advanceTimersByTime(60);

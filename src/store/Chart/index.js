@@ -435,8 +435,7 @@ export const useChatStore = create((set, get) => ({
           throw new Error("assistant_id is required");
         }
 
-        const { updateStreamingMessageByProvider } =
-          useChartDataStore.getState();
+        const { pushBlockByProvider } = useChartDataStore.getState();
         const { refreshHistory } = useChatHistoryStore.getState();
 
         // No `agent`, no `group_id`: Mirobody 1.4.0 accepts and ignores both
@@ -488,49 +487,31 @@ export const useChatStore = create((set, get) => ({
               if (controller && controller.signal.aborted) {
                 return;
               }
-              const { type, content, tool_id } = message;
-              // Additive fields the backend sends and this client used to drop
-              // on the floor: `queryDetail` carries `status`
-              // (`ok` / `partial` / `error`) off the tool's envelope, plus
-              // `error_kind` and `truncated` when they apply; `end` carries
-              // `finish_reason` (`stop` / `error` / `unavailable`). They ride
-              // through to the message so the status line can say WHICH of
-              // those happened instead of "Answer Completed" for all three.
-              const { status, error_kind, truncated, finish_reason } = message;
+              const { type } = message;
 
-              // Non-renderable stream frames the backend emits: "id" opens
-              // every stream with the reply id, "heartbeat" keeps the
-              // connection alive, "queryArguments" carries raw tool-call
-              // arguments (not shown in this UI). Consume them quietly.
-              if (
-                type === "id" ||
-                type === "heartbeat" ||
-                type === "queryArguments"
-              ) {
+              // Blocks about the stream rather than the answer: `start` opens
+              // it with the id the answer is saved under, `heartbeat` keeps an
+              // idle connection open. Consume them quietly.
+              if (type === "start" || type === "heartbeat") {
                 return;
               }
 
-              // Validate message type - ignore unknown types from backend
+              // Validate block type - ignore unknown types from backend
               if (!isValidChartMessageType(type)) {
-                consola.warn(`[SSE] Ignoring unknown message type: "${type}"`, {
-                  type,
-                  content,
-                  tool_id,
-                });
+                consola.warn(`[SSE] Ignoring unknown block type: "${type}"`, message);
                 return;
               }
 
-              // Update the UI (frame coalescing: ordinary content frames
-              // reach the store at most once every 60ms)
-              queueFrame({
-                type,
-                content,
-                tool_id,
-                status,
-                error_kind,
-                truncated,
-                finish_reason,
-              });
+              // The block rides through as the backend sent it, so every field
+              // it carries reaches the renderer: `tool_result.status` off the
+              // tool's envelope (`ok` / `partial` / `error`, plus `error_kind`
+              // and `truncated`), `end.finish_reason` (`stop` / `error` /
+              // `unavailable` / `empty`). The status line reads them to say
+              // WHICH of those happened instead of "Answer Completed" for all.
+              //
+              // Frame coalescing: ordinary blocks reach the store at most once
+              // every 60ms.
+              queueFrame(message);
             } catch (error) {
               consola.error("ERROR: fetchStartChatSSE onmessage", error);
             }
@@ -546,14 +527,10 @@ export const useChatStore = create((set, get) => ({
                 ? error.message
                 : i18n.t(error?.type || "sse_error_unknown");
 
-            updateStreamingMessageByProvider(
-              session_id,
-              assistant_id,
-              provider,
-              CHART_MESSAGE_TYPE.ERROR,
-              errorMessage,
-              null,
-            );
+            pushBlockByProvider(session_id, provider, {
+              type: CHART_MESSAGE_TYPE.ERROR,
+              message: errorMessage,
+            });
             reject(error);
           },
           onclose: () => {

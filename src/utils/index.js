@@ -91,9 +91,9 @@ export const getMessageTypeFromFile = (file) => {
 
 /* transform messages to thinking group */
 const THINKING_GROUP_MESSAGE_TYPES = [
-  CHART_MESSAGE_TYPE.THINKING,
-  CHART_MESSAGE_TYPE.QUERY_TITLE,
-  CHART_MESSAGE_TYPE.QUERY_DETAIL,
+  CHART_MESSAGE_TYPE.REASONING,
+  CHART_MESSAGE_TYPE.TOOL_CALL,
+  CHART_MESSAGE_TYPE.TOOL_RESULT,
 ];
 
 // Helper: Check if message type is a thinking type
@@ -112,12 +112,14 @@ const createThinkingGroup = () => ({
   content: [],
 });
 
-// Helper: Find matching thinking group's ID for queryDetail backfill
-const findMatchingGroupId = (thinkingGroups, toolId) => {
+// Helper: find the group holding the call a tool_result belongs to. The call
+// id is `tool_call.id` and `tool_result.tool_call_id` — LangChain's two names
+// for the same thing.
+const findMatchingGroupId = (thinkingGroups, toolCallId) => {
   const matchingGroup = thinkingGroups.findLast((group) =>
     group.content.some(
       (item) =>
-        item.type === CHART_MESSAGE_TYPE.QUERY_TITLE && item.tool_id === toolId,
+        item.type === CHART_MESSAGE_TYPE.TOOL_CALL && item.id === toolCallId,
     ),
   );
   return matchingGroup?.thinking_group_id || null;
@@ -152,11 +154,11 @@ export const transformMessagesToThinkingGroup = (messages) => {
       };
     }
 
-    // QueryDetail with tool_id: try to backfill to matching group
-    if (msg.type === CHART_MESSAGE_TYPE.QUERY_DETAIL && msg.tool_id) {
+    // A tool_result: backfill it into the group holding its call
+    if (msg.type === CHART_MESSAGE_TYPE.TOOL_RESULT && msg.tool_call_id) {
       const matchingGroupId = findMatchingGroupId(
         state.thinkingGroups,
-        msg.tool_id,
+        msg.tool_call_id,
       );
       if (matchingGroupId) {
         // Update the matching group's content using thinking_group_id

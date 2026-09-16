@@ -1,4 +1,4 @@
-import { CHART_MESSAGE_TYPE } from "../../../../enum/chat";
+import { CHART_MESSAGE_TYPE, blockText } from "../../../../enum/chat";
 import Markdown from "./Markdown";
 import ThinkingGroup from "./ThinkingGroup";
 import QueryGroup from "./QueryGroup";
@@ -27,11 +27,14 @@ function parseImageContent(content) {
 }
 
 const ContentRender = ({ datasource }) => {
-  const { content } = datasource;
   const type = datasource.type || CHART_MESSAGE_TYPE.DEFAULT;
+  // Each block type names its own payload the way LangChain names it
+  // (`text.text`, `reasoning.reasoning`, `tool_call.name`, …); `blockText`
+  // is that table. The client's own grouping types still use `content`.
+  const content = blockText(datasource);
 
-  // sse reply markdown
-  if (type === CHART_MESSAGE_TYPE.REPLY) {
+  // the answer, streamed as markdown
+  if (type === CHART_MESSAGE_TYPE.TEXT) {
     return (
       <div dir="auto" className={`${styles.markdown_wrapper} markdown-body`}>
         <Markdown content={content} />
@@ -54,25 +57,25 @@ const ContentRender = ({ datasource }) => {
   if (type === CHART_MESSAGE_TYPE.QUERY_GROUP) {
     return <QueryGroup datasource={datasource} />;
   }
-  // thinking
-  if (type === CHART_MESSAGE_TYPE.THINKING) {
+  // the model's own reasoning
+  if (type === CHART_MESSAGE_TYPE.REASONING) {
     return <ThinkingRender content={content} />;
   }
-  // query title
-  if (type === CHART_MESSAGE_TYPE.QUERY_TITLE) {
+  // a tool call: its name
+  if (type === CHART_MESSAGE_TYPE.TOOL_CALL) {
     return <QueryTitleRender content={content} />;
   }
-  // the agent's question to the user (ask_user) with one-tap options
-  if (type === CHART_MESSAGE_TYPE.WIDGET) {
+  // the agent's question to the user (ask_user); the run is paused on it
+  if (type === CHART_MESSAGE_TYPE.INTERRUPT) {
     return <AskUser datasource={datasource} />;
   }
-  // query detail
-  if (type === CHART_MESSAGE_TYPE.QUERY_DETAIL) {
+  // a tool result
+  if (type === CHART_MESSAGE_TYPE.TOOL_RESULT) {
     return <QueryDetailRender content={content} />;
   }
   // image (chart images)
   if (type === CHART_MESSAGE_TYPE.IMAGE) {
-    const imageData = parseImageContent(content);
+    const imageData = parseImageContent(datasource.content);
     if (!imageData) return null;
     return (
       <div className="flex flex-col gap-[8px] my-[12px]">
@@ -89,8 +92,8 @@ const ContentRender = ({ datasource }) => {
       </div>
     );
   }
-  // cost statistics - not rendered in message flow, shown in AssistantCard header
-  if (type === CHART_MESSAGE_TYPE.COST_STATISTICS) {
+  // token usage — not in the message flow; the AssistantCard header shows it
+  if (type === CHART_MESSAGE_TYPE.USAGE) {
     return null;
   }
   // error message - markdown on a separate line with error styling
@@ -102,14 +105,15 @@ const ContentRender = ({ datasource }) => {
     );
   }
   // Fallback for unknown types - prevent rendering objects that would crash React
-  if (typeof content === "object" && content !== null) {
+  const fallback = content || datasource.content;
+  if (typeof fallback === "object" && fallback !== null) {
     consola.warn(
-      `[ContentRender] Encountered unknown message type with object content: "${type}"`,
-      { type, content },
+      `[ContentRender] Encountered unknown block type with object content: "${type}"`,
+      datasource,
     );
     return null;
   }
-  return <>{content}</>;
+  return <>{fallback}</>;
 };
 
 export default ContentRender;

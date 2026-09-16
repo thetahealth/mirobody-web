@@ -2,50 +2,19 @@
 // backend stopped computing dollar amounts — its hardcoded price table went
 // stale faster than anyone refreshed it.
 import { BarChartOutlined } from "@ant-design/icons";
-import { Popover, Descriptions } from "antd";
+import { Popover } from "antd";
 import { useTranslation } from "react-i18next";
-import { useMemo } from "react";
-import consola from "consola";
 
-/**
- * Parse cost statistics content from Python dict format string or object to object
- * @param {string|object} content - Python dict format string like "{'key': 'value'}" or already parsed object
- * @returns {object|null} - Parsed object or null if parsing fails
- */
-const parseCostContent = (content) => {
-  if (!content) return null;
-
-  // If content is already an object, return it directly
-  if (typeof content === "object" && content !== null) {
-    return content;
-  }
-
-  // If content is a string, parse it (Python dict format with single quotes)
-  if (typeof content === "string") {
-    try {
-      // Content is in Python dict format (single quotes), convert to JSON format
-      const jsonContent = content.replace(/'/g, '"');
-      return JSON.parse(jsonContent);
-    } catch (e) {
-      consola.error("Failed to parse cost statistics:", e);
-      return null;
-    }
-  }
-
-  return null;
-};
-
+// The `usage` block IS LangChain's `usage_metadata`: flat counts, with the
+// optional halves nested under `input_token_details` / `output_token_details`.
+// It used to be a `costStatistics` chunk whose numbers were strings inside a
+// `content` dict, which is why this file had a Python-dict parser.
 const CostStatisticsContent = ({ data }) => {
   const { t } = useTranslation();
-  const {
-    model,
-    input_tokens,
-    output_tokens,
-    total_tokens,
-    thought_tokens,
-    cache_read_tokens,
-    cache_creation_tokens,
-  } = data;
+  const { model, input_tokens, output_tokens, total_tokens } = data;
+  const thought_tokens = data.output_token_details?.reasoning;
+  const cache_read_tokens = data.input_token_details?.cache_read;
+  const cache_creation_tokens = data.input_token_details?.cache_creation;
 
   return (
     <div className="min-w-[280px] font-mono">
@@ -110,23 +79,17 @@ const CostStatisticsContent = ({ data }) => {
 };
 
 /**
- * CostIcon component - displays cost statistics in a popover
- * @param {object} datasource - The raw message object containing content string
- * @param {string} datasource.content - Python dict format string to be parsed
+ * CostIcon — the token usage popover.
+ * @param {object} datasource - the `usage` block, as the backend sent it
  */
 const CostIcon = ({ datasource }) => {
-  const costData = useMemo(
-    () => parseCostContent(datasource?.content),
-    [datasource?.content],
-  );
-
-  if (!costData) return null;
+  if (!datasource?.total_tokens) return null;
 
   return (
     <div className="flex items-center justify-center w-[32px] h-[32px] select-none">
       <Popover
         trigger="click"
-        content={<CostStatisticsContent data={costData} />}
+        content={<CostStatisticsContent data={datasource} />}
       >
         <BarChartOutlined
           className="cursor-pointer"

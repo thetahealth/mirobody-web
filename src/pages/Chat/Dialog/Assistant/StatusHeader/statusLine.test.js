@@ -26,16 +26,16 @@ import {
 
 const end = (finish_reason) => ({
   type: CHART_MESSAGE_TYPE.END,
-  content: "",
   ...(finish_reason ? { finish_reason } : {}),
 });
 const tool = (fields = {}) => ({
-  type: CHART_MESSAGE_TYPE.QUERY_DETAIL,
+  type: CHART_MESSAGE_TYPE.TOOL_RESULT,
+  tool_call_id: "c1",
   content: "| a | b |",
   ...fields,
 });
-const title = (content) => ({ type: CHART_MESSAGE_TYPE.QUERY_TITLE, content });
-const reply = () => ({ type: CHART_MESSAGE_TYPE.REPLY, content: "hi" });
+const title = (name) => ({ type: CHART_MESSAGE_TYPE.TOOL_CALL, id: "c1", name });
+const reply = () => ({ type: CHART_MESSAGE_TYPE.TEXT, text: "hi" });
 
 describe("end: finish_reason decides the closing line", () => {
   it("stop is the only one that gets the tick and 'Answer Completed'", () => {

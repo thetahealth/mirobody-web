@@ -24,8 +24,8 @@ function AssistantDialog({
   const onCopyClick = (messages) => {
     // copy all messages content to clipboard
     const content = messages
-      .filter((msg) => msg.type === CHART_MESSAGE_TYPE.REPLY)
-      .map((msg) => msg.content)
+      .filter((msg) => msg.type === CHART_MESSAGE_TYPE.TEXT)
+      .map((msg) => msg.text)
       .filter(Boolean)
       .join("\n");
     navigator.clipboard.writeText(content);
@@ -49,8 +49,8 @@ function AssistantDialog({
         </div>
       );
     }
-    const costStatistics = messages.find(
-      (msg) => msg.type === CHART_MESSAGE_TYPE.COST_STATISTICS,
+    const usage = messages.find(
+      (msg) => msg.type === CHART_MESSAGE_TYPE.USAGE,
     );
     const groupedMessages = transformMessagesToThinkingGroup(messages);
 
@@ -70,7 +70,7 @@ function AssistantDialog({
               {getModelShowName(datasource[0]?.provider)}
             </div>
             <div className="flex-1 flex items-center justify-end">
-              {costStatistics && <CostIcon datasource={costStatistics} />}
+              {usage && <CostIcon datasource={usage} />}
               <CopySVG
                 className="cursor-pointer"
                 onClick={() => onCopyClick(messages)}

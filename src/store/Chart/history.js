@@ -17,8 +17,8 @@ import consola from "consola";
 
 /**
  * Merge consecutive messages with the same type
- * Only merges messages that are in APPENDABLE_MESSAGE_TYPES (reply, thinking)
- * Other types like queryTitle and queryDetail remain separate
+ * Only merges blocks that are in APPENDABLE_MESSAGE_TYPES (text, reasoning)
+ * Other types like tool_call and tool_result remain separate
  * @param {Array} messages - Array of message objects
  * @returns {Array} - Merged messages array
  */
@@ -33,11 +33,11 @@ export const mergeConsecutiveSameTypeMessages = (messages) => {
     prev.type === curr.type &&
     APPENDABLE_MESSAGE_TYPES.includes(curr.type);
 
-  // Helper: Merge content of two messages
-  const mergeMessages = (prev, curr) => ({
-    ...prev,
-    content: prev.content + curr.content,
-  });
+  // Helper: join two blocks on the field their type carries text in
+  const mergeMessages = (prev, curr) => {
+    const field = prev.type === CHART_MESSAGE_TYPE.TEXT ? "text" : "reasoning";
+    return { ...prev, [field]: (prev[field] ?? "") + (curr[field] ?? "") };
+  };
 
   const { result, pending } = messages.reduce(
     (acc, message) => {

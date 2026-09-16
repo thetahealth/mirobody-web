@@ -6,22 +6,22 @@
  * file: the decision is the part worth testing, and it cannot be tested
  * through a render without also standing up the store, i18n and the API layer.
  *
- * The two fields this reads are additive ones the backend has sent since
- * Mirobody 1.4.0 and this client dropped on the floor:
+ * The two fields this reads:
  *
- * - `queryDetail.status` — `ok` / `partial` / `error`, taken off the tool's
+ * - `tool_result.status` — `ok` / `partial` / `error`, taken off the tool's
  *   envelope, plus `error_kind` and `truncated` when they apply. The envelope
  *   exists so a reader does not have to recover "the tool refused" from a
  *   rendered table.
- * - `end.finish_reason` — `stop` / `error` / `unavailable`. All three used to
- *   print "Answer Completed", including `unavailable`, where the model was
- *   never reached. An empty answer under a tick mark reads as "it answered,
- *   and the answer is nothing".
+ * - `end.finish_reason` — `stop` / `error` / `unavailable` / `empty`. They all
+ *   used to print "Answer Completed", including `unavailable`, where the model
+ *   was never reached. An empty answer under a tick mark reads as "it
+ *   answered, and the answer is nothing".
  */
 
 import {
   CHART_MESSAGE_STATUS,
   CHART_MESSAGE_TYPE,
+  FINISH_EMPTY,
   FINISH_ERROR,
   FINISH_UNAVAILABLE,
   TOOL_STATUS_ERROR,
@@ -53,12 +53,12 @@ export const finishReasonOf = (messages) =>
 export const lastToolResultOf = (messages) =>
   [...(messages || [])]
     .reverse()
-    .find((m) => m.type === CHART_MESSAGE_TYPE.QUERY_DETAIL) ?? null;
+    .find((m) => m.type === CHART_MESSAGE_TYPE.TOOL_RESULT) ?? null;
 
-const lastQueryTitle = (messages) =>
+const lastToolName = (messages) =>
   [...(messages || [])]
     .reverse()
-    .find((m) => m.type === CHART_MESSAGE_TYPE.QUERY_TITLE)?.content ?? "";
+    .find((m) => m.type === CHART_MESSAGE_TYPE.TOOL_CALL)?.name ?? "";
 
 /**
  * @param {Array} messages - the assistant entry's `messages`
@@ -68,14 +68,14 @@ export const statusLineFor = (messages) => {
   const status = statusOf(messages);
 
   switch (status) {
-    case CHART_MESSAGE_TYPE.REPLY:
+    case CHART_MESSAGE_TYPE.TEXT:
       return { kind: LINE_LOADING, text: "Analyzing..." };
 
-    case CHART_MESSAGE_TYPE.THINKING:
+    case CHART_MESSAGE_TYPE.REASONING:
       return { kind: LINE_LOADING, text: "Thinking..." };
 
-    case CHART_MESSAGE_TYPE.QUERY_TITLE:
-    case CHART_MESSAGE_TYPE.QUERY_DETAIL: {
+    case CHART_MESSAGE_TYPE.TOOL_CALL:
+    case CHART_MESSAGE_TYPE.TOOL_RESULT: {
       const result = lastToolResultOf(messages);
       // The tool has answered but the turn is still open. Saying what the
       // answer WAS beats leaving "Running tool" up while the model reads a
@@ -91,7 +91,7 @@ export const statusLineFor = (messages) => {
       if (result?.truncated || result?.status === TOOL_STATUS_PARTIAL) {
         return { kind: LINE_LOADING, text: "Tool result truncated" };
       }
-      return { kind: LINE_LOADING, text: "Running tool: " + lastQueryTitle(messages) };
+      return { kind: LINE_LOADING, text: "Running tool: " + lastToolName(messages) };
     }
 
     case CHART_MESSAGE_TYPE.END: {
@@ -101,6 +101,9 @@ export const statusLineFor = (messages) => {
       }
       if (reason === FINISH_ERROR) {
         return { kind: LINE_ERROR, text: "The answer stopped early" };
+      }
+      if (reason === FINISH_EMPTY) {
+        return { kind: LINE_ERROR, text: "The model returned no answer" };
       }
       // `stop`, or an older backend that sends no reason at all.
       return { kind: LINE_DONE, text: "Answer Completed" };

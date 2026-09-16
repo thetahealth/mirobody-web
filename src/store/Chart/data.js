@@ -21,55 +21,31 @@ import {
 import consola from "consola";
 
 /**
- * Append ONE streaming frame to an assistant's messages, merging consecutive
- * appendable types (reply/thinking) into the trailing message. Shared by the
- * per-frame action and the coalesced batch action so their semantics can't
- * drift apart.
+ * Append ONE streamed block to an assistant's messages, joining it to the
+ * previous one when they are the same continuable type (`text`, `reasoning`).
+ * Shared by the per-block action and the coalesced batch action so their
+ * semantics can't drift apart.
+ *
+ * The block is stored as the backend sent it, so every field it carries —
+ * `tool_call.id`, `tool_result.status` / `error_kind` / `truncated` off the
+ * tool's envelope, `end.finish_reason` — is there for a renderer without this
+ * function having to list them.
+ *
  * @param {object} assistantItem - immer draft of the assistant entry
- * @param {{type:string, content:any, tool_id?:string}} frame
+ * @param {{type:string}} block
  */
-const appendFrameToAssistant = (
-  assistantItem,
-  { type, content, tool_id, status, error_kind, truncated, finish_reason },
-) => {
-  const lastMessage = assistantItem.messages[assistantItem.messages.length - 1];
-  if (
-    lastMessage &&
-    lastMessage.type === type &&
-    APPENDABLE_MESSAGE_TYPES.includes(type)
-  ) {
-    // If the last message has the same type and is appendable, append content
-    lastMessage.content += content;
-  } else {
-    // Otherwise, create a new message
-    const newMessage = {
-      type,
-      content,
-      id: uuidv4(),
-    };
-    // Add tool_id if it exists (for queryTitle and queryDetail)
-    if (tool_id) {
-      newMessage.tool_id = tool_id;
-    }
-    // Kept only when present. `queryDetail` gets `status` off the tool's
-    // envelope — the machine-readable half, so the status line does not have
-    // to recover "the tool refused" from a rendered table — and `end` gets
-    // `finish_reason`. Both are additive: a frame without them looks exactly
-    // as it did before.
-    if (status) {
-      newMessage.status = status;
-    }
-    if (error_kind) {
-      newMessage.error_kind = error_kind;
-    }
-    if (truncated) {
-      newMessage.truncated = true;
-    }
-    if (finish_reason) {
-      newMessage.finish_reason = finish_reason;
-    }
-    assistantItem.messages.push(newMessage);
+const appendFrameToAssistant = (assistantItem, block) => {
+  const { type } = block;
+  const last = assistantItem.messages[assistantItem.messages.length - 1];
+  if (last && last.type === type && APPENDABLE_MESSAGE_TYPES.includes(type)) {
+    const field = type === CHART_MESSAGE_TYPE.TEXT ? "text" : "reasoning";
+    last[field] = (last[field] ?? "") + (block[field] ?? "");
+    return;
   }
+  // A `tool_call` carries the call id in `id`, and the thinking group pairs it
+  // with its `tool_result.tool_call_id` on that value — so it must not be
+  // overwritten. Blocks without one get a key to render by.
+  assistantItem.messages.push({ ...block, id: block.id || uuidv4() });
 };
 
 /**
@@ -108,27 +84,12 @@ const appendFrameToAssistant = (
  *            provider: "provider_id",
  *            query_user_id: "",
  *            question_id: "",
+ *            // the blocks the backend streamed, stored as it sent them
  *            messages: [
- *              {
- *                type: CHART_MESSAGE_TYPE.REPLY,
- *                content: "",
- *                id: "",
- *              },
- *              {
- *                type: CHART_MESSAGE_TYPE.THINKING,
- *                content: "",
- *                id: "",
- *              },
- *              {
- *                type: CHART_MESSAGE_TYPE.QUERY_TITLE,
- *                content: "",
- *                id: "",
- *              },
- *              {
- *                type: CHART_MESSAGE_TYPE.QUERY_DETAIL,
- *                content: "",
- *                id: "",
- *              },
+ *              { type: "text", text: "", id: "" },
+ *              { type: "reasoning", reasoning: "", id: "" },
+ *              { type: "tool_call", id: "", name: "", args: {} },
+ *              { type: "tool_result", tool_call_id: "", content: "", id: "" },
  *            ],
  *          },
  *        ]
@@ -288,15 +249,8 @@ export const useChartDataStore = create(
         }
       });
     },
-    /* update streaming message by session_id and provider */
-    updateStreamingMessageByProvider: (
-      session_id,
-      assistant_id,
-      provider,
-      type,
-      content,
-      tool_id,
-    ) => {
+    /* append ONE block to a pane's answer, outside the coalesced batch */
+    pushBlockByProvider: (session_id, provider, block) => {
       set((state) => {
         const currentChartData = state.chartData[session_id];
         if (!currentChartData) return;
@@ -314,8 +268,7 @@ export const useChartDataStore = create(
         );
         if (!assistantItem) return;
 
-        // Handle all message types in unified messages array
-        appendFrameToAssistant(assistantItem, { type, content, tool_id });
+        appendFrameToAssistant(assistantItem, block);
       });
     },
     /* switch session */

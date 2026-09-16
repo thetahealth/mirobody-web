@@ -19,8 +19,8 @@ function AssistantCard({
   // click copy to clipboard
   const onClickCopy = (datasource) => {
     const content = datasource?.messages
-      .filter((msg) => msg.type === CHART_MESSAGE_TYPE.REPLY)
-      .map((msg) => msg.content)
+      .filter((msg) => msg.type === CHART_MESSAGE_TYPE.TEXT)
+      .map((msg) => msg.text)
       .filter(Boolean)
       .join("\n");
     navigator.clipboard.writeText(content);
@@ -34,8 +34,8 @@ function AssistantCard({
   // }, [children, datasource?.content]);
 
   // Find cost statistics message from datasource
-  const costStatistics = datasource?.messages?.find(
-    (msg) => msg.type === CHART_MESSAGE_TYPE.COST_STATISTICS,
+  const usage = datasource?.messages?.find(
+    (msg) => msg.type === CHART_MESSAGE_TYPE.USAGE,
   );
 
   // Check if this specific card is in fullpage mode
@@ -64,7 +64,7 @@ function AssistantCard({
           {/* <Stars rating={datasource?.rating || 0} onClick={onClickRatingStar} /> */}
         </div>
         <div className={styles.btns}>
-          {costStatistics && <CostIcon datasource={costStatistics} />}
+          {usage && <CostIcon datasource={usage} />}
           <div className={styles.copy_btn}>
             <CopySVG onClick={() => onClickCopy(datasource)} />
           </div>
