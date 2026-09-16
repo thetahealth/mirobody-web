@@ -9,7 +9,7 @@ import {
 } from "../enum/storage";
 import api from "../api";
 import { useDriveStore } from "./Drive";
-import { parseAalFromToken } from "../utils/webauthn";
+import { parseAalFromToken, parseIdentityFromToken } from "../utils/webauthn";
 import consola from "consola";
 
 export const useAccountStore = create((set, get) => ({
@@ -26,17 +26,24 @@ export const useAccountStore = create((set, get) => ({
     set({ currentAAL: parseAalFromToken(token) });
   },
 
+  // Called from useAuth.saveAuthData with the AUTH RESPONSE, which carries only
+  // the token pair — no name, email or user_id. Passing it straight through
+  // wrote three empty strings and blanked whatever was already known, which is
+  // why the account row showed no address after a real sign-in. The token
+  // itself carries `email` and `sub`, so read them from there and let an
+  // explicit field in the payload win if a future response ever has one.
   setUserInfo: (userInfo) => {
-    localStorage.setItem(USER_NAME, userInfo.name || "");
-    localStorage.setItem(USER_EMAIL, userInfo.email || "");
-    localStorage.setItem(USER_ID, userInfo.user_id || "");
-    set({
-      user_name: userInfo.name || "",
-      user_email: userInfo.email || "",
-      user_id: userInfo.user_id || "",
-    });
+    const fromToken = parseIdentityFromToken(userInfo?.access_token);
+    const name = userInfo.name || get().user_name || "";
+    const email = userInfo.email || fromToken.email;
+    const user_id = userInfo.user_id || fromToken.user_id;
+
+    localStorage.setItem(USER_NAME, name);
+    localStorage.setItem(USER_EMAIL, email);
+    localStorage.setItem(USER_ID, user_id);
+    set({ user_name: name, user_email: email, user_id });
     // Sync current_drive_user_id when user info is updated
-    useDriveStore.getState().setCurrentDriveUserId(userInfo.user_id || "");
+    if (user_id) useDriveStore.getState().setCurrentDriveUserId(user_id);
   },
 
   // beneficiary users info
@@ -123,6 +130,11 @@ export const useAccountStore = create((set, get) => ({
           });
           localStorage.setItem(USER_ID, current_user.id || "");
           localStorage.setItem(USER_NAME, current_user.name || "");
+        } else if (current_user.name && current_user.name !== get().user_name) {
+          // The roster is authoritative for the display name; the email stays
+          // whatever the token gave us (this endpoint has no email field).
+          set({ user_name: current_user.name });
+          localStorage.setItem(USER_NAME, current_user.name);
         }
         // Initialize current_drive_user_id if not set
         const { current_drive_user_id } = useDriveStore.getState();

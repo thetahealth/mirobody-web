@@ -19,6 +19,12 @@
   --color-bg: #f4f1ec; /* warm bg — page */
   --color-bg-light: #fbfaf7; /* paper — alt surface */
   --color-surface: #fbfaf7; /* paper — cards / inputs */
+  /* A row or card lifted off the page it sits on — selected list rows, hover
+     states inside a tinted panel. Nine rules referenced it before it was
+     declared, so every one of them silently fell back to pure #fff: a cold
+     white block in the middle of a warm cream column. Same value antd is
+     handed as colorBgElevated (see theme.js), so the two agree. */
+  --color-bg-elevated: #fbfaf7;
 
   /* borders */
   --color-border: #e8e4dc; /* line */

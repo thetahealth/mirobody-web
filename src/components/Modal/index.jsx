@@ -38,6 +38,10 @@ const ConfirmModal = ({
   content,
   isShowCancelButton = true,
   OkButton = null,
+  // Deleting a conversation and removing someone from the care circle are not
+  // undoable, and they used to be confirmed by the same navy button as every
+  // harmless "OK" — nothing on the dialog said the action was destructive.
+  danger = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
@@ -92,7 +96,8 @@ const ConfirmModal = ({
           )
         ) : (
           <Button
-            className={styles.okButton}
+            className={danger ? styles.dangerButton : styles.okButton}
+            danger={danger}
             onClick={handleOk}
             disabled={loading}
             loading={loading}
@@ -127,6 +132,7 @@ Modal.confirm = ({
   content,
   isShowCancelButton = true,
   OkButton = null,
+  danger = false,
 }) => {
   const container = document.createElement("div");
   document.body.appendChild(container);
@@ -160,6 +166,7 @@ Modal.confirm = ({
           content={content}
           isShowCancelButton={isShowCancelButton}
           OkButton={OkButton}
+          danger={danger}
         />
       </Modal>,
     );

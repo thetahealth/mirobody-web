@@ -7,6 +7,7 @@ import { sessionManager } from "../utils/sessionManager";
 import { getApiBaseUrl } from "../utils";
 import { useSessionReauth } from "../hooks/useSessionReauth";
 import SessionReauthOverlay from "../components/SessionReauthOverlay";
+import OnboardingTour from "../components/OnboardingTour";
 
 function ProtectedLayout() {
   const token = localStorage.getItem(ACCESS_TOKEN);
@@ -36,6 +37,9 @@ function ProtectedLayout() {
     <>
       <Outlet />
       {isReauthing && <SessionReauthOverlay />}
+      {/* Mounted here, not per page: the sidebar it points at is on every
+          signed-in route, and the tour must survive navigation between them. */}
+      <OnboardingTour />
     </>
   );
 }

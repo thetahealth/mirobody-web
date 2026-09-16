@@ -34,12 +34,39 @@ export const updateUserSettings = (data, signal) => {
   return mcpRequestInstance.post("/api/user/settings", data, { signal });
 };
 
+/**
+ * Your own basics — gender / birth / blood.
+ *
+ * `GET /api/user/settings` has always returned a `profile: { gender, birth,
+ * blood }` block and nothing on the client ever read it, so the profile page
+ * had no values to show and was written as read-only. PUT is the write side:
+ * it takes the whole settings tree, so the profile block is nested under
+ * `settings` (the flat `{gender, …}` shape answers 200 and persists nothing).
+ *
+ * The roster picks the values up: after a save, `/api/beneficiary-users`
+ * reports gender and blood_type, and an `age` the server derives from `birth`
+ * — which is why this asks for a birth date and shows age as a consequence.
+ * That matters beyond this page: the roster is what the chat answers from.
+ */
+export const updateUserProfile = ({ gender, birth, blood }, signal) => {
+  const profile = {};
+  if (gender !== undefined) profile.gender = gender;
+  if (birth !== undefined) profile.birth = birth;
+  if (blood !== undefined) profile.blood = blood;
+  return mcpRequestInstance.put(
+    "/api/user/settings",
+    { settings: { profile } },
+    { signal },
+  );
+};
+
 export default {
   dataDistribution,
   beneficiaryUsers,
   getMirobodyConfig,
   getUserSettings,
   updateUserSettings,
+  updateUserProfile,
   ...login,
   ...upload,
   ...chat,

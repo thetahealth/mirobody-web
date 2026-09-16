@@ -9,6 +9,9 @@ const Login = lazy(() => import("../pages/Login/index.jsx"));
 const Chat = lazy(() => import("../pages/Chat/index.jsx"));
 const Drive = lazy(() => import("../pages/Drive/index.jsx"));
 const Share = lazy(() => import("../pages/Share/index.jsx"));
+const Profile = lazy(() => import("../pages/Profile/index.jsx"));
+const CareCircle = lazy(() => import("../pages/CareCircle/index.jsx"));
+const Indicators = lazy(() => import("../pages/Indicators/index.jsx"));
 const ChatList = lazy(() => import("../pages/Chat/ContentList/index.jsx"));
 const ChatEmpty = lazy(() => import("../pages/Chat/EmptyContent/index.jsx"));
 // /developer forwards to the cdm developer console (the page itself lives there now).
@@ -35,8 +38,14 @@ export const routes = [
         Component: ProtectedLayout,
         children: [
           {
+            // 指标 is the landing page: it is the readings themselves, not the
+            // files and devices they came from.
             index: true,
-            Component: Drive,
+            Component: Indicators,
+          },
+          {
+            path: "/indicators",
+            Component: Indicators,
           },
           {
             path: "/ask",
@@ -55,6 +64,16 @@ export const routes = [
           {
             path: "/data",
             Component: Drive,
+          },
+          // 管理 — your own record, and everyone else's. Two nav items because
+          // they are two different things (see config/navConfig.js).
+          {
+            path: "/profile",
+            Component: Profile,
+          },
+          {
+            path: "/care-circle",
+            Component: CareCircle,
           },
           // Legacy paths → the renamed ones.
           {

@@ -92,6 +92,18 @@
   }
 }
 
+/* The confirm button for an action that cannot be undone. */
+.dangerButton {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-danger);
+    opacity: 0.9;
+  }
+}
+
 .spinner {
   width: 14px;
   height: 14px;

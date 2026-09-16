@@ -1,0 +1,150 @@
+/* The page title IS the switch, so it has to look pressable without looking
+   like a form control: no resting border, a hover surface, and a caret. */
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--t-fast);
+
+  &:hover {
+    background-color: var(--color-bg-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+.trigger_name {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.trigger_caret {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.overlay {
+  :global(.ant-popover-inner) {
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+  }
+}
+
+.panel {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Same anatomy as the chat 帮他问 picker: avatar, name (+ "me"), one meta line. */
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--t-fast);
+
+  &:hover {
+    background-color: var(--color-bg-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+}
+
+.option_active {
+  background-color: var(--color-bg-soft);
+
+  .option_name {
+    font-weight: 600;
+  }
+
+  .option_avatar {
+    background-color: var(--color-accent);
+    color: #fff;
+  }
+}
+
+.option_avatar {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.option_body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.option_name_row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.option_name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option_badge {
+  flex-shrink: 0;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-info-soft);
+  color: var(--color-accent);
+  font-size: 11px;
+}
+
+.option_detail {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option_check {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  font-size: 12px;
+}

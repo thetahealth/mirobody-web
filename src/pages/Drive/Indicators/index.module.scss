@@ -27,7 +27,7 @@
     border-radius: var(--radius-md);
     font-size: 14px;
     color: var(--color-text-primary);
-    background-color: var(--color-bg-elevated, #fff);
+    background-color: var(--color-bg-elevated);
     transition: border-color var(--t-fast);
 
     &::placeholder {

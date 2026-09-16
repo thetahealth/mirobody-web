@@ -1,0 +1,172 @@
+/* Same shell as /data and /care-circle: one scroller, one centred column. */
+.scroll {
+  flex: 1;
+  overflow: auto;
+  min-width: 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--layout-max);
+  margin: 0 auto;
+  padding: var(--space-6) var(--layout-gutter) var(--space-12);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 720px;
+}
+
+.section_head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section_title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.identity_text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.identity_name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.identity_email {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  word-break: break-all;
+}
+
+/* One labelled control per row. A two-column grid of read-only values was
+   right when the page could not write; now each row is a field. */
+.rows {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+
+  & + & {
+    border-top: 1px solid var(--color-border-soft);
+  }
+}
+
+.row_label {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+/* Every control the same width so the right edge of the form is a straight
+   line whether the row holds a select, a date picker or a derived value. */
+.control {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.derived {
+  width: 220px;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.derived_empty {
+  color: var(--color-text-muted);
+}
+
+.saving {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .control,
+  .derived {
+    width: 100%;
+  }
+}

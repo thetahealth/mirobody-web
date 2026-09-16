@@ -1,0 +1,197 @@
+/* The app shell's one piece of navigation. It replaces a 64px top bar plus a
+   collapsible 88px rail: two strips of chrome that between them showed two
+   unlabelled glyphs and cost a full row of vertical space on every page. One
+   column holds the same things in reading order — where you are, what is in
+   here, who you are — and the page below it starts at the top of the window. */
+.sidebar {
+  /* Wide enough for a Chinese conversation summary and an email address to
+     survive next to a 28px avatar — the lists this column holds are the reason
+     it exists, and at 240px both were ellipsised after a few characters. */
+  width: 272px;
+  min-width: 272px;
+  transition: width var(--t-fast), min-width var(--t-fast);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  background-color: var(--color-bg-soft);
+  border-right: 1px solid var(--color-border);
+  user-select: none;
+
+  /* Inside the mobile drawer the drawer IS the panel: fill it, and drop the
+     border that would otherwise draw a line down its edge. */
+  @include phone {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 8px 20px;
+
+  svg {
+    display: block;
+    height: 22px;
+    width: auto;
+  }
+}
+
+/* The collapse toggle sits at the end of the brand row, so the control that
+   changes the column's width lives at the top of that column. */
+.collapse_btn {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color var(--t-fast), color var(--t-fast);
+
+  &:hover {
+    background-color: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  svg {
+    height: auto;
+  }
+}
+
+/* One group per nav section. The rule between them is what makes 工作区 and
+   管理 read as two different kinds of place rather than one list of four. */
+.section + .section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.section_label {
+  padding: 10px 8px 6px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.nav_item {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--t-fast), color var(--t-fast);
+
+  &:hover {
+    background-color: var(--color-bg-elevated);
+  }
+
+  /* A filled navy pill, the same token the primary buttons use. The old top
+     nav marked the current tab with a pale grey chip that read as "disabled"
+     next to the black labels beside it. */
+  &.nav_item_active {
+    background-color: var(--color-action);
+    color: var(--color-action-fg);
+
+    &:hover {
+      background-color: var(--color-action);
+    }
+  }
+}
+
+.nav_icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Whatever the current page keeps in the sidebar — the care circle on /data,
+   the conversation history on /ask. It takes the remaining height and scrolls
+   on its own so the account row below never leaves the window. */
+.context {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── mobile top bar ────────────────────────────────────────────────────── */
+/* Phones have no room for a permanent 240px column, so the same sidebar opens
+   in a drawer and this strip is what opens it. Desktop never renders it. */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  flex-shrink: 0;
+  padding: 0 8px;
+  background-color: #fff;
+  border-bottom: 1px solid var(--color-border);
+
+  svg {
+    display: block;
+    height: 20px;
+    width: auto;
+  }
+}
+
+/* ── Collapsed: the icon rail ──────────────────────────────────────────────
+   64px is the icon (16px) plus a 40px square hit area centred in it. Labels,
+   the group headings and the chat history are gone; every icon keeps an
+   accessible name and names itself on hover (see the Tooltip in index.jsx),
+   because an unlabelled glyph with no way to identify it is exactly what this
+   sidebar was built to replace. */
+.sidebar.collapsed {
+  width: 64px;
+  min-width: 64px;
+  padding: 16px 8px;
+
+  .brand {
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: 4px 0 16px;
+  }
+
+  .collapse_btn {
+    margin-left: 0;
+  }
+
+  .section + .section {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .nav_item {
+    justify-content: center;
+    padding: 10px 0;
+    gap: 0;
+  }
+}

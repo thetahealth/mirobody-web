@@ -1,0 +1,265 @@
+/* Same page shell every route uses: one scrolling area, one centred column, so
+   /data, /profile and this page share a left and right edge. */
+.scroll {
+  flex: 1;
+  overflow: auto;
+  min-width: 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--layout-max);
+  margin: 0 auto;
+  padding: var(--space-6) var(--layout-gutter) var(--space-12);
+}
+
+/* A title paired with one line saying what the page is for. A bare title makes
+   the reader work out the purpose from the contents. */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.invite_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-action);
+  color: var(--color-action-fg);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--t-fast);
+
+  &:hover {
+    background-color: var(--color-action-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.section_head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section_title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.section_count {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-bg-soft);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+
+  &:hover .remove {
+    opacity: 1;
+  }
+}
+
+.card_head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.card_id {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name_row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-info-soft);
+  color: var(--color-accent);
+  font-size: 11px;
+}
+
+.email {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast),
+    background-color var(--t-fast);
+
+  &:hover {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  /* Touch devices have no hover: keep it reachable. */
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.fact {
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg-soft);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+/* Said out loud rather than left as a blank row: the backend has no basics for
+   this person yet, which is a fact about the record, not a rendering gap. */
+.facts_empty {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-12) var(--space-6);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.empty_title {
+  margin-bottom: var(--space-2);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.empty_sub {
+  max-width: 44ch;
+  margin: 0 auto var(--space-5);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}

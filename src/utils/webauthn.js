@@ -177,3 +177,19 @@ export const decodeJwtPayload = (token) => {
 export const parseAalFromToken = (token) => {
   return decodeJwtPayload(token)?.aal || 0;
 };
+
+/**
+ * Identity claims the access token carries: `email` and `sub` (the user id).
+ *
+ * This is the only client-side source for the signed-in address —
+ * `/api/beneficiary-users` returns id / name / nickname / gender / blood_type /
+ * age and no email at all, and the auth response is just the token pair. So the
+ * account row and the profile page read it from here.
+ */
+export const parseIdentityFromToken = (token) => {
+  const payload = decodeJwtPayload(token);
+  return {
+    email: payload?.email || "",
+    user_id: payload?.sub ? String(payload.sub) : "",
+  };
+};
