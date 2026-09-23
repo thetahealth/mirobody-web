@@ -75,11 +75,10 @@ function Chat() {
             key="normal_content"
           >
             <ChatHeader />
-            {/* Empty page: greeting, composer and drop zone are one centred
-                stack, and the composer is handed to EmptyContent through the
-                outlet context so it can sit between the other two. Once there
-                is a conversation the transcript takes the space and the
-                composer returns to the floor. */}
+            {/* Empty page: the greeting and the composer, centred together,
+                with the composer handed to EmptyContent through the outlet
+                context. Once there is a conversation the transcript takes the
+                space and the composer returns to the floor. */}
             {isWelcome ? (
               <Outlet context={{ composer: <Input variant="welcome" /> }} />
             ) : (

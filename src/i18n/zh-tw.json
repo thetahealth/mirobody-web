@@ -532,6 +532,5 @@
   "journal_placeholder_condition": "確診過什麼？例如：高血壓、氣喘",
   "journal_kind_label": "類型",
   "journal_kind_symptom": "症狀",
-  "journal_kind_condition": "診斷",
-  "you_can_click_this_area_to_upload_from_your_computer_or_drag_and_drop_here": "你可以點擊此區域從電腦上傳，或直接拖曳檔案至此"
+  "journal_kind_condition": "診斷"
 }

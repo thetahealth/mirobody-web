@@ -1,7 +1,7 @@
-/* The empty chat page: greeting, composer and drop zone as one vertically
-   centred stack. The composer used to be pinned to the floor here too, which
-   left the greeting and the drop zone stranded in the middle of an empty
-   column with a hand-span of nothing between them and the thing you type in. */
+/* The empty chat page: a greeting and the composer, one vertically centred
+   stack. The composer used to be pinned to the floor here too, which left the
+   greeting stranded in the middle of an empty column with a hand-span of
+   nothing between it and the thing you type in. */
 .page {
   flex: 1;
   display: flex;
@@ -43,97 +43,4 @@
   color: var(--color-text-primary);
   text-align: center;
   user-select: none;
-}
-
-/* Attaching a file is the secondary way in; asking a question is the primary
-   one, and the composer pinned at the foot of the page is that.
-   
-   This card has been wrong in both directions. It started as a 600px box with
-   a 168px illustration — the largest object on the screen, for the lesser of
-   the two actions. Shrinking it to a compact horizontal row overcorrected: a
-   squat pill adrift in the middle of an empty column, reading as leftover
-   furniture rather than a drop target. A drop target has to look like an area.
-
-   So: a stacked, centred zone at roughly half the original scale. Big enough
-   to aim a dragged file at, quiet enough that the composer still wins. */
-.upload {
-  width: 100%;
-  max-width: 520px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  /* Shorter than it was when it was the only object on the page: it now sits
-     under the composer, and the composer has to stay the heavier of the two. */
-  padding: var(--space-6);
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  cursor: pointer;
-  user-select: none;
-  transition: background-color var(--t-fast), border-color var(--t-fast);
-
-  &:hover {
-    background: var(--color-bg-soft);
-    border-color: var(--color-accent);
-  }
-
-  &.upload_dragging {
-    background: var(--color-bg-soft);
-    border-color: var(--color-accent);
-    border-style: solid;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-
-  .upload_body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    min-width: 0;
-    text-align: center;
-  }
-
-  .upload_title {
-    color: var(--color-text-primary);
-    font-size: 15px;
-    font-weight: 600;
-  }
-
-  .upload_desc {
-    max-width: 34ch;
-    color: var(--color-text-secondary);
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.5;
-  }
-
-  .upload_icon {
-    width: 52px;
-    margin-bottom: var(--space-1);
-    flex-shrink: 0;
-  }
-}
-
-// ── Mobile: the desktop greeting + upload drop-zone are oversized and stiff
-// on a phone. Scale the greeting down, soften the drop-zone into a compact
-// card, and shrink the illustration so it matches the rest of the mobile UI.
-@media (max-width: 768px) {
-  .title {
-    font-size: 22px;
-    line-height: 1.3;
-    padding: 0 16px;
-  }
-  .upload {
-    max-width: 100%;
-    padding: var(--space-6) var(--space-4);
-
-    .upload_icon {
-      width: 56px;
-    }
-  }
 }

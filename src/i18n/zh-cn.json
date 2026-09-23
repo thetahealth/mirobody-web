@@ -532,6 +532,5 @@
   "journal_placeholder_condition": "确诊过什么？例如：高血压、哮喘",
   "journal_kind_label": "类型",
   "journal_kind_symptom": "症状",
-  "journal_kind_condition": "诊断",
-  "you_can_click_this_area_to_upload_from_your_computer_or_drag_and_drop_here": "您可以点击此区域从您的计算机上传或拖放此处"
+  "journal_kind_condition": "诊断"
 }

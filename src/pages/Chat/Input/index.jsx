@@ -1,5 +1,4 @@
 import styles from "./index.module.scss";
-import ChatUploadSVG from "../../../assets/chat-upload.svg?react";
 import { useChatStore } from "../../../store/Chart/index";
 
 import { Input } from "antd";
@@ -9,6 +8,7 @@ import SendButton from "./SendButton";
 import { useTranslation } from "react-i18next";
 import { openSelectFileDialog, handleOnDropFiles } from "../../../utils/file";
 import { Tooltip } from "antd";
+import { PaperClipOutlined } from "@ant-design/icons";
 import { useChartInputStore } from "../../../store/Chart/input";
 import { useChartDataStore } from "../../../store/Chart/data";
 import consola from "consola";
@@ -167,14 +167,16 @@ function ChatInput({ variant }) {
             <Tooltip placement="topRight" title={t("upload_tip")}>
               {/* A real button: attaching a file was a bare SVG with an
                   onClick, so it was not in the accessibility tree and Tab
-                  could not reach it. */}
+                  could not reach it. A paperclip rather than the plus it was:
+                  a plus is "add something" and leaned on the tooltip to say
+                  what. This is now the page's only way to attach a file. */}
               <button
                 type="button"
                 className={styles.upload_wrapper}
                 aria-label={t("upload_files")}
                 onClick={onClickUploadBtn}
               >
-                <ChatUploadSVG className={styles.upload_icon} aria-hidden="true" />
+                <PaperClipOutlined className={styles.upload_icon} aria-hidden="true" />
               </button>
             </Tooltip>
             <div className={styles.right}>

@@ -532,6 +532,5 @@
   "journal_placeholder_condition": "What were you diagnosed with? e.g. hypertension, asthma",
   "journal_kind_label": "Kind",
   "journal_kind_symptom": "Symptom",
-  "journal_kind_condition": "Diagnosis",
-  "you_can_click_this_area_to_upload_from_your_computer_or_drag_and_drop_here": "You can click this area to upload from your computer or drag and drop here"
+  "journal_kind_condition": "Diagnosis"
 }
