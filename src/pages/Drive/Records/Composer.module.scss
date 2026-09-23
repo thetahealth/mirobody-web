@@ -209,3 +209,33 @@
 .outcomeHint {
   color: var(--color-text-muted);
 }
+
+/* A sentence's answer: one row per entry written, then the parts that were
+   not written. The skipped parts are muted, not red: leaving out "没发烧" is
+   the sentence understood, not an error. */
+.outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skipped {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  font-size: 13px;
+}
+
+.skip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.skipWords {
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-muted);
+}

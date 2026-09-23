@@ -3,11 +3,12 @@ import { mcpRequestInstance } from "../service/request";
 /**
  * 记录 — what a person reports in their own words, on the ICPC-3 axis.
  *
- * Three routes, all on the open-source backend (`server/routers/journal_router.py`):
+ * Four routes, all on the open-source backend (`server/routers/journal_router.py`):
  *
- *   POST   /api/v1/journal      log one entry; answers with its coding
- *   GET    /api/v1/journal      the log, already grouped by day, newest first
- *   DELETE /api/v1/journal/:id  mark one entry entered in error
+ *   POST   /api/v1/journal/sentence  log every entry one sentence states
+ *   POST   /api/v1/journal           log one entry; answers with its coding
+ *   GET    /api/v1/journal           the log, already grouped by day, newest first
+ *   DELETE /api/v1/journal/:id       mark one entry entered in error
  *
  * Two things about this endpoint shape the UI and are worth stating here
  * rather than rediscovering in a component:
@@ -31,11 +32,32 @@ const params = (values) =>
   );
 
 /**
+ * Log what a person typed, e.g. "我头疼，血压150/95，没发烧".
+ *
+ * The server splits it and writes each entry it states on its own axis: the
+ * headache on ICPC-3, the two pressures as readings on LOINC. It answers with
+ * `written` (each row with its coding) and `skipped` (each part it did not
+ * write, with a reason token: negated, someone_else, medication, ...).
+ *
+ * `tz` is the browser's zone: "今早" is the morning where the person is typing,
+ * and a record with no zone set would otherwise read it in UTC.
+ *
+ * A server with no text model answers 503, and one that predates the route
+ * answers 404; both mean "log one entry" (`sentenceUnsupported`).
+ */
+export const logSentence = ({ text, observed_at, tz, target_user_id } = {}, signal) =>
+  mcpRequestInstance.post(
+    `${BASE}/sentence`,
+    params({ text, observed_at, tz, target_user_id }),
+    { signal },
+  );
+
+/**
  * Log one entry.
  *
  * `text` is the complaint in the person's own words, 1-200 characters — the
- * backend rejects longer, and it is a complaint rather than a diary entry
- * (the router does not read a sentence, by design).
+ * backend rejects longer. A sentence stating several things goes to
+ * `logSentence`; this is the fallback when the server cannot read one.
  *
  * `kind` is the axis, and the two are not interchangeable: "symptom" is what
  * a person feels now and resolves on ICPC-3's S component, "condition" is what

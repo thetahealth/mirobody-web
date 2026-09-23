@@ -82,6 +82,13 @@
   overflow-wrap: anywhere;
 }
 
+/* A reading typed into a sentence: the number sits beside its name. */
+.value {
+  margin-left: var(--space-2);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
 /* Its own column, before the words, so a reader can scan the axis down the
    left edge the way the cloud's Episode chips read. */
 .kind {

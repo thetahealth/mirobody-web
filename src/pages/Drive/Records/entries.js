@@ -151,23 +151,60 @@ export const KINDS = ["symptom", "condition"];
  *
  * The server owns this enum and can grow it. An unknown value must not render
  * as its own key name in the feed, so it falls back to the raw string, which
- * at least says something true.
+ * at least says something true. `measurement` is a reading typed into a
+ * sentence: it is listed, but it is not an axis the single-entry form offers.
  */
 export const kindKey = (kind) =>
-  KINDS.includes(kind) ? `journal_kind_${kind}` : "";
+  KINDS.includes(kind) || kind === "measurement" ? `journal_kind_${kind}` : "";
+
+/** "150 mmHg" for a reading typed here, "" for a complaint. */
+export const valueOf = (entry) =>
+  entry && entry.value ? [entry.value, entry.unit].filter(Boolean).join(" ") : "";
 
 /** What the backend accepts, so the composer can stop a doomed submit itself. */
 export const TEXT_MAX = 200;
+export const SENTENCE_MAX = 500;
 export const NOTE_MAX = 2000;
+
+/**
+ * The copy key for why a part of a sentence was not written. Tokens come from
+ * the server (`collect/sentence.py`), and an unknown one gets the generic line.
+ */
+export const skipKey = (reason) => {
+  const known = [
+    "negated", "hypothetical", "someone_else", "medication",
+    "not_a_record", "no_value", "not_in_sentence", "too_long",
+  ];
+  return known.includes(reason) ? `journal_skip_${reason}` : "journal_skip_other";
+};
+
+/**
+ * `{written, skipped, alreadyLogged}` out of a sentence answer, defensively:
+ * one null in either list must not take the outcome panel down.
+ */
+export const readSentence = (data) => ({
+  written: (Array.isArray(data?.written) ? data.written : []).filter((e) => e && e.id != null),
+  skipped: (Array.isArray(data?.skipped) ? data.skipped : []).filter((p) => p && (p.quote || p.name)),
+  alreadyLogged: Number(data?.already_logged) || 0,
+});
+
+/**
+ * Whether a failed sentence call means "this server cannot read sentences":
+ * 503 (no text model configured) or 404 (a backend that predates the route).
+ * Anything else is a real error and is shown as one.
+ */
+export const sentenceUnsupported = (error) =>
+  error?.code === 503 || error?.status === 404 || error?.response?.status === 404;
 
 /**
  * Whether this entry may be submitted, and why not.
  *
  * Returns "" when it may. The reasons are tokens, translated by the caller.
  */
-export const submitBlocker = ({ text, note }) => {
+export const submitBlocker = ({ text, note, sentence = false }) => {
   const body = (text || "").trim();
   if (!body) return "empty";
+  if (sentence) return body.length > SENTENCE_MAX ? "sentence_too_long" : "";
   if (body.length > TEXT_MAX) return "too_long";
   if ((note || "").length > NOTE_MAX) return "note_too_long";
   return "";

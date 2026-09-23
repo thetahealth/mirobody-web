@@ -7,6 +7,7 @@ import {
   reasonKey,
   standardName,
   timeOf,
+  valueOf,
   weekdayOf,
 } from "./entries.js";
 import styles from "./DayFeed.module.scss";
@@ -56,7 +57,12 @@ const DayFeed = ({ days, today, onRetract }) => {
                     ) : null}
 
                     <div className={styles.body}>
-                      <p className={styles.words}>{entry.text}</p>
+                      <p className={styles.words}>
+                        {entry.text}
+                        {valueOf(entry) ? (
+                          <span className={styles.value}>{valueOf(entry)}</span>
+                        ) : null}
+                      </p>
                       {entry.note ? <p className={styles.note}>{entry.note}</p> : null}
                     </div>
 

@@ -9,10 +9,14 @@ import {
   localInputFromDate,
   rangeFor,
   readDays,
+  readSentence,
   reasonKey,
+  sentenceUnsupported,
+  skipKey,
   standardName,
   submitBlocker,
   timeOf,
+  valueOf,
   weekdayOf,
 } from "./entries.js";
 
@@ -223,5 +227,54 @@ describe("readDays guards each entry, not only the day", () => {
   it("drops a row with no id, which is the key the feed needs", () => {
     const out = readDays({ days: [{ date: "2026-03-01", entries: [{ text: "no id" }] }] });
     expect(out).toEqual([]);
+  });
+});
+
+
+describe("a sentence", () => {
+  it("is allowed 500 characters, where one entry is allowed 200", () => {
+    const long = "头".repeat(300);
+    expect(submitBlocker({ text: long, sentence: true })).toBe("");
+    expect(submitBlocker({ text: long })).toBe("too_long");
+    expect(submitBlocker({ text: "头".repeat(501), sentence: true })).toBe("sentence_too_long");
+    expect(submitBlocker({ text: "  ", sentence: true })).toBe("empty");
+  });
+
+  it("reads written and skipped defensively", () => {
+    const out = readSentence({
+      written: [null, { id: 1, text: "头疼" }, { text: "no id" }],
+      skipped: [{ quote: "没发烧", reason: "negated" }, null, {}],
+      already_logged: 2,
+    });
+    expect(out.written).toEqual([{ id: 1, text: "头疼" }]);
+    expect(out.skipped).toEqual([{ quote: "没发烧", reason: "negated" }]);
+    expect(out.alreadyLogged).toBe(2);
+    expect(readSentence(undefined)).toEqual({ written: [], skipped: [], alreadyLogged: 0 });
+  });
+
+  it("names each skip reason the server sends, and falls back for a new one", () => {
+    expect(skipKey("negated")).toBe("journal_skip_negated");
+    expect(skipKey("someone_else")).toBe("journal_skip_someone_else");
+    expect(skipKey("something_new")).toBe("journal_skip_other");
+  });
+
+  it("falls back to one entry only when the server cannot read a sentence", () => {
+    expect(sentenceUnsupported({ code: 503, msg: "needs a text model" })).toBe(true);
+    expect(sentenceUnsupported({ response: { status: 404 } })).toBe(true);
+    expect(sentenceUnsupported({ code: 502 })).toBe(false);
+    expect(sentenceUnsupported({ code: 403 })).toBe(false);
+  });
+});
+
+describe("a reading typed into a sentence", () => {
+  it("shows its value and unit, and a complaint shows none", () => {
+    expect(valueOf({ text: "收缩压", value: "150", unit: "mmHg" })).toBe("150 mmHg");
+    expect(valueOf({ text: "体温", value: "38.5", unit: "" })).toBe("38.5");
+    expect(valueOf({ text: "头疼", value: "" })).toBe("");
+  });
+
+  it("has a kind label, though the one-entry form does not offer it", () => {
+    expect(kindKey("measurement")).toBe("journal_kind_measurement");
+    expect(kindKey("meal")).toBe("");
   });
 });
