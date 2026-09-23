@@ -36,6 +36,12 @@ export const useSystemStore = create(
     isShowMobileSource: true,
     // api config
     isShowAPIConfig: true,
+    // 记录 (the ICPC-3 journal). Default ON for the same reason as the device
+    // providers above: a self-hosted backend that predates the flag sends no
+    // key, and reading that as "off" hides a whole nav entry on every install
+    // that has the route. Only an explicit false takes it away — which is what
+    // a backend without `POST /api/v1/journal` should send.
+    isShowJournal: true,
     initMirobodyConfig: async () => {
       try {
         const data = await api.getMirobodyConfig();
@@ -45,6 +51,9 @@ export const useSystemStore = create(
           // Absent key ≠ off (see above): only an explicit false hides it.
           if (data.__IS_MOBILE_SOURCE_ON__ !== undefined) {
             state.isShowMobileSource = !!data.__IS_MOBILE_SOURCE_ON__;
+          }
+          if (data.__IS_JOURNAL_ON__ !== undefined) {
+            state.isShowJournal = !!data.__IS_JOURNAL_ON__;
           }
         });
       } catch (error) {

@@ -1,0 +1,211 @@
+/* The composer reads as one object: a field and its submit share a border,
+   and the details row grows inside that same box rather than below it, so
+   opening it does not look like a second component appearing. */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: var(--control-h);
+  padding: 0 var(--space-4);
+  font-size: 16px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+}
+
+.submit {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--control-h);
+  padding: 0 var(--space-5);
+  font-size: 15px;
+  color: var(--color-action-fg);
+  background: var(--color-action);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--t-fast), opacity var(--t-fast);
+
+  &:hover:not(:disabled) {
+    background: var(--color-action-hover);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.details {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Which axis the words go on. Two buttons rather than a select: there are two
+   of them, they are short, and one tap is the whole interaction. */
+.kinds {
+  display: inline-flex;
+  height: 40px;
+  padding: 3px;
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-sm);
+}
+
+.kind {
+  padding: 0 var(--space-3);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+
+  &:hover {
+    color: var(--color-text-primary);
+  }
+}
+
+.kindOn {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.when,
+.noteInput {
+  height: 40px;
+  padding: 0 var(--space-3);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+}
+
+.noteInput {
+  width: 100%;
+}
+
+.cancel {
+  flex: none;
+  height: 40px;
+  width: 40px;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-border-strong);
+  }
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+/* The standardization, made visible. Two states, and the abstention is not
+   styled as a failure: the entry was saved either way, and colouring it red
+   would teach people that plain words are a mistake. */
+.outcome {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: 14px;
+  border-radius: var(--radius-md);
+}
+
+.coded {
+  background: var(--color-success-soft);
+}
+
+.abstained {
+  background: var(--color-bg-soft);
+}
+
+.outcomeWords {
+  color: var(--color-text-secondary);
+}
+
+.arrow {
+  color: var(--color-text-muted);
+}
+
+.outcomeName {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.outcomeCode {
+  padding: 2px var(--space-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-xs);
+}
+
+.outcomeHint {
+  color: var(--color-text-muted);
+}

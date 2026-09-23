@@ -1,0 +1,93 @@
+/* A tab panel, not a page: the shell, the column and the person switcher are
+   the Data page's. This owns the space between the tab strip and the bottom. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-bottom: var(--space-12);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  max-width: var(--layout-prose);
+}
+
+/* The count and the window sit on one line above the feed: the count is the
+   answer to "how much is here", and the window is what it counted. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.counts {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.ranges {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-pill);
+}
+
+.range {
+  padding: var(--space-2) var(--space-4);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+
+  &:hover {
+    color: var(--color-text-primary);
+  }
+}
+
+.rangeOn {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.loading,
+.error {
+  margin: 0;
+  font-size: 14px;
+}
+
+.loading {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.empty {
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-text-primary);
+}
+
+.emptyHint {
+  margin: var(--space-2) 0 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}

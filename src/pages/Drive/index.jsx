@@ -11,12 +11,13 @@ import { useVitalStore } from "../../store/vital";
 import getWebSocketManager from "../../utils/websocket/WebSocketManager";
 import consola from "consola";
 import ProviderList from "./ProviderList";
+import Records from "./Records";
 import DriveHeader from "./DriveHeader";
 import Tabs from "./Tabs";
 import { VITAL_STATUS } from "../../enum/vital";
 import styles from "./index.module.scss";
 
-const TAB_KEYS = ["upload_files", "connect_data_source"];
+const TAB_KEYS = ["records", "upload_files", "connect_data_source"];
 
 const DrivePage = () => {
   // ?tab= is how the indicators page crosses over to a specific tab here (its
@@ -25,7 +26,7 @@ const DrivePage = () => {
   const [searchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(() =>
-    TAB_KEYS.includes(requestedTab) ? requestedTab : "upload_files",
+    TAB_KEYS.includes(requestedTab) ? requestedTab : "records",
   );
   // Arriving with ?tab= means the reader came from the indicators page asking
   // for a specific thing ("upload a report" / "connect a source"). Seeding the
@@ -55,6 +56,7 @@ const DrivePage = () => {
   const isShowMobileSource = useSystemStore(
     (state) => state.isShowMobileSource,
   );
+  const isShowJournal = useSystemStore((state) => state.isShowJournal);
   const { t } = useTranslation();
 
   const connectedCount = providers_list.filter(
@@ -62,12 +64,16 @@ const DrivePage = () => {
   ).length;
   const hasSources = isShowMobileSource && providers_list.length > 0;
 
-  // Two tabs: the documents you upload and the devices you connect. The
-  // readings they produce used to be a third tab here and are now their own
+  // Three tabs, three ways something gets into the record: you write it, you
+  // upload it, or a device sends it. The READINGS they produce are their own
   // page (工作区 › 指标) — the output does not belong at the same level as its
   // own plumbing. Each tab carries its own count, which is what the old
   // four-counter strip was really for.
+  //
+  // 记录 is hidden on a backend that explicitly says it has no journal route;
+  // see store/system.js for why the flag defaults on.
   const TABS = [
+    ...(isShowJournal ? [{ value: "records", label: t("records_tab") }] : []),
     { value: "upload_files", label: t("files_tab"), count: fileTotal },
     {
       value: "connect_data_source",
@@ -150,6 +156,10 @@ const DrivePage = () => {
             <div hidden={activeTab !== "upload_files"} ref={uploadFilesRef}>
               <UploadFiles filesHighlightTrigger={filesHighlightTrigger} />
             </div>
+
+            {/* Mounted only while selected: it fetches on mount, and the two
+                panels above stay mounted precisely so they do not refetch. */}
+            {isShowJournal && activeTab === "records" ? <Records /> : null}
           </div>
         </div>
       </div>

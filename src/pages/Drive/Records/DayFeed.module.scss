@@ -1,0 +1,151 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dayHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.dayTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.dayDate {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.dayCount {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.entries {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One row per entry: when, the words, what they were coded to, and the way
+   back out. The chip sits at the end of the row rather than under the words so
+   a column of entries can be read down the standard names alone. */
+.entry {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border-soft);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover .retract {
+    opacity: 1;
+  }
+}
+
+.time {
+  flex: none;
+  width: 48px;
+  padding-top: 1px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.words {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* Its own column, before the words, so a reader can scan the axis down the
+   left edge the way the cloud's Episode chips read. */
+.kind {
+  flex: none;
+  padding: 1px var(--space-2);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+
+.note {
+  margin: var(--space-1) 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.coded,
+.uncoded {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 45%;
+  padding: 2px var(--space-3);
+  font-size: 13px;
+  border-radius: var(--radius-pill);
+}
+
+.coded {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+/* Not a warning colour. The entry was stored; the vocabulary simply had no
+   code for those words, and that is a normal outcome, not a fault of the
+   person who typed them. */
+.uncoded {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-soft);
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.retract {
+  flex: none;
+  padding: 2px var(--space-2);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast);
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    color: var(--color-danger);
+  }
+}
