@@ -9,17 +9,19 @@ import styles from "./index.module.scss";
  * one opens the tab that does it — the tabs below are the same doors, but a
  * row of tab labels does not say "start here".
  *
- * A report and a photo are two entries even though both are the upload tab:
+ * A report and a photo are two entries even though both go to the upload:
  * people think of a PDF from the clinic and a phone picture of a lab sheet as
- * different things, and the upload takes both. An entry whose tab is switched
+ * different things. Those two open the file picker straight away, narrowed to
+ * that kind of file (`accept`), rather than landing on a tab where the reader
+ * has to find the drop zone and click again. An entry whose tab is switched
  * off (journal flag, no device providers configured) is left out rather than
  * shown disabled.
  */
 const EmptyGuide = ({ showJournal, showSources, onOpen }) => {
   const { t } = useTranslation();
   const entries = [
-    { key: "report", tab: "upload_files" },
-    { key: "image", tab: "upload_files" },
+    { key: "report", tab: "upload_files", accept: "application/pdf,.pdf" },
+    { key: "image", tab: "upload_files", accept: "image/*" },
     ...(showJournal ? [{ key: "journal", tab: "records" }] : []),
     ...(showSources ? [{ key: "device", tab: "connect_data_source" }] : []),
   ];
@@ -31,12 +33,12 @@ const EmptyGuide = ({ showJournal, showSources, onOpen }) => {
       </h2>
       <p className={styles.body}>{t("drive_empty_body")}</p>
       <div className={styles.entries}>
-        {entries.map(({ key, tab }) => (
+        {entries.map(({ key, tab, accept }) => (
           <button
             key={key}
             type="button"
             className={styles.entry}
-            onClick={() => onOpen(tab)}
+            onClick={() => onOpen(tab, accept)}
           >
             <span className={styles.entry_label}>{t(`drive_empty_${key}`)}</span>
             <span className={styles.entry_hint}>

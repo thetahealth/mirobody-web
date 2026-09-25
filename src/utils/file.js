@@ -64,13 +64,15 @@ export const isExcelFile = (filename, contentType) => {
   return hasExcelExtension || hasExcelMime;
 };
 
-export const openSelectFileDialog = () => {
+// `accept` narrows what the picker offers (e.g. "application/pdf" or
+// "image/*"); the upload itself still takes anything.
+export const openSelectFileDialog = (accept = "*/*") => {
   return new Promise((resolve, reject) => {
     try {
       const fileInput = document.createElement("input");
       fileInput.type = "file";
       fileInput.multiple = true;
-      fileInput.accept = "*/*";
+      fileInput.accept = accept;
       fileInput.onchange = (e) => {
         const _files = [];
         for (const file of e.target.files) {
