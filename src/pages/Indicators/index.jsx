@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import Sidebar, { MobileTopBar } from "../../components/Sidebar";
-import DriveHeader from "../Drive/DriveHeader";
-import IndicatorsPanel from "../Drive/Indicators";
+import DriveHeader from "../../components/DriveHeader";
+import IndicatorsPanel from "./IndicatorsPanel";
 import { useAccountStore } from "../../store/account";
 import { useDriveStore } from "../../store/Drive";
 import { useDistributionStore } from "../../store/distribution";

@@ -8,7 +8,7 @@ import { mcpRequestInstance } from "../service/request";
  *
  * Both grains arrive as `{rows, count, total, truncated, …}`; the envelope is
  * returned untouched because `truncated` and `total` are part of an honest
- * answer. `pages/Drive/Indicators/rows.js` is the only place that knows the
+ * answer. `pages/Indicators/IndicatorsPanel/rows.js` is the only place that knows the
  * row keys.
  */
 const BASE = "/api/v1/health-indicators";

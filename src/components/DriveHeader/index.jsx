@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { Popover } from "antd";
 import { CheckOutlined, DownOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import { useDriveStore } from "../../../store/Drive";
-import { useAccountStore } from "../../../store/account";
+import { useDriveStore } from "../../store/Drive";
+import { useAccountStore } from "../../store/account";
 import styles from "./index.module.scss";
 
 const isSyntheticEmail = (email) => /^member_[0-9a-f]+@/i.test(email || "");

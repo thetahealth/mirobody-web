@@ -12,7 +12,7 @@ import getWebSocketManager from "../../utils/websocket/WebSocketManager";
 import consola from "consola";
 import ProviderList from "./ProviderList";
 import Records from "./Records";
-import DriveHeader from "./DriveHeader";
+import DriveHeader from "../../components/DriveHeader";
 import Tabs from "./Tabs";
 import { VITAL_STATUS } from "../../enum/vital";
 import styles from "./index.module.scss";
