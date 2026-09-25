@@ -1,19 +1,25 @@
-/* These were bare SVGs until they became <button>s, so the browser's default
-   button chrome has to be cleared explicitly. */
+/* A round action button that draws its own disc; the glyph inside is a
+   Tabler icon in currentColor. The disc used to be baked into three SVGs
+   (send, send-disabled, stop), one per state. */
 .btn {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 34px;
+  height: 34px;
   margin-left: 16px;
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: transparent;
+  background-color: var(--color-action);
+  color: var(--color-action-fg);
   cursor: pointer;
-  transition: opacity var(--t-fast);
+  transition: background-color var(--t-fast), transform var(--t-fast);
 
   &:hover:not(:disabled) {
-    opacity: 0.85;
+    background-color: var(--color-action-hover);
+    transform: scale(1.05);
   }
 
   &:focus-visible {
@@ -22,6 +28,8 @@
   }
 
   &:disabled {
+    background-color: var(--color-border);
+    color: var(--color-text-muted);
     cursor: not-allowed;
   }
 }

@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
-import QueryForDropdownSVG from "../../../assets/query-down.svg?react";
-import ChatNewBlueSVG from "../../../assets/chat-new-blue.svg?react";
+import { IconChevronDown } from "@tabler/icons-react";
 import { useState } from "react";
 import Modal from "../../../components/Modal/index.jsx";
 import MemberForm from "../MemberForm";
@@ -74,7 +73,7 @@ function QueryFor() {
                 ? t("me")
                 : current_query_user_name}
             </span>
-            <QueryForDropdownSVG aria-hidden="true" />
+            <IconChevronDown size={13} stroke={1.8} aria-hidden="true" />
           </span>
         </button>
         <div
@@ -128,10 +127,6 @@ function QueryFor() {
             );
           })}
 
-          {/* <div className={styles.btn} onClick={onClickAddMember}>
-            <ChatNewBlueSVG />
-            <div className={styles.btn_text}>{t("new_member")}</div>
-          </div> */}
         </div>
       </div>
       {/* <Modal isOpen={showMemberForm} onClose={closeMemberForm}>

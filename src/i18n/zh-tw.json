@@ -234,6 +234,7 @@
   "mcp_server_url": "MCP 伺服器 URL",
   "enter_name": "請輸入名稱",
   "enter_mcp_server_url": "請輸入 MCP 伺服器 URL",
+  "token_usage": "Token 用量",
   "cost_statistics_model": "模型",
   "cost_statistics_input_tokens": "輸入 Token",
   "cost_statistics_output_tokens": "輸出 Token",

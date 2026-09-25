@@ -234,6 +234,7 @@
   "mcp_server_url": "MCPサーバーURL",
   "enter_name": "名前を入力",
   "enter_mcp_server_url": "MCPサーバーURLを入力",
+  "token_usage": "トークン使用量",
   "cost_statistics_model": "モデル",
   "cost_statistics_input_tokens": "入力Token",
   "cost_statistics_output_tokens": "出力Token",

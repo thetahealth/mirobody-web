@@ -17,9 +17,8 @@ import styles from "./SettingModal.module.scss";
 import { useSystemStore } from "../../store/system.js";
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Button, Select, Switch } from "antd";
-import { ApiOutlined } from "@ant-design/icons";
-import { IconChevronRight } from "@tabler/icons-react";
-import ModalCloseSVG from "../../assets/modal_close.svg?react";
+import { IconChevronRight, IconCpu } from "@tabler/icons-react";
+import CloseButton from "../CloseButton";
 import api from "../../api";
 import { CDM_URL } from "../../config/cdm.js";
 import { TIMEZONE_LANG_MAP, buildTimezoneSearchMaps } from "../../enum/time.js";
@@ -368,10 +367,7 @@ const SettingModal = ({ isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className={styles.settingModal}>
         <h2 className={styles.title}>{t("settings")}</h2>
-        <ModalCloseSVG
-          onClick={onClose}
-          className="cursor-pointer absolute top-[20px] right-[20px]"
-        />
+        <CloseButton onClick={onClose} className="absolute top-[22px] right-[22px]" />
         {/* Developer / API platform (cdm) — a highlighted entry that ties the
             main site to the API platform, tucked in Settings so it stays off
             the core nav. Only shown when the platform is enabled. */}
@@ -384,7 +380,7 @@ const SettingModal = ({ isOpen, onClose }) => {
               tabIndex={0}
             >
               <div className={styles.devCardIcon}>
-                <ApiOutlined />
+                <IconCpu size={20} stroke={1.8} aria-hidden="true" />
               </div>
               <div className={styles.devCardBody}>
                 <div className={styles.devCardTitle}>

@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { useState } from "react";
 import styles from "./index.module.scss";
 import { useTranslation } from "react-i18next";
-import ModalWarningSVG from "../../assets/modal_warning.svg?react";
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { Button } from "antd";
 import consola from "consola";
 
@@ -74,7 +74,12 @@ const ConfirmModal = ({
 
   return (
     <div className={styles.confirmModal}>
-      <ModalWarningSVG />
+      <IconAlertTriangle
+        size={30}
+        stroke={1.8}
+        className="text-[var(--color-warning)]"
+        aria-hidden="true"
+      />
       <div className={styles.confirmTitle}>{title || t("please_confirm")}</div>
       <div className={styles.confirmContent}>{content || ""}</div>
       <div className={styles.confirmButtons}>

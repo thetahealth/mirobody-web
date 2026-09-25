@@ -1,5 +1,5 @@
 import styles from "./index.module.scss";
-import ChatDeleteSVG from "../../assets/chat-delete.svg?react";
+import { IconX } from "@tabler/icons-react";
 import FileType from "../FileType";
 import { formatFileSize } from "../../utils/file";
 import { FILE_STATUS } from "../../enum/file";
@@ -24,13 +24,17 @@ function FileItem({
       onClick={() => onClick(datasource)}
     >
       {is_show_delete && (
-        <ChatDeleteSVG
+        <button
+          type="button"
           className={styles.file_delete_icon}
+          aria-label={t("delete")}
           onClick={(e) => {
             e.stopPropagation();
             onClickDelete(datasource);
           }}
-        />
+        >
+          <IconX size={11} stroke={2.4} aria-hidden="true" />
+        </button>
       )}
       <div className={styles.file_name}>{datasource.file_name}</div>
       <div className="flex justify-between w-full">

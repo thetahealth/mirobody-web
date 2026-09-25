@@ -29,11 +29,28 @@
     background-color: var(--color-danger-bg);
   }
 
+  // Remove-attachment control: a grey disc drawn here (it used to be baked
+  // into the SVG), with the glyph in white.
   .file_delete_icon {
     position: absolute;
     right: 0;
     top: 0;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    color: #fff;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-text-secondary);
+    }
   }
 
   .file_name {

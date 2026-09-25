@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./index.module.scss";
-import ArrowDownSVG from "../../../../../assets/menu-arrow-down.svg?react";
+import { IconChevronDown } from "@tabler/icons-react";
 import Markdown from "../Markdown";
 import ContentRender from "../index";
 import RenderErrorBoundary from "../ErrorBoundary";
-import ChatThinkStepSVG from "../../../../../assets/chat_think_step.svg?react";
 import { CHART_MESSAGE_TYPE } from "../../../../../enum/chat";
 import { useTranslation } from "react-i18next";
 
@@ -110,7 +109,9 @@ const ThinkingGroup = ({ datasource }) => {
           {queryCount === 1 ? t("step") : t("steps")}
         </div>
         <div className="w-[21px] h-[21px] flex items-center justify-center">
-          <ArrowDownSVG
+          <IconChevronDown
+            size={13}
+            stroke={2}
             className={`transition-transform duration-300 text-[var(--color-text-secondary)] ${
               isExpanded ? "rotate-180" : ""
             }`}

@@ -1,10 +1,12 @@
 import { CHART_MESSAGE_TYPE } from "../../../../../enum/chat";
 import styles from "./index.module.scss";
-import CopySVG from "../../../../../assets/chat-copy.svg?react";
-import FullSVG from "../../../../../assets/chat-full.svg?react";
-import CollapseSVG from "../../../../../assets/chat-collapse.svg?react";
 import { useEffect, useRef, useState } from "react";
-import { IconCheck } from "@tabler/icons-react";
+import {
+  IconArrowsMaximize,
+  IconArrowsMinimize,
+  IconCheck,
+  IconCopy,
+} from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import CostIcon from "../CostIcon";
 
@@ -84,7 +86,7 @@ function AssistantCard({
             {copied ? (
               <IconCheck className={styles.copied_icon} size={16} stroke={2} />
             ) : (
-              <CopySVG aria-hidden="true" />
+              <IconCopy size={16} stroke={1.8} aria-hidden="true" />
             )}
           </button>
           <button
@@ -94,9 +96,9 @@ function AssistantCard({
             onClick={onClickFullpage}
           >
             {isThisCardFullpage ? (
-              <CollapseSVG aria-hidden="true" />
+              <IconArrowsMinimize size={16} stroke={1.8} aria-hidden="true" />
             ) : (
-              <FullSVG aria-hidden="true" />
+              <IconArrowsMaximize size={16} stroke={1.8} aria-hidden="true" />
             )}
           </button>
         </div>

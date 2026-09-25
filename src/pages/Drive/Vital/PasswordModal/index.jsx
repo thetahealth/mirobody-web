@@ -1,6 +1,6 @@
 import Modal from "../../../../components/Modal";
 import styles from "./index.module.scss";
-import ModalCloseSVG from "../../../../assets/modal_close.svg?react";
+import CloseButton from "../../../../components/CloseButton";
 import { useState, useContext } from "react";
 import api from "../../../../api";
 import { useVitalStore } from "../../../../store/vital";
@@ -87,7 +87,7 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
       <div className={styles.password_model}>
         <div className="text-[18px] font-[500] text-[var(--color-text-primary)] flex items-center border-b border-[var(--color-border)] pb-[16px] mb-[24px]">
           <div className="flex-1">Connect {datasource?.name}</div>
-          <ModalCloseSVG onClick={onClose} className="cursor-pointer" />
+          <CloseButton onClick={onClose} />
         </div>
         <div className={styles.form_label}>
           Account <span className={styles.required}>*</span>

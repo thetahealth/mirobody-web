@@ -1,7 +1,6 @@
 import styles from "./index.module.scss";
-import ChatModelDropdownSVG from "../../../assets/chat-dropdown.svg?react";
 import { useModelStore } from "../../../store/model";
-import CheckboxCheckedSVG from "../../../assets/checkbox-checked.svg?react";
+import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import useClickOutside from "../../../hooks/useClickOutside.js";
 import useIsMobile from "../../../hooks/useIsMobile";
@@ -16,7 +15,11 @@ const CheckboxUnchecked = () => {
 };
 
 const CheckboxChecked = () => {
-  return <CheckboxCheckedSVG className={styles.checkbox_checked} />;
+  return (
+    <span className={styles.checkbox_checked}>
+      <IconCheck size={12} stroke={2.4} aria-hidden="true" />
+    </span>
+  );
 };
 
 /**
@@ -112,7 +115,12 @@ const ModelDropdown = () => {
             </Fragment>
           ))}
         </div>
-        <ChatModelDropdownSVG className="ml-[8px]" aria-hidden="true" />
+        <IconChevronDown
+          size={13}
+          stroke={1.8}
+          className="ml-[8px] text-[var(--color-text-secondary)]"
+          aria-hidden="true"
+        />
       </button>
       <div
         className={styles.dropdown_content}

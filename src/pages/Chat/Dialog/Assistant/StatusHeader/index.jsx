@@ -1,6 +1,4 @@
-import ChartLoadingSVG from "../../../../../assets/chart-loading.svg?react";
-import ChartEndSVG from "../../../../../assets/chat_think_step.svg?react";
-import ChartErrorSVG from "../../../../../assets/chat_error.svg?react";
+import { IconAlertTriangle, IconCircleCheckFilled } from "@tabler/icons-react";
 import styles from "./index.module.scss";
 import {
   LINE_DONE,
@@ -10,15 +8,19 @@ import {
 
 const ChartLoadingIcon = () => {
   return (
-    <div className={styles.loadingIcon}>
-      <ChartLoadingSVG />
+    <div className={styles.loadingIcon} aria-hidden="true">
+      <span />
+      <span />
+      <span />
     </div>
   );
 };
 
 const StatusIcon = ({ kind }) => {
-  if (kind === LINE_DONE) return <ChartEndSVG />;
-  if (kind === LINE_ERROR) return <ChartErrorSVG />;
+  if (kind === LINE_DONE)
+    return <IconCircleCheckFilled size={14} className={styles.doneIcon} aria-hidden="true" />;
+  if (kind === LINE_ERROR)
+    return <IconAlertTriangle size={14} stroke={1.8} className={styles.errorIcon} aria-hidden="true" />;
   return <ChartLoadingIcon />;
 };
 

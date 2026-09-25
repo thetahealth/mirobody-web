@@ -234,6 +234,7 @@
   "mcp_server_url": "MCP Server URL",
   "enter_name": "Enter Name",
   "enter_mcp_server_url": "Enter MCP Server URL",
+  "token_usage": "Token usage",
   "cost_statistics_model": "Model",
   "cost_statistics_input_tokens": "Input Tokens",
   "cost_statistics_output_tokens": "Output Tokens",

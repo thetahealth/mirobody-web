@@ -234,6 +234,7 @@
   "mcp_server_url": "MCP 服务 URL",
   "enter_name": "请输入名称",
   "enter_mcp_server_url": "请输入 MCP 服务 URL",
+  "token_usage": "Token 用量",
   "cost_statistics_model": "模型",
   "cost_statistics_input_tokens": "输入 Token",
   "cost_statistics_output_tokens": "输出 Token",

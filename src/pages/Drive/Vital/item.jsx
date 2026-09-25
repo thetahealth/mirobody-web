@@ -1,5 +1,5 @@
 import styles from "./index.module.scss";
-import UnlinkSVG from ".././../../assets/drive_unlink.svg?react";
+import { IconUnlink } from "@tabler/icons-react";
 import { useState } from "react";
 import PasswordModal from "./PasswordModal/index.jsx";
 import api from "../../../api/index.js";
@@ -95,7 +95,9 @@ const VitalItem = ({ datasource }) => {
         <div className={styles.connected}>
           {t("connected")}
           {datasource?.platform !== "apple" && (
-            <UnlinkSVG
+            <IconUnlink
+              size={16}
+              stroke={1.8}
               className={styles.unlink_icon}
               onClick={handleUnlinkClick}
             />

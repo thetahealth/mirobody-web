@@ -1,5 +1,5 @@
 import styles from "./index.module.scss";
-import FormDownSVG from "../../../assets/form-down.svg?react";
+import { IconChevronDown } from "@tabler/icons-react";
 import { Calendar } from "antd";
 import { useState } from "react";
 import dayjs from "dayjs";
@@ -36,7 +36,12 @@ function FormItemDate(props) {
           {value}
         </div>
         <div className={styles.arrow} onClick={toggle}>
-          <FormDownSVG />
+          <IconChevronDown
+            size={13}
+            stroke={1.8}
+            className="text-[var(--color-text-secondary)]"
+            aria-hidden="true"
+          />
         </div>
         {open && (
           // Stop clicks inside the calendar (year/month nav, prev/next) from

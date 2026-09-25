@@ -1,5 +1,5 @@
 import styles from "./index.module.scss";
-import MarkdownLinkSVG from "../../../../../assets/md-link.svg?react";
+import { IconLink } from "@tabler/icons-react";
 
 // URL regex pattern to match http/https links
 const URL_REGEX = /https?:\/\/[^\s"\\]+/g;
@@ -45,12 +45,7 @@ const parseTextWithLinks = (text) => {
         onClick={() => handleLinkClick(url)}
         title={url}
       >
-        <MarkdownLinkSVG
-          style={{
-            verticalAlign: "middle",
-            display: "inline-block",
-          }}
-        />
+        <IconLink size={14} stroke={1.8} aria-hidden="true" />
       </span>,
     );
 

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import styles from "./index.module.scss";
-import ArrowDownSVG from "../../../../../assets/menu-arrow-down.svg?react";
-import QueryTitleSVG from "../../../../../assets/chat_query_title.svg?react";
+import { IconChevronDown, IconTool } from "@tabler/icons-react";
 import QueryDetail from "../QueryDetail";
 import QueryTitle from "../QueryTitle";
 
@@ -34,13 +33,20 @@ const QueryGroup = ({ datasource }) => {
         onClick={toggleExpanded}
         style={{ cursor: isQueryDetailStreaming ? "default" : "pointer" }}
       >
-        <QueryTitleSVG className="w-[16px] h-[16px]" />
+        <IconTool
+          size={14}
+          stroke={1.8}
+          className="text-[var(--color-text-secondary)]"
+          aria-hidden="true"
+        />
         <QueryTitle content={title} />
         <div className="w-[24px] h-[24px] flex items-center justify-center bg-transparent rounded-[8px]">
           {isQueryDetailStreaming ? (
             <div className={styles.loading_spinner}></div>
           ) : (
-            <ArrowDownSVG
+            <IconChevronDown
+              size={13}
+              stroke={2}
               className={`transition-transform duration-300 text-[var(--color-text-primary)] ${
                 isExpanded ? "rotate-180" : ""
               }`}

@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import styles from "./index.module.scss";
-import MarkdownLinkSVG from "../../../../../assets/md-link.svg?react";
+import { IconLink } from "@tabler/icons-react";
 import VisChart from "../VisChart";
 
 function Markdown({ content }) {
@@ -38,7 +38,7 @@ function Markdown({ content }) {
                   }
                 }}
               >
-                <MarkdownLinkSVG aria-hidden="true" />
+                <IconLink size={14} stroke={1.8} aria-hidden="true" />
                 {children}
               </span>
             );

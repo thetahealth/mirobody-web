@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./index.module.scss";
 import ContentRender from "../Render";
 import RenderErrorBoundary from "../Render/ErrorBoundary";
-import CopySVG from "../../../../assets/chat-copy.svg?react";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
 import AssistantCard from "./AssistantCard";
 import { CHART_MESSAGE_TYPE } from "../../../../enum/chat";
 import Analyzing from "./Analyzing";
@@ -90,7 +89,7 @@ function AssistantDialog({
                 {copied ? (
                   <IconCheck className={styles.copied_icon} size={15} stroke={2} />
                 ) : (
-                  <CopySVG aria-hidden="true" />
+                  <IconCopy size={15} stroke={1.8} aria-hidden="true" />
                 )}
               </button>
               {/* <ThumbsUpSVG className={styles.btn} /> */}

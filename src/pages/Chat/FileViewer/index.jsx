@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
 import FileType from "../../../components/FileType";
-import PreviewDownloadSVG from "../../../assets/preview-download.svg?react";
-import PreviewCloseSVG from "../../../assets/preview-close.svg?react";
+import { IconDownload, IconX } from "@tabler/icons-react";
 import { useChatPreviewStore } from "../../../store/Chart/preview";
 
 function FileViewer() {
@@ -39,7 +38,7 @@ function FileViewer() {
             rel="noreferrer"
             aria-label={t("download")}
           >
-            <PreviewDownloadSVG aria-hidden="true" />
+            <IconDownload size={20} stroke={1.8} aria-hidden="true" />
           </a>
 
           {/* Closing the preview is the only way out of it, and it was a bare
@@ -50,7 +49,7 @@ function FileViewer() {
             aria-label={t("close")}
             onClick={handleClose}
           >
-            <PreviewCloseSVG aria-hidden="true" />
+            <IconX size={20} stroke={2} aria-hidden="true" />
           </button>
         </div>
       </div>

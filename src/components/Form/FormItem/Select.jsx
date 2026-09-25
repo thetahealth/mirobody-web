@@ -1,5 +1,5 @@
 import styles from "./index.module.scss";
-import FormDownSVG from "../../../assets/form-down.svg?react";
+import { IconChevronDown } from "@tabler/icons-react";
 import { useState } from "react";
 import FormItemWrapper from "./index";
 import useClickOutside from "../../../hooks/useClickOutside";
@@ -22,7 +22,12 @@ function FormItemSelect(props) {
           {options.find((option) => option.value === value)?.label}
         </div>
         <div className={styles.arrow}>
-          <FormDownSVG />
+          <IconChevronDown
+            size={13}
+            stroke={1.8}
+            className="text-[var(--color-text-secondary)]"
+            aria-hidden="true"
+          />
         </div>
         {open && (
           <div className={styles.options}>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as echarts from "echarts";
 import { buildEChartsOption } from "./buildOption";
-import DownloadSVG from "../../../../../assets/preview-download.svg?react";
+import { IconDownload } from "@tabler/icons-react";
 import styles from "./index.module.scss";
 
 // Width buckets: the option is only rebuilt when the width crosses a bucket
@@ -109,7 +109,7 @@ export default function VisChart({ source }) {
       <div ref={elRef} className={styles.chart} />
       {ready && (
         <button type="button" className={styles.download} onClick={handleDownload} title={t("download_chart")} aria-label={t("download_chart")}>
-          <DownloadSVG />
+          <IconDownload size={15} stroke={1.8} aria-hidden="true" />
         </button>
       )}
     </div>

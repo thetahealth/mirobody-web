@@ -7,8 +7,7 @@ import { useChartDataStore } from "../../../store/Chart/data";
 import QueryFor from "../QueryFor";
 import useIsMobile from "../../../hooks/useIsMobile";
 import { useUiStore } from "../../../store/ui";
-import ChatHistorySVG from "../../../assets/chat-history.svg?react";
-import ChatNewBlueSVG from "../../../assets/chat-new-blue.svg?react";
+import { IconHistory, IconPlus } from "@tabler/icons-react";
 
 function Header() {
   const { t } = useTranslation();
@@ -43,7 +42,7 @@ function Header() {
             className={styles.action_btn}
             onClick={() => setSidebarDrawerOpen(true)}
           >
-            <ChatHistorySVG />
+            <IconHistory size={18} stroke={1.8} aria-hidden="true" />
             <span>{t("chat_history")}</span>
           </button>
           <button
@@ -51,7 +50,7 @@ function Header() {
             className={`${styles.action_btn} ${styles.new_btn}`}
             onClick={handleNewChat}
           >
-            <ChatNewBlueSVG />
+            <IconPlus size={18} stroke={1.9} aria-hidden="true" />
             <span>{t("new_conversation")}</span>
           </button>
         </div>

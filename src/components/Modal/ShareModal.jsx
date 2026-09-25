@@ -2,7 +2,7 @@ import Modal from "./index.jsx";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
 import styles from "./ShareModal.module.scss";
-import ModalCloseSVG from "../../assets/modal_close.svg?react";
+import CloseButton from "../CloseButton";
 import api from "../../api";
 import { IconCheck, IconCopy, IconRefresh } from "@tabler/icons-react";
 import consola from "consola";
@@ -70,10 +70,7 @@ const ShareModal = ({ isOpen, onClose, sessionId }) => {
     <Modal isOpen={isOpen} onClose={handleClose}>
       <div className={styles.shareModal}>
         <h2 className={styles.title}>{t("share_title")}</h2>
-        <ModalCloseSVG
-          onClick={handleClose}
-          className="cursor-pointer absolute top-[20px] right-[20px]"
-        />
+        <CloseButton onClick={handleClose} className="absolute top-[22px] right-[22px]" />
 
         <div className={styles.content}>
           <div className={styles.urlContainer}>

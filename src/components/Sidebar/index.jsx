@@ -1,7 +1,8 @@
 import { Drawer, Tooltip } from "antd";
-import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import {
   IconActivity,
+  IconChevronLeft,
+  IconChevronRight,
   IconDatabase,
   IconMessageCircle,
   IconUser,
@@ -82,7 +83,11 @@ function SidebarBody({ collapsed = false }) {
             title={collapsed ? t("sidebar_expand") : t("sidebar_collapse")}
             onClick={toggleCollapsed}
           >
-            {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            {collapsed ? (
+              <IconChevronRight size={16} stroke={1.8} aria-hidden="true" />
+            ) : (
+              <IconChevronLeft size={16} stroke={1.8} aria-hidden="true" />
+            )}
           </button>
         )}
       </div>

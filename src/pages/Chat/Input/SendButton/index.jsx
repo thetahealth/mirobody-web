@@ -1,8 +1,6 @@
 import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
-import ChatSendDisSVG from "../../../../assets/chat-send-dis.svg?react";
-import SendSVG from "../../../../assets/chat-send.svg?react";
-import StopSVG from "../../../../assets/chat-input-stop.svg?react";
+import { IconArrowUp, IconPlayerStopFilled } from "@tabler/icons-react";
 import { useChartInputStore } from "../../../../store/Chart/input";
 import { useChatStore } from "../../../../store/Chart/index";
 import { useChartDataStore } from "../../../../store/Chart/data";
@@ -35,7 +33,7 @@ function SendButton({ onClick, onStopClick }) {
         aria-label={t("chat_stop")}
         onClick={onStopClick}
       >
-        <StopSVG aria-hidden="true" />
+        <IconPlayerStopFilled size={14} aria-hidden="true" />
       </button>
     );
   }
@@ -50,7 +48,7 @@ function SendButton({ onClick, onStopClick }) {
       disabled={!ready}
       onClick={onClick}
     >
-      {ready ? <SendSVG aria-hidden="true" /> : <ChatSendDisSVG aria-hidden="true" />}
+      <IconArrowUp size={15} stroke={2.2} aria-hidden="true" />
     </button>
   );
 }

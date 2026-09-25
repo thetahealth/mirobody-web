@@ -122,15 +122,12 @@ const Pagination = () => {
             onClick={() => setShowDropdown(!showDropdown)}
           >
             <span>{currentPage}</span>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path
-                d="M5.25 7.5L9 11.25L12.75 7.5"
-                stroke="var(--color-text-secondary)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <IconChevronDown
+              size={16}
+              stroke={1.8}
+              className="text-[var(--color-text-secondary)]"
+              aria-hidden="true"
+            />
           </div>
           {showDropdown && (
             <div className={styles.dropdownMenu}>
