@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import styles from "./index.module.scss";
 import { useUploadStore } from "../../../../store/upload";
 import { useTranslation } from "react-i18next";
+import { IconChevronDown } from "@tabler/icons-react";
 
 const generatePageNumbers = (currentPage, totalPages) => {
   if (totalPages <= 7) {
