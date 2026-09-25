@@ -116,6 +116,13 @@ const DrivePage = () => {
       count: connectedCount,
     },
   ];
+  // The tab on screen. `activeTab` starts as 记录, which is not in TABS on a
+  // backend without the journal (and the flag can turn off after the first
+  // render, once the config arrives): that left no tab selected and no panel
+  // showing. Anything not in TABS falls to the first tab that is.
+  const currentTab = TABS.some((tab) => tab.value === activeTab)
+    ? activeTab
+    : TABS[0].value;
 
   // Fetch on mount, not only when a drive user id happens to be in state: both
   // endpoints scope themselves by the bearer token, and gating on the id meant
@@ -167,9 +174,9 @@ const DrivePage = () => {
                 onOpen={openFromGuide}
               />
             )}
-            <Tabs tabs={TABS} value={activeTab} onChange={selectTab} />
+            <Tabs tabs={TABS} value={currentTab} onChange={selectTab} />
 
-            <div hidden={activeTab !== "connect_data_source"}>
+            <div hidden={currentTab !== "connect_data_source"}>
               <div className="flex flex-col gap-[var(--space-8)] pb-[var(--space-12)]">
                 {hasSources ? (
                   <ProviderList
@@ -192,7 +199,7 @@ const DrivePage = () => {
               </div>
             </div>
 
-            <div hidden={activeTab !== "upload_files"} ref={uploadFilesRef}>
+            <div hidden={currentTab !== "upload_files"} ref={uploadFilesRef}>
               <UploadFiles
                 filesHighlightTrigger={filesHighlightTrigger}
                 pickerRef={filePickerRef}
@@ -201,7 +208,7 @@ const DrivePage = () => {
 
             {/* Mounted only while selected: it fetches on mount, and the two
                 panels above stay mounted precisely so they do not refetch. */}
-            {isShowJournal && activeTab === "records" ? (
+            {currentTab === "records" ? (
               <Records onChange={fetchDistribution} />
             ) : null}
           </div>
