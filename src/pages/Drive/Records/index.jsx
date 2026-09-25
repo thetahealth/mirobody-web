@@ -24,7 +24,10 @@ import styles from "./index.module.scss";
  */
 const RANGES = [30, 90, 365];
 
-const Records = () => {
+// `onChange` hears about every entry logged or retracted — the page's
+// empty-state guide is keyed off the record's size, and one entry is enough
+// to end it.
+const Records = ({ onChange }) => {
   const { t } = useTranslation();
   const [days, setDays] = useState([]);
   const [range, setRange] = useState(30);
@@ -89,6 +92,7 @@ const Records = () => {
       // Re-ask rather than splicing the row out: the server decides what a
       // retracted row looks like, and the count in the header comes from it.
       load();
+      onChange?.();
     } catch (e) {
       setError(e?.msg || t("journal_load_failed"));
     }
@@ -102,7 +106,10 @@ const Records = () => {
 
       <Composer
         targetUserId={current_drive_user_id}
-        onLogged={() => load()}
+        onLogged={() => {
+          load();
+          onChange?.();
+        }}
       />
 
       {error ? <p className={styles.error}>{error}</p> : null}

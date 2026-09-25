@@ -501,7 +501,7 @@
   "sidebar_expand": "展開側欄",
   "records_tab": "紀錄",
   "drive_empty_title": "先把資料放進來",
-  "drive_empty_body": "這裡還沒有任何資料。從下面任選一種開始，整理出的讀數會出現在「指標」裡。",
+  "drive_empty_body": "這裡還沒有可看的讀數。從下面任選一種開始，整理好的讀數會出現在「指標」裡。",
   "drive_empty_report": "上傳報告",
   "drive_empty_report_hint": "PDF 格式的化驗單、健檢報告",
   "drive_empty_image": "上傳圖片",

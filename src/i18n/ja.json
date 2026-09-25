@@ -501,7 +501,7 @@
   "sidebar_expand": "サイドバーを展開",
   "records_tab": "記録",
   "drive_empty_title": "まずはデータを取り込みましょう",
-  "drive_empty_body": "まだデータがありません。どれか一つから始めてください。整理された測定値は「指標」に表示されます。",
+  "drive_empty_body": "まだ測定値がありません。どれか一つから始めてください。整理された測定値は「指標」に表示されます。",
   "drive_empty_report": "レポートをアップロード",
   "drive_empty_report_hint": "検査結果や健診結果の PDF",
   "drive_empty_image": "画像をアップロード",

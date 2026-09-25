@@ -501,7 +501,7 @@
   "sidebar_expand": "Expand sidebar",
   "records_tab": "Records",
   "drive_empty_title": "Start by bringing your data in",
-  "drive_empty_body": "There is no data here yet. Pick any of these to start — the readings in it will show up under Indicators.",
+  "drive_empty_body": "No readings here yet. Pick any of these to start — once they are sorted, the readings show up under Indicators.",
   "drive_empty_report": "Upload a report",
   "drive_empty_report_hint": "Lab results or a check-up, as a PDF",
   "drive_empty_image": "Upload a photo",

@@ -501,7 +501,7 @@
   "sidebar_expand": "展开侧栏",
   "records_tab": "记录",
   "drive_empty_title": "先把数据放进来",
-  "drive_empty_body": "这里还没有任何数据。从下面任选一种开始，整理出的读数会出现在「指标」里。",
+  "drive_empty_body": "这里还没有可看的读数。从下面任选一种开始，整理好的读数会出现在「指标」里。",
   "drive_empty_report": "上传报告",
   "drive_empty_report_hint": "PDF 格式的化验单、体检报告",
   "drive_empty_image": "上传图片",

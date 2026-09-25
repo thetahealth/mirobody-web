@@ -43,6 +43,8 @@ const DrivePage = () => {
     requestedTab === "upload_files" ? 1 : 0,
   );
   const uploadFilesRef = useRef(null);
+  // The upload area's picker, for the empty-state guide (UploadArea).
+  const filePickerRef = useRef(null);
   const connectedWearablesRef = useRef(null);
   const fetchFileList = useUploadStore((state) => state.fetchFileList);
   // The roster feeds DriveHeader's person switcher. The sidebar used to fetch
@@ -87,11 +89,13 @@ const DrivePage = () => {
     if (tab === "upload_files") fetchFileList();
   };
 
-  // From the empty-state guide: open the tab and flash the area that does the
-  // thing, the same way arriving with ?tab= does.
-  const openFromGuide = (tab) => {
+  // From the empty-state guide: open the tab that does the thing. An upload
+  // entry also opens the file picker, narrowed to its kind of file, inside the
+  // same click; the others flash the area, the way arriving with ?tab= does.
+  const openFromGuide = (tab, accept) => {
     selectTab(tab);
-    if (tab === "upload_files") setFilesHighlightTrigger((n) => n + 1);
+    if (accept) filePickerRef.current?.open(accept);
+    else if (tab === "upload_files") setFilesHighlightTrigger((n) => n + 1);
     if (tab === "connect_data_source") setHighlightTrigger((n) => n + 1);
   };
 
@@ -189,12 +193,17 @@ const DrivePage = () => {
             </div>
 
             <div hidden={activeTab !== "upload_files"} ref={uploadFilesRef}>
-              <UploadFiles filesHighlightTrigger={filesHighlightTrigger} />
+              <UploadFiles
+                filesHighlightTrigger={filesHighlightTrigger}
+                pickerRef={filePickerRef}
+              />
             </div>
 
             {/* Mounted only while selected: it fetches on mount, and the two
                 panels above stay mounted precisely so they do not refetch. */}
-            {isShowJournal && activeTab === "records" ? <Records /> : null}
+            {isShowJournal && activeTab === "records" ? (
+              <Records onChange={fetchDistribution} />
+            ) : null}
           </div>
         </div>
       </div>
