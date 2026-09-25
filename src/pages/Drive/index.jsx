@@ -13,6 +13,8 @@ import consola from "consola";
 import ProviderList from "./ProviderList";
 import Records from "./Records";
 import DriveHeader from "../../components/DriveHeader";
+import EmptyGuide from "./EmptyGuide";
+import { useDistributionStore } from "../../store/distribution";
 import Tabs from "./Tabs";
 import { VITAL_STATUS } from "../../enum/vital";
 import styles from "./index.module.scss";
@@ -31,12 +33,13 @@ const DrivePage = () => {
   // Arriving with ?tab= means the reader came from the indicators page asking
   // for a specific thing ("upload a report" / "connect a source"). Seeding the
   // highlight flashes the area they came for, which is what these triggers did
-  // when that jump was a tab switch inside one page. 1 is enough: the panels
-  // only test for > 0.
-  const [highlightTrigger] = useState(() =>
+  // when that jump was a tab switch inside one page. The panels flash whenever
+  // the number changes and is > 0, so the empty-state guide bumps it to flash
+  // again.
+  const [highlightTrigger, setHighlightTrigger] = useState(() =>
     requestedTab === "connect_data_source" ? 1 : 0,
   );
-  const [filesHighlightTrigger] = useState(() =>
+  const [filesHighlightTrigger, setFilesHighlightTrigger] = useState(() =>
     requestedTab === "upload_files" ? 1 : 0,
   );
   const uploadFilesRef = useRef(null);
@@ -57,12 +60,40 @@ const DrivePage = () => {
     (state) => state.isShowMobileSource,
   );
   const isShowJournal = useSystemStore((state) => state.isShowJournal);
+  const fetchDistribution = useDistributionStore(
+    (state) => state.fetchDistribution,
+  );
+  const total_records = useDistributionStore((state) => state.total_records);
+  const distribution_user_id = useDistributionStore(
+    (state) => state.distribution_user_id,
+  );
   const { t } = useTranslation();
 
   const connectedCount = providers_list.filter(
     (item) => item.status === VITAL_STATUS.CONNECTED,
   ).length;
   const hasSources = isShowMobileSource && providers_list.length > 0;
+  // Empty means a real zero for the person on screen — not the store's
+  // placeholder before its first answer, and not the previous person's count
+  // while a switch is in flight. It follows the switcher on purpose: a family
+  // member with nothing yet gets the same way in, and uploads go to them.
+  const isEmpty =
+    distribution_user_id === current_drive_user_id && total_records === 0;
+
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    // Tab panels stay mounted (hidden divs), so re-activating one does not
+    // remount it — refetch explicitly.
+    if (tab === "upload_files") fetchFileList();
+  };
+
+  // From the empty-state guide: open the tab and flash the area that does the
+  // thing, the same way arriving with ?tab= does.
+  const openFromGuide = (tab) => {
+    selectTab(tab);
+    if (tab === "upload_files") setFilesHighlightTrigger((n) => n + 1);
+    if (tab === "connect_data_source") setHighlightTrigger((n) => n + 1);
+  };
 
   // Three tabs, three ways something gets into the record: you write it, you
   // upload it, or a device sends it. The READINGS they produce are their own
@@ -93,6 +124,12 @@ const DrivePage = () => {
     fetchBeneficiaryUsers();
   }, [fetchBeneficiaryUsers]);
 
+  // The record's size decides whether the empty-state guide shows. It is
+  // scoped to whoever the switcher points at, so a change of person re-asks.
+  useEffect(() => {
+    fetchDistribution();
+  }, [current_drive_user_id, fetchDistribution]);
+
   useEffect(() => {
     if (!current_drive_user_id) return;
     const wsManager = getWebSocketManager();
@@ -119,16 +156,14 @@ const DrivePage = () => {
           {/* One content column, so the page stops having three right edges. */}
           <div className={styles.column}>
             <DriveHeader />
-            <Tabs
-              tabs={TABS}
-              value={activeTab}
-              onChange={(tab) => {
-                setActiveTab(tab);
-                // Tab panels stay mounted (hidden divs), so re-activating one
-                // does not remount it — refetch explicitly.
-                if (tab === "upload_files") fetchFileList();
-              }}
-            />
+            {isEmpty && (
+              <EmptyGuide
+                showJournal={isShowJournal}
+                showSources={hasSources}
+                onOpen={openFromGuide}
+              />
+            )}
+            <Tabs tabs={TABS} value={activeTab} onChange={selectTab} />
 
             <div hidden={activeTab !== "connect_data_source"}>
               <div className="flex flex-col gap-[var(--space-8)] pb-[var(--space-12)]">

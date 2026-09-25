@@ -11,6 +11,12 @@ export const useDistributionStore = create((set, get) => ({
   distribution_list: [],
   total_categories: 0,
   total_records: 0,
+  // Whose numbers these are: the person the switcher pointed at when they
+  // were asked for, or null before the first answer. The zeros above are
+  // placeholders until this is set, so "no data" means `total_records === 0`
+  // AND this matching the person on screen — otherwise a first render, or a
+  // switch to someone new, reads as an empty record.
+  distribution_user_id: null,
   loading_distribution: false,
 
   fetchDistribution: async () => {
@@ -39,6 +45,7 @@ export const useDistributionStore = create((set, get) => ({
         distribution_list: distribution,
         total_categories: total_categories,
         total_records: total_records,
+        distribution_user_id: current_drive_user_id,
         loading_distribution: false,
         _distributionController: null,
       });

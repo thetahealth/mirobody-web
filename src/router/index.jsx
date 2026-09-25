@@ -3,6 +3,7 @@ import RootLayout from "./RootLayout.jsx";
 import ProtectedLayout from "./ProtectedLayout.jsx";
 import RouteError from "./RouteError.jsx";
 import { LegacyChatRedirect, LegacyDriveRedirect } from "./LegacyRedirects.jsx";
+import Landing from "./Landing.jsx";
 
 // Lazy load all page components for code splitting
 const Login = lazy(() => import("../pages/Login/index.jsx"));
@@ -39,9 +40,10 @@ export const routes = [
         children: [
           {
             // 指标 is the landing page: it is the readings themselves, not the
-            // files and devices they came from.
+            // files and devices they came from. Someone with no readings yet
+            // lands on 数据 instead, where they can add some (Landing.jsx).
             index: true,
-            Component: Indicators,
+            Component: Landing,
           },
           {
             path: "/indicators",
