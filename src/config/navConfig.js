@@ -12,18 +12,13 @@
  * `[data-tour="…"]` selector rather than a ref threaded down from the layout.
  */
 const NAV_CONFIG = [
-  // 指标 first: the standardized readings are what people come for. They were
-  // a tab on /data, sharing a page with the two things that PRODUCE them —
-  // uploaded files and connected devices — so the output sat at the same level
-  // as its own plumbing.
-  {
-    key: "indicators",
-    section: "workspace",
-    path: "/indicators",
-    matchPaths: ["/", "/indicators"],
-    i18nKey: "indicators_tab",
-    tour: "sidebar-indicators",
-  },
+  // 数据 · 指标 · 对话 is Mirobody's own order — collect, translate, ask — and
+  // the order the cdm client uses too. 数据 goes first because nothing on the
+  // other two pages exists until something has been put in here. It is also
+  // the slot the Theta sidebar gives its dashboard, which neither client has.
+  //
+  // The landing page is still 指标 (router/index.jsx); first in the list is not
+  // where you land.
   {
     key: "drive",
     section: "workspace",
@@ -31,6 +26,17 @@ const NAV_CONFIG = [
     matchPaths: ["/data", "/drive"],
     i18nKey: "drive",
     tour: "sidebar-data",
+  },
+  // The readings themselves. They were a tab on /data, sharing a page with the
+  // things that PRODUCE them, so the output sat at the same level as its own
+  // plumbing.
+  {
+    key: "indicators",
+    section: "workspace",
+    path: "/indicators",
+    matchPaths: ["/", "/indicators"],
+    i18nKey: "indicators_tab",
+    tour: "sidebar-indicators",
   },
   {
     key: "chat",

@@ -19,8 +19,9 @@
 export const TOUR_STEPS = [
   // No anchor on the first step: antd renders it as a centred welcome card.
   { key: "welcome" },
-  { key: "indicators", anchor: "sidebar-indicators" },
+  // Sidebar order (config/navConfig.js): the tour walks the list top to bottom.
   { key: "data", anchor: "sidebar-data" },
+  { key: "indicators", anchor: "sidebar-indicators" },
   { key: "chat", anchor: "sidebar-chat" },
   { key: "profile", anchor: "sidebar-profile" },
   { key: "care_circle", anchor: "sidebar-care-circle" },
