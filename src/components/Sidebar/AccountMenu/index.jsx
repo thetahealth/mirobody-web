@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Popover } from "antd";
-import { CompassOutlined, LogoutOutlined, SettingOutlined } from "@ant-design/icons";
+import { IconCompass, IconLogout, IconSettings } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useAccountStore } from "../../../store/account";
 import { clearAuthenticationData } from "../../../utils/auth.js";
@@ -47,11 +47,11 @@ function AccountMenu({ collapsed = false }) {
   const content = (
     <div className={styles.panel}>
       <button type="button" className={styles.item} onClick={openSettings}>
-        <SettingOutlined />
+        <IconSettings size={16} stroke={1.6} />
         <span>{t("settings")}</span>
       </button>
       <button type="button" className={styles.item} onClick={replayTour}>
-        <CompassOutlined />
+        <IconCompass size={16} stroke={1.6} />
         <span>{t("tour_replay")}</span>
       </button>
       <div className={styles.divider} />
@@ -60,7 +60,7 @@ function AccountMenu({ collapsed = false }) {
         className={`${styles.item} ${styles.logout}`}
         onClick={onClickLogout}
       >
-        <LogoutOutlined />
+        <IconLogout size={16} stroke={1.6} />
         <span>{t("logout")}</span>
       </button>
     </div>

@@ -1,13 +1,12 @@
 import { Drawer, Tooltip } from "antd";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import {
-  DatabaseOutlined,
-  MessageOutlined,
-  UserOutlined,
-  TeamOutlined,
-  LineChartOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-} from "@ant-design/icons";
+  IconActivity,
+  IconDatabase,
+  IconMessageCircle,
+  IconUser,
+  IconUsers,
+} from "@tabler/icons-react";
 import { useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import LogoSVG from "../../assets/logo.svg?react";
@@ -24,11 +23,11 @@ import styles from "./index.module.scss";
 // Icons live here, not in navConfig: that file is plain data shared with the
 // route matching, and it stays serialisable.
 const NAV_ICONS = {
-  indicators: LineChartOutlined,
-  drive: DatabaseOutlined,
-  chat: MessageOutlined,
-  profile: UserOutlined,
-  care_circle: TeamOutlined,
+  indicators: IconActivity,
+  drive: IconDatabase,
+  chat: IconMessageCircle,
+  profile: IconUser,
+  care_circle: IconUsers,
 };
 
 function SidebarBody({ collapsed = false }) {
@@ -114,7 +113,7 @@ function SidebarBody({ collapsed = false }) {
                   data-tour={item.tour}
                   onClick={() => goNav(item)}
                 >
-                  {Icon && <Icon className={styles.nav_icon} />}
+                  {Icon && <Icon className={styles.nav_icon} size={16} stroke={1.6} />}
                   {!collapsed && <span>{label}</span>}
                 </button>
               );

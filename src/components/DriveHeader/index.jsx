@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Popover } from "antd";
-import { CheckOutlined, DownOutlined } from "@ant-design/icons";
+import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useDriveStore } from "../../store/Drive";
 import { useAccountStore } from "../../store/account";
@@ -79,7 +79,7 @@ const DriveHeader = () => {
                 </span>
               )}
             </span>
-            {isActive && <CheckOutlined className={styles.option_check} />}
+            {isActive && <IconCheck className={styles.option_check} size={16} stroke={2.5} />}
           </button>
         );
       })}
@@ -108,7 +108,7 @@ const DriveHeader = () => {
         aria-expanded={open}
       >
         <span className={styles.trigger_name}>{name}</span>
-        <DownOutlined className={styles.trigger_caret} />
+        <IconChevronDown className={styles.trigger_caret} size={13} stroke={1.8} />
       </button>
     </Popover>
   );

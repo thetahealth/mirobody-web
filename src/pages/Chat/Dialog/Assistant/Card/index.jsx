@@ -4,7 +4,7 @@ import CopySVG from "../../../../../assets/chat-copy.svg?react";
 import FullSVG from "../../../../../assets/chat-full.svg?react";
 import CollapseSVG from "../../../../../assets/chat-collapse.svg?react";
 import { useEffect, useRef, useState } from "react";
-import { CheckOutlined } from "@ant-design/icons";
+import { IconCheck } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import CostIcon from "../CostIcon";
 
@@ -82,7 +82,7 @@ function AssistantCard({
             onClick={() => onClickCopy(datasource)}
           >
             {copied ? (
-              <CheckOutlined className={styles.copied_icon} />
+              <IconCheck className={styles.copied_icon} size={16} stroke={2} />
             ) : (
               <CopySVG aria-hidden="true" />
             )}

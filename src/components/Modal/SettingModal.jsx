@@ -17,7 +17,8 @@ import styles from "./SettingModal.module.scss";
 import { useSystemStore } from "../../store/system.js";
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Button, Select, Switch } from "antd";
-import { ApiOutlined, RightOutlined } from "@ant-design/icons";
+import { ApiOutlined } from "@ant-design/icons";
+import { IconChevronRight } from "@tabler/icons-react";
 import ModalCloseSVG from "../../assets/modal_close.svg?react";
 import api from "../../api";
 import { CDM_URL } from "../../config/cdm.js";
@@ -393,7 +394,7 @@ const SettingModal = ({ isOpen, onClose }) => {
                   {t("developer_platform_desc")}
                 </div>
               </div>
-              <RightOutlined className={styles.devCardArrow} />
+              <IconChevronRight className={styles.devCardArrow} size={16} stroke={1.8} />
             </div>
           </div>
         )}

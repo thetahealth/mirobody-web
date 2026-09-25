@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { message } from "antd";
-import { CloseOutlined, UserAddOutlined } from "@ant-design/icons";
+import { IconTrash, IconUserPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import consola from "consola";
 import api from "../../api";
@@ -119,7 +119,7 @@ const CareCirclePage = () => {
               aria-label={t("remove_member_confirm_title")}
               onClick={() => onRemoveMember(user)}
             >
-              <CloseOutlined />
+              <IconTrash size={15} />
             </button>
           )}
         </div>
@@ -155,7 +155,7 @@ const CareCirclePage = () => {
                 className={styles.invite_btn}
                 onClick={() => setShowAddMember(true)}
               >
-                <UserAddOutlined />
+                <IconUserPlus size={16} stroke={2} />
                 <span>{t("add_member")}</span>
               </button>
             </header>
@@ -185,7 +185,7 @@ const CareCirclePage = () => {
                     className={styles.invite_btn}
                     onClick={() => setShowAddMember(true)}
                   >
-                    <UserAddOutlined />
+                    <IconUserPlus size={16} stroke={2} />
                     <span>{t("add_member")}</span>
                   </button>
                 </div>

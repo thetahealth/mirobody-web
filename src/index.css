@@ -23,6 +23,16 @@ html, body {
   margin: 0;
 }
 
+/* Tabler icons render an <svg>, and Tailwind's preflight makes every svg
+   display:block — right for an illustration, wrong for a glyph that sits in a
+   line of text or a button label. Put them back inline, where the antd icons
+   they replaced (inline <span>s, the same vertical offset) used to sit. */
+.tabler-icon {
+  display: inline-block;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+}
+
 input, textarea {
   border: none;
   outline: none;

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import styles from "./ShareModal.module.scss";
 import ModalCloseSVG from "../../assets/modal_close.svg?react";
 import api from "../../api";
-import { CopyOutlined, CheckOutlined, ReloadOutlined } from "@ant-design/icons";
+import { IconCheck, IconCopy, IconRefresh } from "@tabler/icons-react";
 import consola from "consola";
 
 const ShareModal = ({ isOpen, onClose, sessionId }) => {
@@ -100,17 +100,17 @@ const ShareModal = ({ isOpen, onClose, sessionId }) => {
             >
               {error ? (
                 <>
-                  <ReloadOutlined />
+                  <IconRefresh size={14} stroke={1.8} />
                   {t("retry")}
                 </>
               ) : copied ? (
                 <>
-                  <CheckOutlined />
+                  <IconCheck size={14} stroke={2} />
                   {t("copied")}
                 </>
               ) : (
                 <>
-                  <CopyOutlined />
+                  <IconCopy size={14} stroke={1.7} />
                   {t("copy_link")}
                 </>
               )}

@@ -3,7 +3,7 @@ import styles from "./index.module.scss";
 import ContentRender from "../Render";
 import RenderErrorBoundary from "../Render/ErrorBoundary";
 import CopySVG from "../../../../assets/chat-copy.svg?react";
-import { CheckOutlined } from "@ant-design/icons";
+import { IconCheck } from "@tabler/icons-react";
 import AssistantCard from "./AssistantCard";
 import { CHART_MESSAGE_TYPE } from "../../../../enum/chat";
 import Analyzing from "./Analyzing";
@@ -88,7 +88,7 @@ function AssistantDialog({
                 onClick={() => onCopyClick(messages)}
               >
                 {copied ? (
-                  <CheckOutlined className={styles.copied_icon} />
+                  <IconCheck className={styles.copied_icon} size={15} stroke={2} />
                 ) : (
                   <CopySVG aria-hidden="true" />
                 )}

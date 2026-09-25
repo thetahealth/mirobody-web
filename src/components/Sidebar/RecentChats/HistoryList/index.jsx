@@ -8,7 +8,8 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Dropdown, message } from "antd";
 import Modal from "../../../Modal";
-import { ShareAltOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ShareAltOutlined } from "@ant-design/icons";
+import { IconTrash } from "@tabler/icons-react";
 import ShareModal from "../../../Modal/ShareModal";
 import { deleteHistory } from "../../../../api/chat";
 import {
@@ -115,7 +116,7 @@ const HistoryList = () => {
     {
       label: (
         <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <DeleteOutlined />
+          <IconTrash size={14} stroke={1.8} />
           {t("delete_history")}
         </span>
       ),

@@ -1,5 +1,5 @@
 import { Popconfirm } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
+import { IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import {
   dayToken,
@@ -88,7 +88,7 @@ const DayFeed = ({ days, today, onRetract }) => {
                         className={styles.retract}
                         aria-label={t("journal_retract")}
                       >
-                        <DeleteOutlined />
+                        <IconTrash size={14} stroke={1.8} />
                       </button>
                     </Popconfirm>
                   </li>

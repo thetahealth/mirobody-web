@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CloseOutlined, LoadingOutlined } from "@ant-design/icons";
+import { IconLoader2, IconX } from "@tabler/icons-react";
 import { logEntry, logSentence } from "../../../api/journal";
 import {
   KINDS,
@@ -199,7 +199,7 @@ const Composer = ({ targetUserId, onLogged }) => {
           disabled={busy || !text.trim()}
           onClick={submit}
         >
-          {busy ? <LoadingOutlined /> : null}
+          {busy ? <IconLoader2 size={14} className="animate-spin" /> : null}
           {busy ? t("journal_submitting") : t("journal_submit")}
         </button>
       </div>
@@ -252,7 +252,7 @@ const Composer = ({ targetUserId, onLogged }) => {
             </label>
           )}
           <button type="button" className={styles.cancel} onClick={reset}>
-            <CloseOutlined />
+            <IconX size={13} stroke={2.2} />
           </button>
         </div>
       ) : null}

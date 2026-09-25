@@ -1,4 +1,4 @@
-import { InfoCircleOutlined } from "@ant-design/icons";
+import { IconInfoCircle } from "@tabler/icons-react";
 import styles from "./index.module.scss";
 
 /**
@@ -15,7 +15,7 @@ const Notice = ({ content }) => {
   if (!content) return null;
   return (
     <div className={styles.notice} role="status">
-      <InfoCircleOutlined className={styles.icon} aria-hidden="true" />
+      <IconInfoCircle className={styles.icon} size={14} aria-hidden="true" />
       <span className={styles.text}>{content}</span>
     </div>
   );

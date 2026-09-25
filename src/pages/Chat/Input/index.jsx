@@ -8,7 +8,7 @@ import SendButton from "./SendButton";
 import { useTranslation } from "react-i18next";
 import { openSelectFileDialog, handleOnDropFiles } from "../../../utils/file";
 import { Tooltip } from "antd";
-import { PaperClipOutlined } from "@ant-design/icons";
+import { IconPaperclip } from "@tabler/icons-react";
 import { useChartInputStore } from "../../../store/Chart/input";
 import { useChartDataStore } from "../../../store/Chart/data";
 import consola from "consola";
@@ -176,7 +176,7 @@ function ChatInput({ variant }) {
                 aria-label={t("upload_files")}
                 onClick={onClickUploadBtn}
               >
-                <PaperClipOutlined className={styles.upload_icon} aria-hidden="true" />
+                <IconPaperclip className={styles.upload_icon} size={18} stroke={1.8} aria-hidden="true" />
               </button>
             </Tooltip>
             <div className={styles.right}>

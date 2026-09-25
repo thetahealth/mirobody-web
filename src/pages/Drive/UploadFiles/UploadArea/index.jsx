@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import styles from "./index.module.scss";
 // A glyph, not the 169×160 illustration: squeezed to 28px that artwork
 // rendered as an unreadable half-clipped smudge next to the copy.
-import { CloudUploadOutlined } from "@ant-design/icons";
+import { IconUpload } from "@tabler/icons-react";
 import {
   openSelectFileDialog,
   handleOnDropFiles,
@@ -95,7 +95,7 @@ const UploadArea = () => {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <CloudUploadOutlined className={styles.uploadIcon} />
+      <IconUpload className={styles.uploadIcon} size={18} />
       <div className={styles.textContainer}>
         <div className={styles.title}>{t("upload_files_title")}</div>
         <div className={styles.description}>

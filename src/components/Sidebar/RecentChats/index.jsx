@@ -1,4 +1,4 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { IconPlus } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useChatStore } from "../../../store/Chart";
@@ -33,7 +33,7 @@ function RecentChats() {
           title={t("new_conversation")}
           onClick={handleNewChat}
         >
-          <PlusOutlined />
+          <IconPlus size={18} stroke={1.9} />
         </button>
       </div>
       <HistoryList />

@@ -63,10 +63,9 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 12px;
-  /* The attach button. Its glyph used to be an inline SVG carrying its own
-     width and height; an antd icon is a <span class="anticon"> that sizes by
-     font-size, so the button collapsed to 0x0 and vanished when the two were
-     swapped. Both the hit target and the glyph are stated here now. */
+  /* The attach button. The hit target is stated here and the glyph's size
+     on the icon itself: the button once collapsed to 0x0 when its glyph was
+     swapped for one that sized by font-size, because nothing gave it a box. */
   .upload_wrapper {
     position: relative;
     display: inline-flex;
@@ -96,7 +95,6 @@
       }
     }
     .upload_icon {
-      font-size: 17px;
       cursor: pointer;
     }
     .upload_tip {

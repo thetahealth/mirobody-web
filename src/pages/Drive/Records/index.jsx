@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LoadingOutlined } from "@ant-design/icons";
+import { IconLoader2 } from "@tabler/icons-react";
 import { useDriveStore } from "../../../store/Drive";
 import { listEntries, retractEntry } from "../../../api/journal";
 import { countEntries, rangeFor, readDays } from "./entries.js";
@@ -109,7 +109,7 @@ const Records = () => {
 
       {loading ? (
         <p className={styles.loading}>
-          <LoadingOutlined /> {t("loading")}
+          <IconLoader2 size={14} stroke={1.8} className="animate-spin" /> {t("loading")}
         </p>
       ) : days.length ? (
         <>

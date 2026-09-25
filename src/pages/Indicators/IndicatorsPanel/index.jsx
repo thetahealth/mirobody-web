@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Drawer, Spin, Empty, Input, Popconfirm, message } from "antd";
 import {
-  EditOutlined,
-  DeleteOutlined,
-  CheckOutlined,
-  CloseOutlined,
-  FileTextOutlined,
-} from "@ant-design/icons";
+  IconCheck,
+  IconFileText,
+  IconPencil,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 import dayjs from "dayjs";
 import consola from "consola";
 import api from "../../../api";
@@ -454,7 +454,7 @@ const IndicatorsPanel = ({
                             className={styles.sourceLink}
                             onClick={() => handleViewSource(reading)}
                           >
-                            <FileTextOutlined /> {t("indicator_view_source")}
+                            <IconFileText size={14} /> {t("indicator_view_source")}
                           </button>
                         ) : (
                           reading.file_name || reading.source || "—"
@@ -471,7 +471,7 @@ const IndicatorsPanel = ({
                                   onClick={() => saveEdit(reading)}
                                   aria-label={t("save")}
                                 >
-                                  <CheckOutlined />
+                                  <IconCheck size={14} stroke={2} />
                                 </button>
                                 <button
                                   type="button"
@@ -479,7 +479,7 @@ const IndicatorsPanel = ({
                                   onClick={() => setEditingId(null)}
                                   aria-label={t("cancel")}
                                 >
-                                  <CloseOutlined />
+                                  <IconX size={14} stroke={2} />
                                 </button>
                               </>
                             ) : (
@@ -492,7 +492,7 @@ const IndicatorsPanel = ({
                                   }}
                                   aria-label={t("indicator_edit_reading")}
                                 >
-                                  <EditOutlined />
+                                  <IconPencil size={14} stroke={1.8} />
                                 </button>
                                 <Popconfirm
                                   title={t("indicator_delete_reading_confirm")}
@@ -504,7 +504,7 @@ const IndicatorsPanel = ({
                                     type="button"
                                     aria-label={t("delete")}
                                   >
-                                    <DeleteOutlined />
+                                    <IconTrash size={14} stroke={1.8} />
                                   </button>
                                 </Popconfirm>
                               </>
