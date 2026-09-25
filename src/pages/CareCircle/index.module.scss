@@ -172,7 +172,7 @@
   flex-shrink: 0;
   padding: 1px var(--space-2);
   border-radius: var(--radius-sm);
-  background-color: var(--color-info-soft);
+  background-color: var(--color-info-bg);
   color: var(--color-accent);
   font-size: 11px;
 }
@@ -202,7 +202,7 @@
     background-color var(--t-fast);
 
   &:hover {
-    background-color: var(--color-danger-soft);
+    background-color: var(--color-danger-bg);
     color: var(--color-danger);
   }
 

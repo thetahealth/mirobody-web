@@ -37,7 +37,7 @@
 .navButton:hover:not(:disabled),
 .pageButton:hover:not(:disabled):not(.pageButtonEllipsis),
 .navButtonNext:hover:not(:disabled) {
-  background: var(--color-info-soft);
+  background: var(--color-info-bg);
 }
 
 .navButton:disabled,

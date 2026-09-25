@@ -180,8 +180,8 @@ tbody tr:last-child {
 }
 
 .badgeYellow {
-  background: var(--color-warning-soft);
-  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .badgeBlue {
@@ -190,8 +190,8 @@ tbody tr:last-child {
 }
 
 .badgeGreen {
-  background: var(--color-success-soft);
-  color: #065F46;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
 }
 
 .statusContainer {

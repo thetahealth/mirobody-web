@@ -121,8 +121,8 @@
 }
 
 .coded {
-  color: var(--color-success);
-  background: var(--color-success-soft);
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
 }
 
 /* Not a warning colour. The entry was stored; the vocabulary simply had no
@@ -134,7 +134,7 @@
 }
 
 .code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   opacity: 0.75;
 }

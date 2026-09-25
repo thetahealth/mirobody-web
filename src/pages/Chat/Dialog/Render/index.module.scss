@@ -32,10 +32,9 @@
   padding: 12px 16px;
   margin: 8px 0;
   font-size: 14px;
-  background-color: var(--color-danger-soft);
-  border: 1px solid var(--color-danger-soft);
+  background-color: var(--color-danger-bg);
   border-radius: var(--radius-sm);
-  color: var(--color-danger);
+  color: var(--color-danger-text);
 }
 
 /* The reply's own type context. Markdown/index.module.scss inherits the

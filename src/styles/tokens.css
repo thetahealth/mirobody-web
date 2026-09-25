@@ -6,8 +6,8 @@
    pulled from a font CDN: a CDN the browser cannot reach costs first paint and
    is one more thing a self-hosted install has to be able to talk to. Those
    packages register the family names "Source Sans 3 Variable" / "Fraunces
-   Variable", so the stacks below list the Variable name first, then the plain
-   name + system fallbacks (incl. CJK).
+   Variable" / "Geist Mono Variable", so the stacks below list the Variable
+   name first, then the plain name + system fallbacks (incl. CJK).
    ──────────────────────────────────────────────────────────────────────── */
 :root {
   /* brand — navy (matches Theta Smart iOS ThemeTokens.swift v4.1) */
@@ -44,12 +44,26 @@
   --color-danger: #b03a2e; /* error */
   --color-info: #3b6b9c; /* muted blue */
 
-  /* soft status backgrounds — tints of the semantic colors (badges / chips) */
-  --color-bg-soft: #f1efe8;
-  --color-info-soft: rgba(59, 107, 156, 0.12);
-  --color-warning-soft: rgba(192, 122, 58, 0.12);
-  --color-success-soft: rgba(47, 74, 58, 0.12);
-  --color-danger-soft: rgba(176, 58, 46, 0.12);
+  /* status containers — a solid soft background and the text colour that sits
+     on it, in pairs. These were 12% rgba tints of the semantic colours, which
+     only approximate the production palette and shift with whatever surface
+     is underneath; the solid values are the palette itself. Same names as the
+     cdm client's copy of these tokens, so the two stay comparable. */
+  --color-bg-soft: #f1efe8; /* warm neutral chip bg */
+  --color-success-bg: #e6ede6;
+  --color-success-text: #1f3328;
+  --color-warning-bg: #faf0e3;
+  --color-warning-text: #8c5624;
+  --color-danger-bg: #fceaea;
+  --color-danger-text: #7a1f19;
+  --color-info-bg: #e4edf5;
+  --color-info-text: #264867;
+
+  /* gold — featured / premium marks. `--color-gold` is decorative only (3.2:1
+     on paper); put text in `--color-gold-text`. */
+  --color-gold: #a88658;
+  --color-gold-bg: #f5efe4;
+  --color-gold-text: #6b5036;
 
   /* focus ring (15% navy) */
   --color-focus-ring: rgba(14, 56, 128, 0.15);
@@ -65,6 +79,11 @@
     "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif;
   --font-serif: "Fraunces Variable", "Fraunces", "Iowan Old Style", Baskerville,
     Georgia, "Times New Roman", serif;
+  /* codes, ids and aligned figures. Tailwind's preflight points <code>/<pre>
+     at this and so does its `font-mono` utility; this definition is unlayered,
+     so it wins over Tailwind's own default. */
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular,
+    "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* radius — Theta v4.1 scale */
   --radius-xs: 4px;

@@ -144,13 +144,15 @@
   padding: 14px 16px;
   border-radius: 12px;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--color-info-soft) 0%, #f6f9ff 100%);
-  border: 1px solid var(--color-info-soft);
+  // Solid info container. It was a 12% tint fading into a cold #f6f9ff, with
+  // an antd-blue hover glow — three colours from outside the palette.
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info-bg);
   transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 
   &:hover {
-    border-color: var(--color-info-soft);
-    box-shadow: 0 6px 20px rgba(24, 144, 255, 0.16);
+    border-color: var(--color-info);
+    box-shadow: var(--shadow-md);
     transform: translateY(-1px);
   }
 

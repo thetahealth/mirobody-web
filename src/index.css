@@ -7,9 +7,13 @@
   --breakpoint-md: 769px;
 }
 
+/* No font-family here. Setting it on `*` pinned every element to the sans
+   face directly, so a mono (or serif) set on a container never reached the
+   text inside it. Tailwind's preflight already gives <html> var(--font-sans),
+   form controls `font: inherit`, and <code>/<pre> var(--font-mono); everything
+   else inherits. */
 * {
   box-sizing: border-box;
-  font-family: var(--font-sans);
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }

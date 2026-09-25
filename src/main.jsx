@@ -9,6 +9,7 @@ import { RouterProvider } from "react-router";
 // fallback face first.
 import "@fontsource-variable/source-sans-3/index.css";
 import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/geist-mono/index.css";
 import "./index.css";
 import { routes } from "./router/index.jsx";
 import { initializeI18n } from "./utils/i18n.js";
