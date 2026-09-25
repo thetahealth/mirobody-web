@@ -3,6 +3,14 @@ import { Tour } from "antd";
 import { useTranslation } from "react-i18next";
 import { useAccountStore } from "../../store/account";
 import { hasSeenTour, markTourSeen, useTourStore } from "../../store/tour";
+import useIsMobile from "../../hooks/useIsMobile";
+import { TOUR_STEPS, anchorSelector } from "./steps";
+
+// The first sidebar entry the tour points at. Its arrival is the signal that
+// the sidebar is on screen.
+const FIRST_ANCHOR = TOUR_STEPS.find((s) => s.anchor)?.anchor;
+// Past this, start with whatever is on screen rather than never.
+const SIDEBAR_WAIT_MS = 5000;
 
 /**
  * The sidebar walkthrough. Plays itself once after the first sign-in, and can
@@ -18,16 +26,50 @@ const OnboardingTour = () => {
   const steps = useTourStore((s) => s.steps);
   const start = useTourStore((s) => s.start);
   const close = useTourStore((s) => s.close);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (open) return; // already playing, or just reopened by hand
     if (!user_id) return; // don't know who this is yet
     if (hasSeenTour(user_id)) return;
-    // One frame's grace so the sidebar has mounted — start() resolves every
-    // anchor against the DOM as it is at that moment.
-    const id = requestAnimationFrame(() => start());
-    return () => cancelAnimationFrame(id);
-  }, [open, user_id, start]);
+    // start() resolves every anchor against the DOM as it is at that moment and
+    // drops the ones it cannot find, so it has to wait for the sidebar. "One
+    // frame after this layout mounts" is not that moment: the first route may
+    // still be loading its chunk, and `/` renders nothing while it decides
+    // where to land (router/Landing.jsx). Starting then played the welcome
+    // card alone, with the sidebar steps silently gone.
+    //
+    // On a phone the sidebar lives in a closed drawer and its anchors never
+    // appear, so there is nothing to wait for.
+    let raf = 0;
+    const begin = () => {
+      raf = requestAnimationFrame(() => start());
+    };
+    const sidebarShown = () =>
+      !FIRST_ANCHOR || document.querySelector(anchorSelector(FIRST_ANCHOR));
+    if (isMobile || sidebarShown()) {
+      begin();
+      return () => cancelAnimationFrame(raf);
+    }
+    const observer = new MutationObserver(() => {
+      if (!sidebarShown()) return;
+      stop();
+      begin();
+    });
+    const timer = setTimeout(() => {
+      stop();
+      begin();
+    }, SIDEBAR_WAIT_MS);
+    const stop = () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      stop();
+      cancelAnimationFrame(raf);
+    };
+  }, [open, user_id, start, isMobile]);
 
   // Built on each render on purpose: antd calls the target resolver when it
   // shows a step, so it always gets the element that is on screen now, and the
