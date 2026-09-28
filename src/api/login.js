@@ -1,8 +1,5 @@
 import { mcpRequestInstance } from "../service/request.js";
 
-/*
- * Google Verify
- */
 /**
  * Email Login
  */
@@ -25,7 +22,8 @@ export const emailVerify = (data) => {
  * The code routes above need a mail provider; a self-hosted deployment usually
  * has none, so these are the way in that works out of the box. `register`
  * creates the account and signs you in; it refuses an address that already has
- * a password rather than overwriting it.
+ * an account, however that account signs in, because registering takes no
+ * proof that the address is yours.
  */
 export const passwordLogin = (data) => {
   return mcpRequestInstance.post("/password/login", data);

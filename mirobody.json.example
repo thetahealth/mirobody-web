@@ -1,9 +1,7 @@
 {
-  "_comment": "What the backend serves at GET /mirobody.json — the runtime feature config this app reads on boot. Copy to your server's static root only for frontend-only development; a real deployment has the mirobody backend generate it. __IS_GOOGLE_LOGIN_ON__ / __IS_APPLE_LOGIN_ON__ are emitted by the backend and ignored by this client, which signs in by email code or password only.",
+  "_comment": "What the backend serves at GET /mirobody.json — the runtime feature config this app reads on boot. Copy to your server's static root only for frontend-only development; a real deployment has the mirobody backend generate it. This client signs in by email code or password only.",
   "__IS_API_CONFIG_ON__": true,
   "__IS_WEBAUTHN_ON__": false,
   "__IS_MOBILE_SOURCE_ON__": true,
-  "__IS_NEW_FEATURES_ON__": [],
-  "__IS_GOOGLE_LOGIN_ON__": false,
-  "__IS_APPLE_LOGIN_ON__": false
+  "__IS_NEW_FEATURES_ON__": []
 }
