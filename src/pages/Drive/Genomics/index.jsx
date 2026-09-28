@@ -5,7 +5,7 @@ import api from "../../../api";
 import useUpload from "../../../hooks/useUpload";
 import { useDriveStore } from "../../../store/Drive";
 import getWebSocketManager from "../../../utils/websocket/WebSocketManager";
-import { activeSetFromResponse, callRate, geneticUploadEvent, isGenotypeUpload } from "./model";
+import { GENOTYPE_ACCEPT, activeSetFromResponse, callRate, geneticUploadEvent, isGenotypeUpload } from "./model";
 import styles from "./index.module.scss";
 
 const Genomics = () => {
@@ -110,7 +110,7 @@ const Genomics = () => {
             className="sr-only"
             tabIndex={-1}
             aria-hidden="true"
-            accept=".txt,.csv,.vcf,.vcf.gz,.txt.gz,.csv.gz,.zip,.gz"
+            accept={GENOTYPE_ACCEPT}
             onChange={onSelect}
             aria-label={t("genomics_choose_file")}
             disabled={busy || !userId}

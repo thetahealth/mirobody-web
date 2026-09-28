@@ -1,4 +1,5 @@
-const EXTENSIONS = /\.(txt|csv|vcf|vcf\.gz|txt\.gz|csv\.gz|zip|gz)$/i;
+export const GENOTYPE_ACCEPT = ".txt,.csv,.vcf,.vcf.gz,.txt.gz,.csv.gz,.vcf.bgz,.vcf.bgzf,.bgz,.bgzf,.zip,.gz";
+const EXTENSIONS = /\.(txt|csv|vcf|vcf\.gz|txt\.gz|csv\.gz|vcf\.bgz|vcf\.bgzf|bgz|bgzf|zip|gz)$/i;
 
 export const isGenotypeUpload = (file) =>
   file instanceof File && file.size > 0 && EXTENSIONS.test(file.name);

@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { activeSetFromResponse, callRate, geneticUploadEvent, isGenotypeUpload } from "./model";
+import { GENOTYPE_ACCEPT, activeSetFromResponse, callRate, geneticUploadEvent, isGenotypeUpload } from "./model";
 
 describe("genomics upload", () => {
   it("accepts public export containers and rejects unrelated files", () => {
     vi.stubGlobal("File", class { constructor(name, size) { this.name = name; this.size = size; } });
-    for (const name of ["sample.txt", "sample.csv", "sample.vcf", "sample.vcf.gz", "sample.txt.gz", "sample.csv.gz", "sample.zip"]) {
+    for (const name of ["sample.txt", "sample.csv", "sample.vcf", "sample.vcf.gz", "sample.txt.gz", "sample.csv.gz", "sample.vcf.bgz", "sample.vcf.bgzf", "sample.zip"]) {
       expect(isGenotypeUpload(new File(name, 500))).toBe(true);
     }
+    expect(GENOTYPE_ACCEPT).toContain(".vcf.bgz");
+    expect(GENOTYPE_ACCEPT).toContain(".vcf.bgzf");
     expect(isGenotypeUpload(new File("sample.pdf", 500))).toBe(false);
     expect(isGenotypeUpload(new File("empty.vcf", 0))).toBe(false);
     vi.unstubAllGlobals();
