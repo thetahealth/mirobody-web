@@ -1,0 +1,130 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-bottom: var(--space-8);
+}
+
+.intro {
+  max-width: 68ch;
+
+  h2 {
+    margin: 0 0 var(--space-2);
+    color: var(--color-text-primary);
+    font-family: var(--font-serif);
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  p:last-child {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.55;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.panel {
+  min-width: 0;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+
+  h3 {
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-primary);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 var(--space-4);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+}
+
+.replacement {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-warning);
+  color: var(--color-text-primary) !important;
+}
+
+.button {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-action-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-fast);
+
+  &:hover:not(:disabled) { background: var(--color-accent-hover); }
+  &:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 3px; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.status {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  color: var(--color-text-secondary);
+}
+
+.progress {
+  width: min(100%, 360px);
+  height: 8px;
+  accent-color: var(--color-accent);
+}
+
+.cardHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.badge {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5) var(--space-6);
+  margin: var(--space-5) 0 0;
+
+  div { min-width: 0; }
+  dt { color: var(--color-text-secondary); font-size: 13px; }
+  dd { margin: var(--space-1) 0 0; overflow-wrap: anywhere; color: var(--color-text-primary); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+}
+
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .panel { padding: var(--space-5); }
+}

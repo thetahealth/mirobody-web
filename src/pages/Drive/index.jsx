@@ -16,10 +16,11 @@ import DriveHeader from "../../components/DriveHeader";
 import EmptyGuide from "./EmptyGuide";
 import { useDistributionStore } from "../../store/distribution";
 import Tabs from "./Tabs";
+import Genomics from "./Genomics";
 import { VITAL_STATUS } from "../../enum/vital";
 import styles from "./index.module.scss";
 
-const TAB_KEYS = ["records", "upload_files", "connect_data_source"];
+const TAB_KEYS = ["records", "upload_files", "genomics", "connect_data_source"];
 
 const DrivePage = () => {
   // ?tab= is how the indicators page crosses over to a specific tab here (its
@@ -99,8 +100,8 @@ const DrivePage = () => {
     if (tab === "connect_data_source") setHighlightTrigger((n) => n + 1);
   };
 
-  // Three tabs, three ways something gets into the record: you write it, you
-  // upload it, or a device sends it. The READINGS they produce are their own
+  // The tabs separate manual records, files, genotypes and device sources.
+  // The READINGS they produce are their own
   // page (工作区 › 指标) — the output does not belong at the same level as its
   // own plumbing. Each tab carries its own count, which is what the old
   // four-counter strip was really for.
@@ -110,6 +111,7 @@ const DrivePage = () => {
   const TABS = [
     ...(isShowJournal ? [{ value: "records", label: t("records_tab") }] : []),
     { value: "upload_files", label: t("files_tab"), count: fileTotal },
+    { value: "genomics", label: t("genomics_tab") },
     {
       value: "connect_data_source",
       label: t("connect_data_source"),
@@ -205,6 +207,8 @@ const DrivePage = () => {
                 pickerRef={filePickerRef}
               />
             </div>
+
+            {currentTab === "genomics" ? <Genomics key={current_drive_user_id} /> : null}
 
             {/* Mounted only while selected: it fetches on mount, and the two
                 panels above stay mounted precisely so they do not refetch. */}
