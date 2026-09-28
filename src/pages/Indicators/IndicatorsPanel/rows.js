@@ -96,3 +96,19 @@ export const truncationOf = (res) => {
   const total = Number(res.total) || shown;
   return total > shown ? { shown, total } : null;
 };
+
+// The server names a code's system by its FHIR URI ("http://loinc.org"); the
+// table shows the short name a reader knows. An unknown system shows as sent.
+const SYSTEM_NAMES = {
+  "http://loinc.org": "LOINC",
+  loinc: "LOINC",
+  "http://snomed.info/sct": "SNOMED CT",
+  "http://terminology.hl7.org/CodeSystem/ICPC-3": "ICPC-3",
+};
+
+/** "LOINC 29463-7" for a row with a code, "" for one without. */
+export const codeLabel = (row) => {
+  if (!row?.code) return "";
+  const system = SYSTEM_NAMES[row.system] ?? row.system ?? "";
+  return `${system} ${row.code}`.trim();
+};

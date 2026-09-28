@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toTableRows, toReadingList, truncationOf } from "./rows";
+import { toTableRows, toReadingList, truncationOf, codeLabel } from "./rows";
 
 // Fixtures copy the server's own row builders field for field (`_catalog_row` /
 // `_reading_row` in mirobody/pulse/query.py, wrapped in `render_rest`), so a
@@ -178,5 +178,19 @@ describe("truncationOf", () => {
 
   it("stays quiet when the flag is set but nothing was actually left out", () => {
     expect(truncationOf({ rows: [1, 2], total: 2, truncated: true })).toBeNull();
+  });
+});
+
+describe("codeLabel", () => {
+  it("names a FHIR system URI by its short name", () => {
+    expect(codeLabel({ system: "http://loinc.org", code: "29463-7" })).toBe("LOINC 29463-7");
+    expect(codeLabel({ system: "loinc", code: "29463-7" })).toBe("LOINC 29463-7");
+  });
+  it("shows an unknown system as sent, and a missing one as nothing", () => {
+    expect(codeLabel({ system: "mirobody-device", code: "dailySteps" })).toBe("mirobody-device dailySteps");
+    expect(codeLabel({ code: "718-7" })).toBe("718-7");
+  });
+  it("is empty for a row without a code", () => {
+    expect(codeLabel({ system: "http://loinc.org", code: "" })).toBe("");
   });
 });

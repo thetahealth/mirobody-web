@@ -14,7 +14,7 @@ import api from "../../../api";
 import { useDriveStore } from "../../../store/Drive";
 import { useAccountStore } from "../../../store/account";
 import { openProtectedFile } from "../../../utils/protectedFile";
-import { toTableRows, toReadingList, truncationOf } from "./rows";
+import { toTableRows, toReadingList, truncationOf, codeLabel } from "./rows";
 import styles from "./index.module.scss";
 
 /**
@@ -341,10 +341,8 @@ const IndicatorsPanel = ({
                     <td>{row.count || "—"}</td>
                     <td className={styles.muted}>{formatDate(row.latest_time)}</td>
                     {showCode && (
-                      <td className={styles.muted}>
-                        {row.code
-                          ? `${row.system || ""} ${row.code}`.trim()
-                          : "—"}
+                      <td className={`${styles.muted} ${styles.code}`}>
+                        {codeLabel(row) || "—"}
                       </td>
                     )}
                   </tr>
@@ -380,7 +378,7 @@ const IndicatorsPanel = ({
               {selected.code && (
                 <div>
                   <dt>{t("indicator_code")}</dt>
-                  <dd>{`${selected.system || ""} ${selected.code}`.trim()}</dd>
+                  <dd>{codeLabel(selected)}</dd>
                 </div>
               )}
               <div>
