@@ -5,6 +5,7 @@ import {
   IconChevronRight,
   IconDatabase,
   IconMessageCircle,
+  IconPill,
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
@@ -25,6 +26,7 @@ import styles from "./index.module.scss";
 // route matching, and it stays serialisable.
 const NAV_ICONS = {
   indicators: IconActivity,
+  medications: IconPill,
   drive: IconDatabase,
   chat: IconMessageCircle,
   profile: IconUser,

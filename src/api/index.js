@@ -7,6 +7,7 @@ import * as webauthn from "./webauthn";
 import * as family from "./family";
 import * as indicators from "./indicators";
 import * as genomics from "./genomics";
+import * as medications from "./medications";
 import * as mcp from "./mcp";
 /* data distribution */
 export const dataDistribution = (data, signal) => {
@@ -76,5 +77,6 @@ export default {
   ...family,
   ...indicators,
   ...genomics,
+  ...medications,
   ...mcp,
 };

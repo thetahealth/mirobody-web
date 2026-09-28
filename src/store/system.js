@@ -42,6 +42,10 @@ export const useSystemStore = create(
     // that has the route. Only an explicit false takes it away — which is what
     // a backend without `POST /api/v1/journal` should send.
     isShowJournal: true,
+    isShowIndicatorRecords: false,
+    isShowIndicatorExport: false,
+    isShowDataDelta: false,
+    isShowMedications: false,
     initMirobodyConfig: async () => {
       try {
         const data = await api.getMirobodyConfig();
@@ -54,6 +58,18 @@ export const useSystemStore = create(
           }
           if (data.__IS_JOURNAL_ON__ !== undefined) {
             state.isShowJournal = !!data.__IS_JOURNAL_ON__;
+          }
+          if (data.__IS_INDICATOR_RECORDS_ON__ !== undefined) {
+            state.isShowIndicatorRecords = !!data.__IS_INDICATOR_RECORDS_ON__;
+          }
+          if (data.__IS_INDICATOR_EXPORT_ON__ !== undefined) {
+            state.isShowIndicatorExport = !!data.__IS_INDICATOR_EXPORT_ON__;
+          }
+          if (data.__IS_DATA_DELTA_ON__ !== undefined) {
+            state.isShowDataDelta = !!data.__IS_DATA_DELTA_ON__;
+          }
+          if (data.__IS_MEDICATIONS_ON__ !== undefined) {
+            state.isShowMedications = !!data.__IS_MEDICATIONS_ON__;
           }
         });
       } catch (error) {

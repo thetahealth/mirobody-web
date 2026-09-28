@@ -44,3 +44,16 @@ export const patchIndicatorReading = ({ id, value, delete: del } = {}, signal) =
     { id, ...(del ? { delete: true } : { value }) },
     { signal },
   );
+
+/** Cross-indicator rows for the Data review table. */
+export const getIndicatorRecords = (params = {}, signal) =>
+  mcpRequestInstance.get("/api/v1/health-indicators/records", { params, signal });
+
+/** Logical entries added since the browser's last visit. */
+export const getDataDelta = (params = {}, signal) =>
+  mcpRequestInstance.get("/api/v1/data/data-delta", { params, signal });
+
+export const exportIndicatorRecords = ({ target_user_id, format = "csv" } = {}, signal) =>
+  mcpRequestInstance.get("/api/v1/health-indicators/export", {
+    params: { target_user_id, format }, responseType: "blob", signal,
+  });

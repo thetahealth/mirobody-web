@@ -39,6 +39,14 @@ const NAV_CONFIG = [
     tour: "sidebar-indicators",
   },
   {
+    key: "medications",
+    section: "workspace",
+    path: "/medications",
+    matchPaths: ["/medications"],
+    i18nKey: "medications_nav",
+    flagKey: "isShowMedications",
+  },
+  {
     key: "chat",
     section: "workspace",
     path: "/ask",

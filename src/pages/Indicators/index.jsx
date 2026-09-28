@@ -3,9 +3,12 @@ import { useNavigate } from "react-router";
 import Sidebar, { MobileTopBar } from "../../components/Sidebar";
 import DriveHeader from "../../components/DriveHeader";
 import IndicatorsPanel from "./IndicatorsPanel";
+import RecentRecords from "./RecentRecords";
+import RecordsList from "./RecordsList";
 import { useAccountStore } from "../../store/account";
 import { useDriveStore } from "../../store/Drive";
 import { useDistributionStore } from "../../store/distribution";
+import { useSystemStore } from "../../store/system";
 import styles from "./index.module.scss";
 
 /**
@@ -30,6 +33,8 @@ const IndicatorsPage = () => {
   const fetchDistribution = useDistributionStore(
     (state) => state.fetchDistribution,
   );
+  const isShowDataDelta = useSystemStore((state) => state.isShowDataDelta);
+  const isShowIndicatorExport = useSystemStore((state) => state.isShowIndicatorExport);
 
   // The roster feeds DriveHeader's person switcher.
   useEffect(() => {
@@ -50,6 +55,8 @@ const IndicatorsPage = () => {
         <div className={styles.scroll}>
           <div className={styles.column}>
             <DriveHeader />
+            {isShowDataDelta && <RecentRecords />}
+            {isShowDataDelta && <RecordsList canExport={isShowIndicatorExport} />}
             {/* key: switching person is a different subject, not new props
                 for the same one. Remounting resets the panel's own rows,
                 search term and paging in one move — the alternative was a
