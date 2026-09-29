@@ -87,18 +87,34 @@ export const useAccountStore = create((set, get) => ({
         // `{members: [...]}`, not a bare array — the envelope's `data` is an
         // object, which is why this route used to fail every call.
         const sent = await api.listSharedByMe(signal);
+        // The list covers every circle I belong to. Only the ones I own are
+        // people I manage: someone who took over their account is in the
+        // circle of the person who added them, who is not theirs to remove.
+        const myId = String(res.find((u) => u.is_current_user)?.id ?? "");
         managed = (sent?.members || [])
-          .filter((i) => i.status === "authorized" && i.query_user_id)
+          .filter(
+            (i) =>
+              i.status === "authorized" &&
+              i.query_user_id &&
+              String(i.owner_user_id) === myId,
+          )
           .map((i) => ({
             id: i.query_user_id,
-            name: i.nickname || "",
+            name: i.nickname || i.name || "",
             nickname: i.nickname,
-            // Hide the synthetic email we mint for virtual members; keep real
-            // ones (people you actually shared to).
-            email: i.email?.endsWith("@virtual.mirobody.ai") ? "" : i.email,
+            // A virtual member's address is a placeholder: the server blanks
+            // it and says `managed`. The suffix check covers older servers.
+            email:
+              i.managed || i.email?.endsWith("@virtual.mirobody.ai") ? "" : i.email,
             share_id: i.share_id,
             is_current_user: false,
             is_managed: true,
+            // Only the person who added a virtual member may send them the
+            // link that gives them their own login.
+            can_invite_to_sign_in: Boolean(i.can_invite_to_sign_in),
+            // A member may keep their record to themselves (health_access 0).
+            // They stay removable here, but there is nothing to view as them.
+            can_view: Number(i.health_access) >= 1,
           }));
       } catch (mErr) {
         if (mErr?.name !== "AbortError" && mErr?.name !== "CanceledError") {
@@ -106,14 +122,24 @@ export const useAccountStore = create((set, get) => ({
         }
       }
 
-      const seen = new Set(res.map((u) => String(u.id)));
-      const merged = [...res];
-      for (const m of managed) {
-        if (!seen.has(String(m.id))) {
-          merged.push(m);
-          seen.add(String(m.id));
-        }
-      }
+      // A virtual member is on BOTH lists (she shares with me read-write), and
+      // the roster copy lacks share_id / is_managed. Dropping the second copy
+      // lost them, so the remove and invite actions never showed; the managed
+      // fields are laid over the roster entry instead.
+      const byId = new Map(managed.map((m) => [String(m.id), m]));
+      const merged = res.map((u) => {
+        const m = byId.get(String(u.id));
+        if (!m) return u;
+        byId.delete(String(u.id));
+        return {
+          ...u,
+          email: m.email,
+          share_id: m.share_id,
+          is_managed: true,
+          can_invite_to_sign_in: m.can_invite_to_sign_in,
+        };
+      });
+      merged.push(...byId.values());
 
       set({
         beneficiary_users: merged,

@@ -8,7 +8,6 @@ import FormItemSelect from "../../../components/Form/FormItem/Select";
 import { BLOOD_TYPE_OPTIONS, GENDER_OPTIONS } from "../../../enum/form";
 import { useAccountStore } from "../../../store/account";
 import api from "../../../api";
-import { v4 as uuidv4 } from "uuid";
 import { message } from "antd";
 import consola from "consola";
 
@@ -107,15 +106,11 @@ function MemberForm({ onClose }) {
       setLoading(true);
       if (validateForm()) {
         const name = `${formData.firstName} ${formData.lastName}`.trim();
-        // Backend requires a unique email; virtual members never log in, so a
-        // synthetic unique address is fine.
-        const email = `member_${uuidv4().replace(/-/g, "")}@virtual.mirobody.ai`;
         const birth = formData.dateOfBirth
           ? dayjs(formData.dateOfBirth, "MM/DD/YYYY").format("YYYY-MM-DD")
           : "";
         await api.createVirtualUser({
           name,
-          email,
           gender: formData.gender || "other", // backend maps the string
           birth,
           blood: formData.blood || "",

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import styles from "./PasswordForm.module.scss";
 import { canSubmitPassword, isValidPassword, MIN_PASSWORD_LENGTH } from "../password";
+import { isValidEmail } from "../emailOtp";
 
 /**
  * Email/username + password form, in sign-in or sign-up mode.
@@ -12,17 +13,39 @@ import { canSubmitPassword, isValidPassword, MIN_PASSWORD_LENGTH } from "../pass
  *
  * Props:
  *  - mode:     "login" | "register"
- *  - onSubmit({ email, password, register }): Promise — parent navigates away
+ *  - needsCode: registering takes a code sent to the address (the server sends mail)
+ *  - onSendCode(email): Promise — request that code
+ *  - onSubmit({ email, password, register, code }): Promise — parent navigates away
  */
-export default function PasswordForm({ mode = "login", onSubmit }) {
+export default function PasswordForm({ mode = "login", needsCode = false, onSendCode, onSubmit }) {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [countdown, setCountdown] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const register = mode === "register";
-  const ready = canSubmitPassword({ email, password });
+  const withCode = register && needsCode;
+  const ready = canSubmitPassword({ email, password, code, needsCode: withCode });
+
+  useEffect(() => {
+    if (countdown <= 0) return undefined;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleSendCode = async () => {
+    try {
+      setError("");
+      await onSendCode(email);
+      setCountdown(60);
+    } catch (err) {
+      console.error("ERROR: Send sign-up code", err);
+      setError(t("error_send_code_failed"));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,14 +53,17 @@ export default function PasswordForm({ mode = "login", onSubmit }) {
     try {
       setError("");
       setBusy(true);
-      await onSubmit({ email, password, register });
+      await onSubmit({ email, password, register, code: withCode ? code.trim() : "" });
     } catch (err) {
       console.error("ERROR: Password Auth", err);
       // The server answers "incorrect email or password" for a wrong password
       // and for an address it has never seen, on purpose — so this cannot be
       // more specific than the server was, and must not guess.
+      // A refused sign-up code is the server's to explain.
       setError(
-        register ? t("error_register_failed") : t("error_password_login_failed"),
+        register
+          ? err?.msg || t("error_register_failed")
+          : t("error_password_login_failed"),
       );
     } finally {
       setBusy(false);
@@ -66,6 +92,24 @@ export default function PasswordForm({ mode = "login", onSubmit }) {
           autoComplete={register ? "new-password" : "current-password"}
         />
       </div>
+      {withCode && (
+        <div className={styles.codeRow}>
+          <input
+            type="text"
+            placeholder={t("code_placeholder")}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            autoComplete="one-time-code"
+          />
+          <button
+            type="button"
+            onClick={handleSendCode}
+            disabled={countdown > 0 || !isValidEmail(email)}
+          >
+            {countdown > 0 ? t("resend_in", { seconds: countdown }) : t("send_code")}
+          </button>
+        </div>
+      )}
       {register && !isValidPassword(password) && (
         <div className={styles.hint}>
           {t("password_min_length", { count: MIN_PASSWORD_LENGTH })}

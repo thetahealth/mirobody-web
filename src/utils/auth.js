@@ -107,11 +107,6 @@ export const getOAuthRedirectInfo = (data, oauthParams) => {
     return { url, type: "code" };
   }
 
-  // Direct token flow - redirect to drive page
-  if (data.access_token) {
-    return { url: `${window.location.origin}/data`, type: "token" };
-  }
-
   // Backend provided redirect
   if (data.redirect) {
     return { url: data.redirect, type: "redirect" };

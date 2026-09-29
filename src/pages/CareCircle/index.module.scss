@@ -234,6 +234,57 @@
 
 /* Said out loud rather than left as a blank row: the backend has no basics for
    this person yet, which is a fact about the record, not a rendering gap. */
+/* One quiet action under the facts: text, not a second primary button. */
+.card_action {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.share_list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.share_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+
+  & + & {
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+.share_select {
+  height: 32px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
 .facts_empty {
   font-size: 12px;
   color: var(--color-text-muted);

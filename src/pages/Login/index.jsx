@@ -30,6 +30,7 @@ function Login() {
   const [authMode, setAuthMode] = useState("password");
 
   const showDeveloper = useSystemStore((s) => s.isShowDeveloper);
+  const signupCodeOn = useSystemStore((s) => s.isSignupCodeOn);
   const [error, setError] = useState("");
 
   /* oauth2 authorize → cross-app redirect whitelist → home */
@@ -65,8 +66,8 @@ function Login() {
     await handleLoginSuccess(data);
   };
 
-  const onSubmitPassword = async ({ email, password, register }) => {
-    const data = await handlePasswordLogin(email, password, { register });
+  const onSubmitPassword = async ({ email, password, register, code }) => {
+    const data = await handlePasswordLogin(email, password, { register, code });
     await handleLoginSuccess(data);
   };
 
@@ -78,6 +79,8 @@ function Login() {
       ) : (
         <PasswordForm
           mode={authMode === "register" ? "register" : "login"}
+          needsCode={signupCodeOn}
+          onSendCode={onSendCode}
           onSubmit={onSubmitPassword}
         />
       )}

@@ -46,12 +46,15 @@ export const useSystemStore = create(
     isShowIndicatorExport: false,
     isShowDataDelta: false,
     isShowMedications: false,
+    // Registering takes a code sent to the address (the server sends mail).
+    isSignupCodeOn: false,
     initMirobodyConfig: async () => {
       try {
         const data = await api.getMirobodyConfig();
         set((state) => {
           state.isShowAPIConfig = !!data.__IS_API_CONFIG_ON__;
           state.isShowWebAuthn = !!data.__IS_WEBAUTHN_ON__;
+          state.isSignupCodeOn = !!data.__IS_SIGNUP_CODE_ON__;
           // Absent key ≠ off (see above): only an explicit false hides it.
           if (data.__IS_MOBILE_SOURCE_ON__ !== undefined) {
             state.isShowMobileSource = !!data.__IS_MOBILE_SOURCE_ON__;

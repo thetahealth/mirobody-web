@@ -12,6 +12,7 @@ const Drive = lazy(() => import("../pages/Drive/index.jsx"));
 const Share = lazy(() => import("../pages/Share/index.jsx"));
 const Profile = lazy(() => import("../pages/Profile/index.jsx"));
 const CareCircle = lazy(() => import("../pages/CareCircle/index.jsx"));
+const Activate = lazy(() => import("../pages/Activate/index.jsx"));
 const Indicators = lazy(() => import("../pages/Indicators/index.jsx"));
 const ChatList = lazy(() => import("../pages/Chat/ContentList/index.jsx"));
 const ChatEmpty = lazy(() => import("../pages/Chat/EmptyContent/index.jsx"));
@@ -34,6 +35,11 @@ export const routes = [
       {
         path: "/share/:shareSessionId",
         Component: Share,
+      },
+      // Public: the person opening an activation link has no account yet.
+      {
+        path: "/activate",
+        Component: Activate,
       },
       {
         Component: ProtectedLayout,

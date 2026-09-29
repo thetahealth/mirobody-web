@@ -178,6 +178,8 @@ export default defineConfig(({ mode }) => {
           "/apple": opts,
           "/oauth": opts,
           "/personal": opts,
+          // Activation links (api/family.js): creating one, and completing it.
+          "/account": opts,
           "^/mirobody\\.json": opts,
           "/ws": { ...opts, ws: true },
         };

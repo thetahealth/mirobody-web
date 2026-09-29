@@ -81,7 +81,7 @@ function QueryFor() {
           role="listbox"
           style={{ display: dropdownVisible ? "flex" : "none" }}
         >
-          {beneficiary_users.map((user) => {
+          {beneficiary_users.filter((user) => user.can_view !== false).map((user) => {
             const name = user.nickname || user.name || "";
             // Same synthetic address the sidebar hides: an internal key, not
             // something anyone can write to.

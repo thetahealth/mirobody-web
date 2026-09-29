@@ -10,9 +10,11 @@ import { mcpRequestInstance } from "../service/request";
 // owner→member, so once
 // merged they are usable.
 
-/* create a virtual member (a managed person who never logs in) */
-export const createVirtualUser = ({ name, email, gender, birth, blood }) => {
-  const body = { name, email };
+/* create a virtual member (someone whose record you keep). The server mints
+   their placeholder address; they get their own login through an activation
+   link (createActivation). */
+export const createVirtualUser = ({ name, gender, birth, blood }) => {
+  const body = { name };
   if (gender !== undefined && gender !== null) body.gender = gender;
   if (birth) body.birth = birth;
   if (blood) body.blood = blood;
@@ -30,3 +32,32 @@ export const removeSharedByMe = ({ share_id, query_user_id }) =>
     share_id,
     query_user_id,
   });
+
+/* a one-time link that hands a virtual member's account to them:
+   { url, expires_at, sends_mail } */
+export const createActivation = ({ member_id, email }) =>
+  mcpRequestInstance.post("/account/activation", { member_id, email });
+
+/* what an activation link is for: { member_name, creator_name, email,
+   expires_at, sends_mail } */
+export const activationInfo = (token) =>
+  mcpRequestInstance.post("/account/activation/info", { token });
+
+/* prove the address and take the account; returns the sign-in payload.
+   access: "edit" | "view" | "none", what the person who added you keeps */
+export const completeActivation = ({ token, code, password, access }) =>
+  mcpRequestInstance.post("/account/activation/complete", {
+    token,
+    code,
+    password,
+    access,
+  });
+
+/* circles I belong to: { circles: [{ circle_id, owner_name, role,
+   health_access }], ... } */
+export const listSharedWithMe = (signal) =>
+  mcpRequestInstance.post("/invitation/shared-with-me/list", {}, { signal });
+
+/* what my record shows one circle: 0 none, 1 view, 2 view and edit */
+export const setHealthAccess = ({ circle_id, access }) =>
+  mcpRequestInstance.post("/invitation/health-access", { circle_id, access });
