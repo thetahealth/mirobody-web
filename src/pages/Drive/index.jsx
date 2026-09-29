@@ -15,7 +15,7 @@ import Records from "./Records";
 import DriveHeader from "../../components/DriveHeader";
 import EmptyGuide from "./EmptyGuide";
 import { useDistributionStore } from "../../store/distribution";
-import Tabs from "./Tabs";
+import Tabs from "../../components/Tabs";
 import Genomics from "./Genomics";
 import { VITAL_STATUS } from "../../enum/vital";
 import styles from "./index.module.scss";

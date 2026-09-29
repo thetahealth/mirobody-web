@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { IconLoader2, IconX } from "@tabler/icons-react";
 import { logEntry, logSentence } from "../../../api/journal";
 import {
   KINDS,
   NOTE_MAX,
+  isNote,
+  medicationActionKey,
   SENTENCE_MAX,
   TEXT_MAX,
   isoFromLocalInput,
@@ -18,14 +21,20 @@ import {
 } from "./entries.js";
 import styles from "./Composer.module.scss";
 
-/** One written entry: the words (and value), then what the vocabulary made of them. */
+/** One written entry: the words (and value), then what the vocabulary made of
+ * them. A note was never meant to be coded, so it says it was kept. */
 const Written = ({ entry, t }) => (
-  <div className={`${styles.outcome} ${entry.coded ? styles.coded : styles.abstained}`}>
+  <div className={`${styles.outcome} ${entry.coded || isNote(entry) ? styles.coded : styles.abstained}`}>
     <span className={styles.outcomeWords}>
       {entry.text}
       {valueOf(entry) ? ` ${valueOf(entry)}` : ""}
     </span>
-    {entry.coded ? (
+    {isNote(entry) ? (
+      <>
+        <span className={styles.arrow}>→</span>
+        <span className={styles.outcomeName}>{t("journal_kept_as_note")}</span>
+      </>
+    ) : entry.coded ? (
       <>
         <span className={styles.arrow}>→</span>
         <span className={styles.outcomeName}>{entry.display}</span>
@@ -46,8 +55,8 @@ const Written = ({ entry, t }) => (
  * in the log is correct, and the person should see that it was understood.
  */
 const SentenceOutcome = ({ outcome, t }) => {
-  const { written, skipped, alreadyLogged } = outcome;
-  if (!written.length && !skipped.length && !alreadyLogged) {
+  const { written, medications, medicationsFailed, skipped, alreadyLogged } = outcome;
+  if (!written.length && !medications.length && !medicationsFailed && !skipped.length && !alreadyLogged) {
     return <p className={styles.outcomeHint}>{t("journal_sentence_nothing")}</p>;
   }
   return (
@@ -55,6 +64,17 @@ const SentenceOutcome = ({ outcome, t }) => {
       {written.map((entry) => (
         <Written key={entry.id} entry={entry} t={t} />
       ))}
+      {medications.map((m, i) => (
+        <div key={`${m.plan_id || m.text}-${i}`} className={`${styles.outcome} ${styles.coded}`}>
+          <span className={styles.outcomeWords}>{m.text || m.quote}</span>
+          <span className={styles.arrow}>→</span>
+          <span className={styles.outcomeName}>{t(medicationActionKey(m.action))}</span>
+          {m.plan_id && m.action !== "ignored" ? (
+            <Link to="/indicators?tab=medications" className={styles.outcomeHint}>{t("journal_med_view")}</Link>
+          ) : null}
+        </div>
+      ))}
+      {medicationsFailed ? <p className={styles.error}>{t("journal_meds_failed")}</p> : null}
       {alreadyLogged ? (
         <p className={styles.outcomeHint}>{t("journal_already_logged", { count: alreadyLogged })}</p>
       ) : null}
@@ -86,8 +106,10 @@ const SentenceOutcome = ({ outcome, t }) => {
  * it this is a notes field, and a person has no way to see that "头痛" and
  * "headache" became the same thing.
  *
- * It takes a sentence ("我头疼，血压150/95") and the server writes every entry
- * the sentence states. A server that cannot read a sentence (no text model, or
+ * It takes anything ("我头疼，血压150/95，每天早晚吃二甲双胍500mg，午饭吃了面")
+ * and the server writes what it states where it belongs: complaints and
+ * readings on their codes, a medication onto the medication list, anything
+ * else as a note in the words written. A server that cannot read a sentence (no text model, or
  * one that predates the route) drops the box back to one entry at a time with
  * a kind picker, for the rest of the session.
  */

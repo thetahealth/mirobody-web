@@ -37,7 +37,9 @@ const params = (values) =>
  * The server splits it and writes each entry it states on its own axis: the
  * headache on ICPC-3, the two pressures as readings on LOINC. It answers with
  * `written` (each row with its coding) and `skipped` (each part it did not
- * write, with a reason token: negated, someone_else, medication, ...).
+ * write, with a reason token: negated, someone_else, ...). A medication goes to
+ * the medication record, and the answer's `medications` says what became of
+ * each (added, already listed, stopped, ...); anything else is kept as a note.
  *
  * `tz` is the browser's zone: "今早" is the morning where the person is typing,
  * and a record with no zone set would otherwise read it in UTC.
@@ -87,6 +89,17 @@ export const listEntries = ({ from, to, kind, target_user_id } = {}, signal) =>
 /** Mark one entry entered in error. The row is kept and hidden, not deleted. */
 export const retractEntry = ({ id, target_user_id } = {}, signal) =>
   mcpRequestInstance.delete(`${BASE}/${id}`, {
+    params: params({ target_user_id }),
+    signal,
+  });
+
+/**
+ * Remove a medication plan a sentence made, as it is listed in the log. The
+ * journal's own route, so the grant that let a caregiver log it lets them take
+ * it back; the plan is marked entered-in-error, not erased.
+ */
+export const retractMedication = ({ planId, target_user_id } = {}, signal) =>
+  mcpRequestInstance.delete(`${BASE}/medication/${encodeURIComponent(planId)}`, {
     params: params({ target_user_id }),
     signal,
   });

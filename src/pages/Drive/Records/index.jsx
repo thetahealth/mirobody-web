@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconLoader2 } from "@tabler/icons-react";
 import { useDriveStore } from "../../../store/Drive";
-import { listEntries, retractEntry } from "../../../api/journal";
-import { countEntries, rangeFor, readDays } from "./entries.js";
+import { listEntries, retractEntry, retractMedication } from "../../../api/journal";
+import { countEntries, isMedication, rangeFor, readDays } from "./entries.js";
 import Composer from "./Composer.jsx";
 import DayFeed from "./DayFeed.jsx";
 import styles from "./index.module.scss";
@@ -85,10 +85,9 @@ const Records = ({ onChange }) => {
 
   const onRetract = async (entry) => {
     try {
-      await retractEntry({
-        id: entry.id,
-        target_user_id: current_drive_user_id || undefined,
-      });
+      const target_user_id = current_drive_user_id || undefined;
+      if (isMedication(entry)) await retractMedication({ planId: entry.plan_id, target_user_id });
+      else await retractEntry({ id: entry.id, target_user_id });
       // Re-ask rather than splicing the row out: the server decides what a
       // retracted row looks like, and the count in the header comes from it.
       load();

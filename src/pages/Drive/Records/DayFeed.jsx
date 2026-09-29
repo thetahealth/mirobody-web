@@ -1,8 +1,12 @@
 import { Popconfirm } from "antd";
 import { IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import {
   dayToken,
+  entryKey,
+  isMedication,
+  isNote,
   kindKey,
   reasonKey,
   standardName,
@@ -10,6 +14,7 @@ import {
   valueOf,
   weekdayOf,
 } from "./entries.js";
+import { scheduleSummary } from "../../Indicators/Medications/form.js";
 import styles from "./DayFeed.module.scss";
 
 /**
@@ -20,6 +25,11 @@ import styles from "./DayFeed.module.scss";
  * keeps its words and says so rather than dropping out of the list — the
  * uncoded half is the half that most needs a person's eye, and a feed that
  * hides it looks like perfect coverage.
+ *
+ * A note is kept as written and was never meant to be coded, so it carries no
+ * "not coded" chip. A medication is listed on the day its sentence was
+ * written; the plan itself lives in 指标 › 用药, and removing it here removes
+ * the plan.
  *
  * Days come grouped from the server. Regrouping them here would be a second
  * opinion about where a day starts, and the person's timezone is the server's
@@ -48,8 +58,14 @@ const DayFeed = ({ days, today, onRetract }) => {
             <ul className={styles.entries}>
               {day.entries.map((entry) => {
                 const name = standardName(entry);
+                const medication = isMedication(entry);
+                // A plan's `note` is its schedule in the person's words; the
+                // summary is the structure read from them.
+                const detail = medication
+                  ? [scheduleSummary(entry, t), entry.note ? `“${entry.note}”` : ""].filter(Boolean).join("  ")
+                  : entry.note;
                 return (
-                  <li key={entry.id} className={styles.entry}>
+                  <li key={entryKey(entry)} className={styles.entry}>
                     <span className={styles.time}>{timeOf(entry)}</span>
 
                     {kindKey(entry.kind) ? (
@@ -63,10 +79,14 @@ const DayFeed = ({ days, today, onRetract }) => {
                           <span className={styles.value}>{valueOf(entry)}</span>
                         ) : null}
                       </p>
-                      {entry.note ? <p className={styles.note}>{entry.note}</p> : null}
+                      {detail ? <p className={styles.note}>{detail}</p> : null}
                     </div>
 
-                    {name ? (
+                    {medication ? (
+                      <Link to="/indicators?tab=medications" className={styles.coded}>
+                        {t(entry.status === "active" ? "journal_med_on_list" : `medications_status_${entry.status}`, entry.status)}
+                      </Link>
+                    ) : isNote(entry) ? null : name ? (
                       <span className={styles.coded} title={entry.series_id || ""}>
                         {name}
                         <code className={styles.code}>{entry.code}</code>

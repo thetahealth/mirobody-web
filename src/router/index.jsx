@@ -13,7 +13,6 @@ const Share = lazy(() => import("../pages/Share/index.jsx"));
 const Profile = lazy(() => import("../pages/Profile/index.jsx"));
 const CareCircle = lazy(() => import("../pages/CareCircle/index.jsx"));
 const Indicators = lazy(() => import("../pages/Indicators/index.jsx"));
-const Medications = lazy(() => import("../pages/Medications/index.jsx"));
 const ChatList = lazy(() => import("../pages/Chat/ContentList/index.jsx"));
 const ChatEmpty = lazy(() => import("../pages/Chat/EmptyContent/index.jsx"));
 // /developer forwards to the cdm developer console (the page itself lives there now).
@@ -49,10 +48,6 @@ export const routes = [
           {
             path: "/indicators",
             Component: Indicators,
-          },
-          {
-            path: "/medications",
-            Component: Medications,
           },
           {
             path: "/ask",

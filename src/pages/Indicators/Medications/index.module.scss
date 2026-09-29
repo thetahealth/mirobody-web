@@ -1,14 +1,9 @@
-.scroll { flex: 1; overflow: auto; min-width: 0; }
-.column { display: flex; flex-direction: column; gap: var(--space-6); width: 100%; max-width: var(--layout-max); margin: 0 auto; padding: var(--space-6) var(--layout-gutter) var(--space-12); }
-.header { display: flex; justify-content: space-between; gap: var(--space-6); align-items: end; }
-.header h1 { margin: 0; font-size: 28px; color: var(--color-text-primary); }
-.eyebrow { margin: 0 0 6px; color: var(--color-text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
-.subtitle { max-width: 42ch; margin: 0; color: var(--color-text-secondary); line-height: 1.5; }
-.form { display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
+.form { flex: 1; min-width: 0; display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
 .form input, .form select { min-width: 0; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg); color: var(--color-text-primary); }
 .row { display: flex; gap: var(--space-3); }
 .row > * { flex: 1; }
-.row label { display: grid; gap: 4px; color: var(--color-text-secondary); font-size: 12px; }
+.row label, .inline { display: grid; gap: 4px; color: var(--color-text-secondary); font-size: 12px; }
+.inline { max-width: 200px; }
 .note { margin: 0; color: var(--color-text-secondary); font-size: 13px; }
 .weekdays { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .day, .dayOn { min-width: 44px; padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 999px; background: transparent; color: var(--color-text-secondary); cursor: pointer; }
@@ -20,7 +15,8 @@
 .list { display: grid; gap: var(--space-3); }
 .card { display: flex; justify-content: space-between; gap: var(--space-5); align-items: center; padding: var(--space-5); border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
 .cardMain { min-width: 0; }
-.card h2 { margin: 0; color: var(--color-text-primary); font-size: 17px; }
+.card h3 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-text-primary); font-size: 17px; }
+.tag { padding: 2px 8px; border-radius: 999px; background: var(--color-info-bg); color: var(--color-info-text); font-size: 12px; font-weight: 500; }
 .card p, .card small { display: block; margin: 6px 0 0; color: var(--color-text-secondary); }
 .cardActions > span { margin-right: 6px; color: var(--color-text-secondary); font-size: 13px; }
 .history { margin: var(--space-3) 0 0; padding-left: 18px; color: var(--color-text-secondary); font-size: 13px; }
@@ -28,5 +24,10 @@
 .intended { color: var(--color-info-text) !important; }
 .stopped, .completed { color: var(--color-warning-text) !important; }
 .center { min-height: 220px; display: grid; place-items: center; }
-.empty { padding: var(--space-12); text-align: center; color: var(--color-text-secondary); }
-@media (max-width: 720px) { .header, .card { align-items: stretch; flex-direction: column; } .row { flex-direction: column; } }
+.empty { padding: var(--space-12) var(--space-6); text-align: center; color: var(--color-text-secondary); }
+.empty p { margin: 0; }
+.emptyHint { margin-top: var(--space-2) !important; font-size: 13px; }
+.emptyLink { display: inline-block; margin-top: var(--space-4); color: var(--color-accent); font-weight: 500; }
+@media (max-width: 720px) { .card { align-items: stretch; flex-direction: column; } .row { flex-direction: column; } }
+.card .form { padding: 0; border: 0; background: transparent; }
+.card .words { font-size: 13px; color: var(--color-text-muted); }

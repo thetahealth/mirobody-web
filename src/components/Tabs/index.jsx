@@ -1,4 +1,4 @@
-import styles from "./Tabs.module.scss";
+import styles from "./index.module.scss";
 
 /**
  * Underline tabs that carry their own counts.

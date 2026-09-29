@@ -36,14 +36,14 @@ export const rangeFor = (today, days = 30) => {
  * no entries is not worth a card.
  *
  * Entries are filtered individually, not just counted: the feed keys rows on
- * `entry.id`, so one null in the array takes the whole panel down rather than
- * one row.
+ * `entryKey` (an observation's `id`, or a listed plan's `plan_id`), so one
+ * null in the array takes the whole panel down rather than one row.
  */
 export const readDays = (data) => {
   const days = data && Array.isArray(data.days) ? data.days : [];
   return days
     .filter((d) => d && d.date && Array.isArray(d.entries))
-    .map((d) => ({ date: d.date, entries: d.entries.filter((e) => e && e.id != null) }))
+    .map((d) => ({ date: d.date, entries: d.entries.filter((e) => e && (e.id != null || e.plan_id)) }))
     .filter((d) => d.entries.length);
 };
 
@@ -130,21 +130,23 @@ export const localInputFromDate = (date) => {
  * an unknown one falls back to the generic line rather than rendering a key.
  */
 export const reasonKey = (reason) => {
-  const known = ["ambiguous", "no_match", "too_broad"];
+  const known = ["ambiguous", "no_match", "too_broad", "free_text"];
   const tail = String(reason || "").split(":")[1] || "";
   const slug = tail.replace(/-/g, "_");
   return known.includes(slug) ? `journal_reason_${slug}` : "journal_not_coded_hint";
 };
 
 /**
- * The two ICPC-3 axes the endpoint writes on, in the order they are offered.
+ * The kinds the single-entry form offers, in order: the fallback for a server
+ * that cannot read a sentence.
  *
- * `symptom` is what a person feels now and resolves on the S component;
+ * `symptom` is what a person feels now and resolves on ICPC-3's S component;
  * `condition` is what they have been diagnosed with and resolves on D. They
  * are not interchangeable: 头痛 is a symptom and 高血压 is a diagnosis, and
- * coding one as the other files it under the wrong axis for good.
+ * coding one as the other files it under the wrong axis for good. `note` is
+ * anything else, kept as written and never coded.
  */
-export const KINDS = ["symptom", "condition"];
+export const KINDS = ["symptom", "condition", "note"];
 
 /**
  * The copy key for an entry's kind, guarded.
@@ -155,7 +157,13 @@ export const KINDS = ["symptom", "condition"];
  * sentence: it is listed, but it is not an axis the single-entry form offers.
  */
 export const kindKey = (kind) =>
-  KINDS.includes(kind) || kind === "measurement" ? `journal_kind_${kind}` : "";
+  KINDS.includes(kind) || kind === "measurement" || kind === "medication" ? `journal_kind_${kind}` : "";
+
+/** A medication plan listed in the log has no observation id; its plan id
+ * keys it, and removing it removes the plan. */
+export const entryKey = (entry) => (entry?.id != null ? `o:${entry.id}` : `m:${entry?.plan_id}`);
+export const isMedication = (entry) => entry?.kind === "medication";
+export const isNote = (entry) => entry?.kind === "note";
 
 /** "150 mmHg" for a reading typed here, "" for a complaint. */
 export const valueOf = (entry) =>
@@ -172,21 +180,34 @@ export const NOTE_MAX = 2000;
  */
 export const skipKey = (reason) => {
   const known = [
-    "negated", "hypothetical", "someone_else", "medication",
+    "negated", "hypothetical", "someone_else",
     "not_a_record", "no_value", "not_in_sentence", "too_long",
   ];
   return known.includes(reason) ? `journal_skip_${reason}` : "journal_skip_other";
 };
 
 /**
- * `{written, skipped, alreadyLogged}` out of a sentence answer, defensively:
- * one null in either list must not take the outcome panel down.
+ * `{written, medications, medicationsFailed, skipped, alreadyLogged}` out of a
+ * sentence answer, defensively: one null in any list must not take the
+ * outcome panel down.
  */
 export const readSentence = (data) => ({
   written: (Array.isArray(data?.written) ? data.written : []).filter((e) => e && e.id != null),
+  medications: (Array.isArray(data?.medications) ? data.medications : []).filter((m) => m && (m.text || m.quote)),
+  medicationsFailed: !!data?.medications_failed,
   skipped: (Array.isArray(data?.skipped) ? data.skipped : []).filter((p) => p && (p.quote || p.name)),
   alreadyLogged: Number(data?.already_logged) || 0,
 });
+
+/**
+ * The copy key for what a sentence did to the medication list. Tokens come
+ * from the server (`collect/meds/mentions.py`); an unknown one gets a line
+ * that is true of every outcome.
+ */
+export const medicationActionKey = (action) => {
+  const known = ["added", "already_listed", "stopped", "already_stopped", "not_on_list", "not_started", "ignored"];
+  return known.includes(action) ? `journal_med_${action}` : "journal_med_other";
+};
 
 /**
  * Whether a failed sentence call means "this server cannot read sentences":

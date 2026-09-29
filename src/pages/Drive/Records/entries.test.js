@@ -13,6 +13,10 @@ import {
   reasonKey,
   sentenceUnsupported,
   skipKey,
+  medicationActionKey,
+  entryKey,
+  isMedication,
+  isNote,
   standardName,
   submitBlocker,
   timeOf,
@@ -249,7 +253,37 @@ describe("a sentence", () => {
     expect(out.written).toEqual([{ id: 1, text: "头疼" }]);
     expect(out.skipped).toEqual([{ quote: "没发烧", reason: "negated" }]);
     expect(out.alreadyLogged).toBe(2);
-    expect(readSentence(undefined)).toEqual({ written: [], skipped: [], alreadyLogged: 0 });
+    expect(readSentence(undefined)).toEqual({
+      written: [], medications: [], medicationsFailed: false, skipped: [], alreadyLogged: 0,
+    });
+  });
+
+  it("reads what the sentence did to the medication list", () => {
+    const out = readSentence({
+      medications: [{ text: "二甲双胍", action: "added", plan_id: "p1" }, null, {}],
+      medications_failed: true,
+    });
+    expect(out.medications).toEqual([{ text: "二甲双胍", action: "added", plan_id: "p1" }]);
+    expect(out.medicationsFailed).toBe(true);
+    expect(medicationActionKey("added")).toBe("journal_med_added");
+    expect(medicationActionKey("something_new")).toBe("journal_med_other");
+  });
+
+  it("keeps a listed medication, which has a plan id and no observation id", () => {
+    const days = readDays({ days: [{ date: "2026-09-29", entries: [
+      { id: null, plan_id: "p1", kind: "medication", text: "二甲双胍" }, { id: null }, { id: 3, kind: "note" },
+    ] }] });
+    expect(days[0].entries.map((e) => e.plan_id || e.id)).toEqual(["p1", 3]);
+  });
+
+  it("keys a listed medication by its plan, and knows a note from a complaint", () => {
+    expect(entryKey({ id: 7 })).toBe("o:7");
+    expect(entryKey({ id: null, plan_id: "p1", kind: "medication" })).toBe("m:p1");
+    expect(isMedication({ kind: "medication" })).toBe(true);
+    expect(isNote({ kind: "note" })).toBe(true);
+    expect(kindKey("note")).toBe("journal_kind_note");
+    expect(kindKey("medication")).toBe("journal_kind_medication");
+    expect(reasonKey("note:free-text")).toBe("journal_reason_free_text");
   });
 
   it("names each skip reason the server sends, and falls back for a new one", () => {
