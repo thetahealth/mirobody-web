@@ -19,6 +19,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Button, Select, Switch } from "antd";
 import { IconChevronRight, IconCpu } from "@tabler/icons-react";
 import CloseButton from "../CloseButton";
+import PersonalMcpLinks from "./PersonalMcpLinks.jsx";
 import api from "../../api";
 import { CDM_URL } from "../../config/cdm.js";
 import { TIMEZONE_LANG_MAP, buildTimezoneSearchMaps } from "../../enum/time.js";
@@ -43,8 +44,6 @@ const SettingModal = ({ isOpen, onClose }) => {
   const [_api_base_url, set_api_base_url] = useState(api_base_url);
   const [api_error, setApiError] = useState("");
 
-  const [person_mcp_url, setPersonMcpUrl] = useState("");
-  const [is_copied, setIsCopied] = useState(false);
   const [currentTimezone, setCurrentTimezone] = useState("");
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
   const [security, setSecurity] = useState(() => {
@@ -60,30 +59,18 @@ const SettingModal = ({ isOpen, onClose }) => {
   // (state updates are async — even with isMfaToggling state set, two clicks
   // arriving within the same render cycle could both pass the guard).
   const mfaTogglingRef = useRef(false);
-  const copyTimeoutRef = useRef(null);
-  const abortControllerRef = useRef(null);
   const abortControllerRefUserSettings = useRef(null);
 
-  // Cleanup function for abort controller and timeout
   const cleanup = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
     if (abortControllerRefUserSettings.current) {
       abortControllerRefUserSettings.current.abort();
       abortControllerRefUserSettings.current = null;
-    }
-    if (copyTimeoutRef.current) {
-      clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = null;
     }
   };
 
   useEffect(() => {
     if (!isOpen) {
       cleanup();
-      setIsCopied(false);
       return;
     }
 
@@ -94,36 +81,11 @@ const SettingModal = ({ isOpen, onClose }) => {
     // Cancel previous requests if exists
     cleanup();
 
-    // Create new AbortController for MCP request
-    abortControllerRef.current = new AbortController();
-    const currentMcpController = abortControllerRef.current;
-
     // Create new AbortController for user settings request
     abortControllerRefUserSettings.current = new AbortController();
     const currentSettingsController = abortControllerRefUserSettings.current;
 
-    setPersonMcpUrl("");
-    setIsCopied(false);
     setIsLoadingSettings(true);
-
-    // Fetch MCP URL
-    api
-      .getPersonMcp(currentMcpController.signal)
-      .then(({ url }) => {
-        if (!currentMcpController.signal.aborted) {
-          setPersonMcpUrl(url || "");
-        }
-      })
-      .catch((error) => {
-        if (error.name === "CanceledError" || error.name === "AbortError") {
-          return;
-        }
-        consola.error("ERROR: Get Person MCP Url", error);
-        if (!currentMcpController.signal.aborted) {
-          setPersonMcpUrl("");
-          setIsCopied(false);
-        }
-      });
 
     // Fetch user settings
     api
@@ -337,32 +299,6 @@ const SettingModal = ({ isOpen, onClose }) => {
     setApiError("");
   };
 
-  const clearCopyTimeout = () => {
-    if (copyTimeoutRef.current) {
-      clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = null;
-    }
-  };
-
-  const onClickCopyMCPUrl = async () => {
-    try {
-      if (!person_mcp_url?.trim()) {
-        return;
-      }
-      clearCopyTimeout();
-      await navigator.clipboard.writeText(person_mcp_url);
-      setIsCopied(true);
-      copyTimeoutRef.current = setTimeout(() => {
-        setIsCopied(false);
-        copyTimeoutRef.current = null;
-      }, 1500);
-    } catch (error) {
-      consola.error("ERROR: Copy MCP Url", error);
-      setIsCopied(false);
-      clearCopyTimeout();
-    }
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className={styles.settingModal}>
@@ -550,28 +486,7 @@ const SettingModal = ({ isOpen, onClose }) => {
             <div className="text-red-500 text-sm">{api_error && api_error}</div>
           </div>
         )}
-        <div className={styles.section}>
-          <div className="flex items-center justify-between text-[16px] text-[var(--color-text-secondary)] font-[500] mb-2">
-            <div>MCP Url</div>
-            {is_copied ? (
-              <div className="text-green-500 text-sm">{t("copied")}</div>
-            ) : (
-              <Button type="link" onClick={onClickCopyMCPUrl}>
-                {t("copy")}
-              </Button>
-            )}
-          </div>
-          {/* What this URL is FOR — without this line it reads as an opaque
-              blob of secret, and nobody knows to paste it into an MCP client. */}
-          <div className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed mb-2">
-            {t("mcp_url_hint")}
-          </div>
-          <textarea
-            className={styles.mcpUrlTextarea}
-            value={person_mcp_url}
-            readOnly
-          />
-        </div>
+        <PersonalMcpLinks />
         <div className={styles.section}>
           <div className={styles.logoutButton} onClick={onClickLogout}>
             {t("logout")}
