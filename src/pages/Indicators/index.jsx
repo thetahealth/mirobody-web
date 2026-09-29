@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import Sidebar, { MobileTopBar } from "../../components/Sidebar";
 import DriveHeader from "../../components/DriveHeader";
@@ -34,7 +34,12 @@ const IndicatorsPage = () => {
     (state) => state.fetchDistribution,
   );
   const isShowDataDelta = useSystemStore((state) => state.isShowDataDelta);
+  const isShowIndicatorRecords = useSystemStore((state) => state.isShowIndicatorRecords);
   const isShowIndicatorExport = useSystemStore((state) => state.isShowIndicatorExport);
+  // "View details" on the delta block filters the records table to what it
+  // counted. Held per person: switching person drops the filter.
+  const [since, setSince] = useState({ userId: null, value: null });
+  const createdSince = since.userId === current_drive_user_id ? since.value : null;
 
   // The roster feeds DriveHeader's person switcher.
   useEffect(() => {
@@ -55,8 +60,27 @@ const IndicatorsPage = () => {
         <div className={styles.scroll}>
           <div className={styles.column}>
             <DriveHeader />
-            {isShowDataDelta && <RecentRecords />}
-            {isShowDataDelta && <RecordsList canExport={isShowIndicatorExport} />}
+            {isShowDataDelta && (
+              <RecentRecords
+                key={current_drive_user_id || "self"}
+                userId={current_drive_user_id}
+                onViewDetails={
+                  // Without the records route there is nothing to open.
+                  isShowIndicatorRecords
+                    ? (value) => setSince({ userId: current_drive_user_id, value })
+                    : undefined
+                }
+              />
+            )}
+            {isShowIndicatorRecords && (
+              <RecordsList
+                key={`${current_drive_user_id || "self"}:${createdSince || ""}`}
+                userId={current_drive_user_id}
+                createdSince={createdSince}
+                onClearSince={() => setSince({ userId: null, value: null })}
+                canExport={isShowIndicatorExport}
+              />
+            )}
             {/* key: switching person is a different subject, not new props
                 for the same one. Remounting resets the panel's own rows,
                 search term and paging in one move — the alternative was a

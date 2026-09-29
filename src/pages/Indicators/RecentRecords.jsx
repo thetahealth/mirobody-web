@@ -1,47 +1,62 @@
 import { useEffect, useState } from "react";
-import { Spin } from "antd";
 import { useTranslation } from "react-i18next";
 import api from "../../api";
-import { useDriveStore } from "../../store/Drive";
+import { sourceChips, sourceLabelKey, visitCursor } from "./delta";
 import styles from "./RecentRecords.module.scss";
 
-const cursorKey = (userId) => `mirobody:last-data-visit:${userId || "self"}`;
-
-const RecentRecords = () => {
+/**
+ * "Added since your last visit": a count by source, and a way into the rows.
+ *
+ * Mounted once per person viewed (the page keys it on the person), so the
+ * cursor is read once per mount and a re-render cannot use it up. The first
+ * visit has nothing to compare with: it records the cursor and shows nothing.
+ * The block also stays hidden when nothing is new.
+ */
+const RecentRecords = ({ userId, onViewDetails }) => {
   const { t } = useTranslation();
-  const userId = useDriveStore((state) => state.current_drive_user_id);
-  const [data, setData] = useState(null);
-  const [rows, setRows] = useState([]);
+  const [{ since, record }] = useState(() => visitCursor(userId));
+  const [delta, setDelta] = useState(null);
 
   useEffect(() => {
-    let cancelled = false;
-    const now = new Date().toISOString();
-    const since = localStorage.getItem(cursorKey(userId));
-    const params = { target_user_id: userId, limit: 25 };
-    if (since) params.created_since = since;
-    Promise.all([
-      since ? api.getDataDelta({ target_user_id: userId, since }) : Promise.resolve(null),
-      api.getIndicatorRecords(params),
-    ]).then(([delta, records]) => {
-      if (cancelled) return;
-      setData(delta);
-      setRows(records?.rows || []);
-      localStorage.setItem(cursorKey(userId), now);
-    }).catch(() => {
-      if (!cancelled) setRows([]);
-    });
-    return () => { cancelled = true; };
-  }, [userId]);
+    if (!since) {
+      record();
+      return undefined;
+    }
+    const controller = new AbortController();
+    api.getDataDelta({ target_user_id: userId, since }, controller.signal)
+      .then((data) => {
+        setDelta(data);
+        record();
+      })
+      .catch(() => {
+        // Leave the cursor where it was: a failed count must not hide what is new.
+      });
+    return () => controller.abort();
+  }, [since, record, userId]);
 
-  if (!data && rows.length === 0) return null;
+  const chips = sourceChips(delta?.by_source);
+  if (!delta || !delta.total_new) return null;
   return (
     <section className={styles.panel} aria-label={t("data_delta_title")}>
       <div className={styles.header}>
-        <div><h2>{t("data_delta_title")}</h2><p>{t("data_delta_subtitle")}</p></div>
-        {!data && <Spin size="small" />}
+        <div>
+          <h2>{t("data_delta_title")}</h2>
+          <p>{t("data_delta_subtitle")}</p>
+        </div>
+        {onViewDetails && (
+          <button type="button" className={styles.details} onClick={() => onViewDetails(since)}>
+            {t("data_delta_view_details")}
+          </button>
+        )}
       </div>
-      {data && <div className={styles.summary}>{t("data_delta_summary", { count: data.total_new })}</div>}
-      {rows.length > 0 && <div className={styles.rows}>{rows.map((row) => <div className={styles.row} key={`${row.row_id}-${row.created_at}`}><span>{row.indicator || row.name}</span><span>{row.value || row.text || "—"}{row.unit ? ` ${row.unit}` : ""}</span><time>{row.date}</time></div>)}</div>}
+      <div className={styles.summary}>{t("data_delta_summary", { count: delta.total_new })}</div>
+      <div className={styles.chips}>
+        {chips.map((c) => (
+          <span className={styles.chip} key={c.name}>
+            {sourceLabelKey(c.name) ? t(sourceLabelKey(c.name)) : c.name} · {c.count}
+          </span>
+        ))}
+      </div>
     </section>
   );
 };
