@@ -181,7 +181,7 @@ export const NOTE_MAX = 2000;
 export const skipKey = (reason) => {
   const known = [
     "negated", "hypothetical", "someone_else",
-    "not_a_record", "no_value", "not_in_sentence", "too_long",
+    "not_a_record", "no_value", "not_in_sentence", "too_long", "unclear",
   ];
   return known.includes(reason) ? `journal_skip_${reason}` : "journal_skip_other";
 };

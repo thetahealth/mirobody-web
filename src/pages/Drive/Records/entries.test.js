@@ -289,6 +289,7 @@ describe("a sentence", () => {
   it("names each skip reason the server sends, and falls back for a new one", () => {
     expect(skipKey("negated")).toBe("journal_skip_negated");
     expect(skipKey("someone_else")).toBe("journal_skip_someone_else");
+    expect(skipKey("unclear")).toBe("journal_skip_unclear");
     expect(skipKey("something_new")).toBe("journal_skip_other");
   });
 

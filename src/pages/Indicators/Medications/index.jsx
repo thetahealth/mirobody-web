@@ -158,6 +158,13 @@ const Medications = () => {
     const me = beneficiaries?.find?.((user) => user.is_current_user);
     return !me || !targetUserId || String(me.id) === String(targetUserId);
   }, [beneficiaries, targetUserId]);
+  // A member who granted write access may have their plans changed by the
+  // caller, as the journal already lets a caregiver do; read-only stays read-only.
+  const canWrite = useMemo(() => {
+    if (isOwnRecord) return true;
+    const member = beneficiaries?.find?.((user) => String(user.id) === String(targetUserId));
+    return Boolean(member?.can_write);
+  }, [beneficiaries, isOwnRecord, targetUserId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -219,14 +226,14 @@ const Medications = () => {
                 <button type="button" className={styles.ghost} onClick={() => setHistoryOf(historyOf === item.plan_id ? null : item.plan_id)}>
                   {t("medications_history")}
                 </button>
-                {isOwnRecord && item.status === "active" && (
+                {canWrite && item.status === "active" && (
                   <button type="button" onClick={() => transition(item, "stopMedication")}>{t("medications_stop")}</button>
                 )}
-                {isOwnRecord && item.status === "stopped" && (
+                {canWrite && item.status === "stopped" && (
                   <button type="button" onClick={() => transition(item, "resumeMedication")}>{t("medications_resume")}</button>
                 )}
-                {isOwnRecord && <button type="button" className={styles.ghost} onClick={() => setEditing(item.plan_id)}>{t("edit")}</button>}
-                {isOwnRecord && (
+                {canWrite && <button type="button" className={styles.ghost} onClick={() => setEditing(item.plan_id)}>{t("edit")}</button>}
+                {canWrite && (
                   <Popconfirm title={t("medications_delete_confirm")} onConfirm={() => transition(item, "deleteMedication")}>
                     <button type="button" className={styles.danger}>{t("delete")}</button>
                   </Popconfirm>

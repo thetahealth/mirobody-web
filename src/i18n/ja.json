@@ -603,6 +603,7 @@
   "journal_skip_no_value": "数値がありません",
   "journal_skip_not_in_sentence": "書いた文の中に見つかりません",
   "journal_skip_too_long": "長すぎます",
+  "journal_skip_unclear": "あるのかないのかがはっきりしません",
   "journal_skip_other": "記録していません",
   "journal_sentence_nothing": "記録する内容がありませんでした。",
   "journal_sentence_unavailable": "このサーバーはまだ文を読み分けられません。種類を選んで、1 件ずつ記録してください。",

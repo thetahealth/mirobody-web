@@ -603,6 +603,7 @@
   "journal_skip_no_value": "no value given",
   "journal_skip_not_in_sentence": "not found in what you wrote",
   "journal_skip_too_long": "too long",
+  "journal_skip_unclear": "Not clear whether it is present or not",
   "journal_skip_other": "not logged",
   "journal_sentence_nothing": "Nothing to log in that.",
   "journal_sentence_unavailable": "This server can't read a sentence yet, so log one entry at a time and pick its kind.",

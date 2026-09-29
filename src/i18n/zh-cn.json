@@ -603,6 +603,7 @@
   "journal_skip_no_value": "没有数值",
   "journal_skip_not_in_sentence": "原句里找不到",
   "journal_skip_too_long": "太长了",
+  "journal_skip_unclear": "没说清是有还是没有",
   "journal_skip_other": "没有记下",
   "journal_sentence_nothing": "这句话里没有要记的内容。",
   "journal_sentence_unavailable": "这台服务器还不能拆句，已改为逐条记录：选好类型，一次写一条。",

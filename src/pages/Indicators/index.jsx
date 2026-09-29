@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import Sidebar, { MobileTopBar } from "../../components/Sidebar";
@@ -44,6 +44,13 @@ const IndicatorsPage = () => {
   const fetchBeneficiaryUsers = useAccountStore(
     (state) => state.fetchBeneficiaryUsers,
   );
+  const beneficiaries = useAccountStore((state) => state.beneficiary_users);
+  // Export is the owner's: a read grant shows a member's rows a page at a
+  // time, and the server refuses a copy of the whole record.
+  const isOwnRecord = useMemo(() => {
+    const me = beneficiaries?.find?.((user) => user.is_current_user);
+    return !me || !current_drive_user_id || String(me.id) === String(current_drive_user_id);
+  }, [beneficiaries, current_drive_user_id]);
   const fetchDistribution = useDistributionStore(
     (state) => state.fetchDistribution,
   );
@@ -110,7 +117,7 @@ const IndicatorsPage = () => {
                 userId={current_drive_user_id}
                 createdSince={createdSince}
                 onClearSince={() => setSince({ userId: null, value: null })}
-                canExport={isShowIndicatorExport}
+                canExport={isShowIndicatorExport && isOwnRecord}
               />
             ) : null}
 

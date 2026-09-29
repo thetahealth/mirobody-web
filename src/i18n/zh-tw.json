@@ -603,6 +603,7 @@
   "journal_skip_no_value": "沒有數值",
   "journal_skip_not_in_sentence": "原句裡找不到",
   "journal_skip_too_long": "太長了",
+  "journal_skip_unclear": "沒說清楚是有還是沒有",
   "journal_skip_other": "沒有記下",
   "journal_sentence_nothing": "這句話裡沒有要記的內容。",
   "journal_sentence_unavailable": "這台伺服器還不能拆句，已改為逐筆記錄：選好類型，一次寫一筆。",
