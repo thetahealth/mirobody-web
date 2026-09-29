@@ -45,7 +45,7 @@ const DriveHeader = () => {
 
   const content = (
     <div className={styles.panel} role="listbox">
-      {beneficiary_users.map((user) => {
+      {beneficiary_users.filter((user) => user.can_view !== false).map((user) => {
         const isActive = user.id === current_drive_user_id;
         const email = isSyntheticEmail(user.email) ? "" : user.email;
         const details = [

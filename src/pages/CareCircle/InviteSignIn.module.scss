@@ -1,0 +1,77 @@
+@use "@/styles/auth-primitives" as auth;
+
+/* The same card the member form uses, narrower: one field, then one link. */
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(460px, calc(100vw - 32px));
+  padding: 24px;
+  border-radius: 20px;
+  background-color: var(--color-bg-elevated);
+  box-shadow: 0 0 48px 0 rgba(0, 0, 0, 0.12);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.desc,
+.hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+
+  input {
+    @include auth.field-input;
+  }
+}
+
+.linkRow {
+  display: flex;
+  gap: 8px;
+
+  input {
+    @include auth.field-input;
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+  }
+}
+
+.error {
+  @include auth.error-text;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.primary {
+  @include auth.button-primary;
+  width: auto;
+  padding: 0 18px;
+}
+
+.secondary {
+  @include auth.button-secondary;
+}

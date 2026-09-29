@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { message } from "antd";
-import { IconTrash, IconUserPlus } from "@tabler/icons-react";
+import { IconKey, IconTrash, IconUserPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import consola from "consola";
 import api from "../../api";
 import Modal from "../../components/Modal";
 import Sidebar, { MobileTopBar } from "../../components/Sidebar";
 import MemberForm from "../Chat/MemberForm";
+import InviteSignIn from "./InviteSignIn";
 import { useAccountStore } from "../../store/account";
 import { useDriveStore } from "../../store/Drive";
 import styles from "./index.module.scss";
@@ -14,6 +15,13 @@ import styles from "./index.module.scss";
 // Managed members get a synthetic address (member_<uuid>@virtual…) that is an
 // internal key, not something the user can write to.
 const isSyntheticEmail = (email) => /^member_[0-9a-f]+@/i.test(email || "");
+
+// What my record shows a circle I belong to (care_circle_members.health_access).
+const ACCESS_OPTIONS = [
+  { value: 2, key: "cc_access_edit" },
+  { value: 1, key: "cc_access_view" },
+  { value: 0, key: "cc_access_none" },
+];
 
 const initialOf = (user) =>
   (user.name || user.nickname || user.email || "").trim().charAt(0).toUpperCase() ||
@@ -30,6 +38,11 @@ const initialOf = (user) =>
 const CareCirclePage = () => {
   const { t } = useTranslation();
   const [showAddMember, setShowAddMember] = useState(false);
+  const [inviting, setInviting] = useState(null);
+  // Circles someone else owns that I am in, with what my record shows each.
+  // A virtual member who took over their account lands here, in the circle
+  // of the person who added them.
+  const [sharing, setSharing] = useState([]);
   const beneficiary_users = useAccountStore((state) => state.beneficiary_users);
   // The roster endpoint has no email field, so the signed-in row's address
   // comes from the access token (see parseIdentityFromToken) — the same source
@@ -47,7 +60,28 @@ const CareCirclePage = () => {
 
   useEffect(() => {
     fetchBeneficiaryUsers();
+    const controller = new AbortController();
+    api
+      .listSharedWithMe(controller.signal)
+      .then((res) => setSharing((res?.circles || []).filter((c) => c.role !== "owner")))
+      .catch((err) => {
+        if (err?.name !== "CanceledError") consola.error("ERROR: listSharedWithMe", err);
+      });
+    return () => controller.abort();
   }, [fetchBeneficiaryUsers]);
+
+  const onChangeAccess = async (circle, access) => {
+    try {
+      await api.setHealthAccess({ circle_id: circle.circle_id, access });
+      setSharing((rows) =>
+        rows.map((c) => (c.circle_id === circle.circle_id ? { ...c, health_access: access } : c)),
+      );
+      message.success(t("cc_access_saved"));
+    } catch (err) {
+      consola.error("ERROR: setHealthAccess", err);
+      message.error(t("cc_access_failed"));
+    }
+  };
 
   const me = useMemo(
     () => beneficiary_users.find((u) => u.is_current_user),
@@ -123,7 +157,9 @@ const CareCirclePage = () => {
             </button>
           )}
         </div>
-        {facts.length > 0 ? (
+        {user.can_view === false ? (
+          <div className={styles.facts_empty}>{t("cc_not_sharing")}</div>
+        ) : facts.length > 0 ? (
           <div className={styles.facts}>
             {facts.map((f) => (
               <span key={f} className={styles.fact}>
@@ -133,6 +169,16 @@ const CareCirclePage = () => {
           </div>
         ) : (
           <div className={styles.facts_empty}>{t("cc_no_basics")}</div>
+        )}
+        {user.can_invite_to_sign_in && (
+          <button
+            type="button"
+            className={styles.card_action}
+            onClick={() => setInviting(user)}
+          >
+            <IconKey size={14} />
+            <span>{t("invite_sign_in_action")}</span>
+          </button>
         )}
       </div>
     );
@@ -191,12 +237,45 @@ const CareCirclePage = () => {
                 </div>
               )}
             </section>
+
+            {sharing.length > 0 && (
+              <section className={styles.section}>
+                <div className={styles.section_head}>
+                  <span className={styles.section_title}>{t("cc_section_sharing")}</span>
+                </div>
+                <p className={styles.sub}>{t("cc_sharing_sub")}</p>
+                <div className={styles.share_list}>
+                  {sharing.map((c) => (
+                    <div key={c.circle_id} className={styles.share_row}>
+                      <span className={styles.name}>
+                        {c.owner_name || c.name || t("care_circle")}
+                      </span>
+                      <select
+                        className={styles.share_select}
+                        value={c.health_access}
+                        aria-label={t("cc_section_sharing")}
+                        onChange={(e) => onChangeAccess(c, Number(e.target.value))}
+                      >
+                        {ACCESS_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {t(o.key)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       </div>
 
       <Modal isOpen={showAddMember} onClose={() => setShowAddMember(false)}>
         <MemberForm onClose={() => setShowAddMember(false)} />
+      </Modal>
+      <Modal isOpen={Boolean(inviting)} onClose={() => setInviting(null)}>
+        {inviting && <InviteSignIn member={inviting} onClose={() => setInviting(null)} />}
       </Modal>
     </div>
   );
