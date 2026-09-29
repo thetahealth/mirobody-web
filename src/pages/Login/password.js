@@ -11,5 +11,5 @@ export const MIN_PASSWORD_LENGTH = 8;
 export const isValidPassword = (s) =>
   String(s || "").length >= MIN_PASSWORD_LENGTH;
 
-export const canSubmitPassword = ({ email, password }) =>
-  isValidEmail(email) && isValidPassword(password);
+export const canSubmitPassword = ({ email, password, code = "", needsCode = false }) =>
+  isValidEmail(email) && isValidPassword(password) && (!needsCode || code.trim().length > 0);

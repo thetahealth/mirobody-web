@@ -72,13 +72,14 @@ const useAuth = () => {
    * Password sign-in, and sign-up when `register` is true. Both return the same
    * auth payload the code path does, so `processAuthResponse` is shared.
    */
-  const handlePasswordLogin = async (email, password, { register = false } = {}) => {
+  const handlePasswordLogin = async (email, password, { register = false, code = "" } = {}) => {
     if (!email || !password) {
       throw new Error("Email and password are required");
     }
     try {
-      const call = register ? api.passwordRegister : api.passwordLogin;
-      const res = await call({ email, password });
+      const res = register
+        ? await api.passwordRegister({ email, password, ...(code ? { code } : {}) })
+        : await api.passwordLogin({ email, password });
       return await processAuthResponse(res);
     } catch (error) {
       consola.error("ERROR: Password Login", error);

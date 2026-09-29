@@ -41,4 +41,11 @@ describe("canSubmitPassword", () => {
       canSubmitPassword({ email: "caregiver@mirobody.ai", password: "longenough" }),
     ).toBe(true);
   });
+
+  it("needs the code when the server sends one", () => {
+    const base = { email: "a@b", password: "longenough", needsCode: true };
+    expect(canSubmitPassword(base)).toBe(false);
+    expect(canSubmitPassword({ ...base, code: "  " })).toBe(false);
+    expect(canSubmitPassword({ ...base, code: "123456" })).toBe(true);
+  });
 });
