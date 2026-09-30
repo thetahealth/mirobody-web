@@ -2,8 +2,6 @@ import { useTranslation } from "react-i18next";
 import { useVitalStore } from "../../../store/vital";
 import { useEffect, useMemo, useState } from "react";
 import { useSystemStore } from "../../../store/system";
-import { useDriveStore } from "../../../store/Drive";
-import AppleHealthPNG from "../../../assets/apple_health.png";
 import { VITAL_STATUS } from "../../../enum/vital";
 import styles from "../index.module.scss";
 import VitalItem from "../Vital/item";
@@ -11,13 +9,11 @@ import VitalItem from "../Vital/item";
 const ProviderList = ({ highlightTrigger, connectedWearablesRef }) => {
   const { t } = useTranslation();
   const loading_providers = useVitalStore((state) => state.loading_providers);
+  // Fetched by the Drive page, which needs the list to decide whether this
+  // component renders at all.
   const providers_list = useVitalStore((state) => state.providers_list);
-  const fetchProvidersList = useVitalStore((state) => state.fetchProvidersList);
   const isShowMobileSource = useSystemStore(
     (state) => state.isShowMobileSource,
-  );
-  const current_drive_user_id = useDriveStore(
-    (state) => state.current_drive_user_id,
   );
 
   const apple_health = useMemo(() => {
@@ -43,18 +39,6 @@ const ProviderList = ({ highlightTrigger, connectedWearablesRef }) => {
 
   // highlight state
   const [isHighlighted, setIsHighlighted] = useState(false);
-
-  useEffect(() => {
-    if (!isShowMobileSource) {
-      return;
-    }
-    // Wait for current_drive_user_id to be initialized
-    if (!current_drive_user_id) {
-      return;
-    }
-
-    fetchProvidersList();
-  }, [isShowMobileSource, current_drive_user_id, fetchProvidersList]);
 
   useEffect(() => {
     if (highlightTrigger > 0) {
@@ -117,12 +101,7 @@ const ProviderList = ({ highlightTrigger, connectedWearablesRef }) => {
             {t("mobile_apps")}
           </div>
           <div className="flex items-center gap-[16px]">
-            <VitalItem
-              datasource={{
-                ...apple_health,
-                logo: AppleHealthPNG,
-              }}
-            />
+            <VitalItem datasource={apple_health} />
           </div>
         </>
       )}
