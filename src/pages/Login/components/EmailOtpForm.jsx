@@ -8,11 +8,13 @@ import { isValidEmail, canSubmit } from "../emailOtp";
  * injects the real backend calls:
  *  - onSendCode(email): Promise        — request an OTP (throws on failure)
  *  - onSubmit({ email, code }): Promise — verify + sign in (parent navigates away)
+ * `initialEmail` / `initialCode` prefill it (the demo account); the parent
+ * remounts it with a new `key` to prefill again.
  */
-export default function EmailOtpForm({ onSendCode, onSubmit }) {
+export default function EmailOtpForm({ onSendCode, onSubmit, initialEmail = "", initialCode = "" }) {
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
+  const [email, setEmail] = useState(initialEmail);
+  const [code, setCode] = useState(initialCode);
   const [countdown, setCountdown] = useState(0);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);

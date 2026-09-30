@@ -5,7 +5,7 @@ import api from "../../../api";
 import useUpload from "../../../hooks/useUpload";
 import { useDriveStore } from "../../../store/Drive";
 import getWebSocketManager from "../../../utils/websocket/WebSocketManager";
-import { GENOTYPE_ACCEPT, activeSetFromResponse, callRate, geneticUploadEvent, isGenotypeUpload } from "./model";
+import { GENOTYPE_ACCEPT, activeSetFromResponse, callRate, geneticUploadEvent, isGenotypeUpload, sourceName } from "./model";
 import styles from "./index.module.scss";
 
 const Genomics = () => {
@@ -83,7 +83,10 @@ const Genomics = () => {
 
   const set = summary.set;
   const busy = upload.phase === "sending" || upload.phase === "processing";
-  const source = set?.vendor || set?.format_id;
+  const named = sourceName(set);
+  const source = named?.shape
+    ? t("genomics_source_file", { shape: named.shape })
+    : named?.vendor;
   const build = set?.build_detected && set.build_detected !== "unknown"
     ? set.build_detected
     : set?.build_declared

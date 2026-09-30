@@ -32,3 +32,14 @@ describe("genomics upload", () => {
     expect(() => activeSetFromResponse({ rows: [] })).toThrow();
   });
 });
+
+describe("genomics source name", () => {
+  it("names the vendor, or the file's shape instead of an internal id", async () => {
+    const { sourceName } = await import("./model");
+    expect(sourceName({ vendor: "23andMe", format_id: "23andme_txt" })).toEqual({ vendor: "23andMe" });
+    expect(sourceName({ vendor: null, format_id: "generic_vcf" })).toEqual({ shape: "VCF" });
+    expect(sourceName({ format_id: "generic_" })).toEqual({ vendor: "generic_" });
+    expect(sourceName({ format_id: "" })).toBeNull();
+    expect(sourceName(null)).toBeNull();
+  });
+});

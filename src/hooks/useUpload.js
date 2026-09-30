@@ -183,6 +183,14 @@ const useUpload = () => {
         );
       }
 
+      // A message that did not go out fails its file at once: the row used to
+      // sit at "uploading" waiting for an answer to something never sent.
+      const failUnsent = (messageId) => {
+        const error = t("upload_error_connection");
+        updateUploadingProgress(messageId, 0, "failed", error, current_drive_user_id);
+        return { error };
+      };
+
       // Upload each file with chunking
       for (const file of files) {
         try {
@@ -221,14 +229,16 @@ const useUpload = () => {
             ...(uploadOptions.metadata && { metadata: uploadOptions.metadata }),
           };
 
-          sendMessage(JSON.stringify(startMessage));
+          if (!sendMessage(JSON.stringify(startMessage))) {
+            return failUnsent(messageId);
+          }
 
           const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
           if (file.size <= CHUNK_SIZE) {
             // Small file: single chunk
             const base64Data = await fileToBase64(file);
-            sendMessage(
+            const sent = sendMessage(
               JSON.stringify({
                 type: "upload_chunk",
                 messageId,
@@ -240,6 +250,9 @@ const useUpload = () => {
                 fileSize: file.size,
               }),
             );
+            if (!sent) {
+              return failUnsent(messageId);
+            }
           } else {
             // Large file: multiple chunks
             for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
@@ -247,7 +260,7 @@ const useUpload = () => {
               const end = Math.min(start + CHUNK_SIZE, file.size);
               const base64Data = await fileChunkToBase64(file, start, end);
 
-              sendMessage(
+              const sent = sendMessage(
                 JSON.stringify({
                   type: "upload_chunk",
                   messageId,
@@ -259,17 +272,23 @@ const useUpload = () => {
                   fileSize: file.size,
                 }),
               );
+              if (!sent) {
+                return failUnsent(messageId);
+              }
             }
           }
 
           // Send upload end for each file
-          sendMessage(
+          const ended = sendMessage(
             JSON.stringify({
               type: "upload_end",
               messageId,
               sessionId,
             }),
           );
+          if (!ended) {
+            return failUnsent(messageId);
+          }
         } catch (error) {
           consola.error("ERROR: startUpload", error);
           return null;
@@ -278,7 +297,13 @@ const useUpload = () => {
 
       return messageIds;
     },
-    [sendMessage, getWsManager, handleWebSocketEvent, addUploadingFile],
+    [
+      sendMessage,
+      getWsManager,
+      handleWebSocketEvent,
+      addUploadingFile,
+      updateUploadingProgress,
+    ],
   );
 
   /**

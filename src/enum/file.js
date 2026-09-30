@@ -21,12 +21,13 @@ export const MAX_FILE_COUNT = 10;
  * allowed MIME types
  * image/png, image/jpeg, image/webp, image/heic, image/heif
  * pdf, application/pdf
- * text/plain (only for genetic files)
+ * text/plain, text/markdown
  * excel/xlsx, excel/xls
  */
 export const ALLOWED_FILE_TYPES = [
-  // text — genetic raw data (.txt) and notes/reports (.md); both parse
-  // through the backend TextHandler
+  // text — notes and reports (.txt, .md), parsed by the backend TextHandler.
+  // A genotype export is let through before this list is checked
+  // (isGeneticFile in utils/file.js); the Genomics tab is its upload.
   "text/plain",
   "text/markdown",
   // image

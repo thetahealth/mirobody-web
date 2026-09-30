@@ -54,6 +54,16 @@ const ModelDropdown = () => {
     setIsOpen(false);
   }, is_open);
 
+  // A listbox closes on Escape; this one stayed open until a click elsewhere.
+  useEffect(() => {
+    if (!is_open) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [is_open, setIsOpen]);
+
   // Mobile is single-model (no compare): collapse any carried-over 2-model
   // selection down to one when switching to a narrow viewport.
   useEffect(() => {
