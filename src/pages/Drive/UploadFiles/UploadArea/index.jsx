@@ -7,18 +7,28 @@ import {
   openSelectFileDialog,
   handleOnDropFiles,
   validateFilesPromiseConfirm,
+  isGeneticFile,
 } from "../../../../utils/file";
+import Modal from "../../../../components/Modal/index";
 import useUpload from "../../../../hooks/useUpload";
 import { useUploadStore } from "../../../../store/upload";
 import { useDriveStore } from "../../../../store/Drive";
 import { useTranslation } from "react-i18next";
 import consola from "consola";
 
+// A VCF is not a consumer export, so isGeneticFile (the size-cap check, kept
+// in step with the server's rules) does not know it: it arrives as a vCard
+// type and was refused here as "not an allowed type", pointing nowhere. By
+// name it is unambiguous.
+const VCF_NAME = /\.vcf(\.gz|\.bgz|\.bgzf)?$/i;
+const isGenotypeFile = async (file) =>
+  VCF_NAME.test(file.file_name || "") || (await isGeneticFile(file));
+
 // `pickerRef` gets `{ open(accept) }`, so something outside the drop zone —
 // the page's empty-state guide — can open the same picker, narrowed to one
 // kind of file. It has to be this component's picker and not a second copy:
 // the upload hook holds this area's socket state.
-const UploadArea = ({ pickerRef }) => {
+const UploadArea = ({ pickerRef, onGenotypeFile }) => {
   const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const dragCounterRef = useRef(0);
@@ -36,11 +46,43 @@ const UploadArea = ({ pickerRef }) => {
         return;
       }
 
+      // A genotype export belongs on the Genomics tab: there it is checked as
+      // one, and replacing the person's active set is confirmed first. Taken
+      // here, it skipped both and replaced the set without asking.
+      const genotype = [];
+      for (const file of files) {
+        if (await isGenotypeFile(file)) {
+          genotype.push(file);
+        }
+      }
+      if (genotype.length > 0) {
+        Modal.confirm({
+          title: t("upload_files_title"),
+          content: t("upload_files_genotype_elsewhere", {
+            name: genotype[0].file_name,
+          }),
+          okText: t("upload_files_open_genomics"),
+          onOk: () => onGenotypeFile?.(),
+        });
+        files = files.filter((file) => !genotype.includes(file));
+        if (files.length === 0) {
+          return;
+        }
+      }
+
       await validateFilesPromiseConfirm(files);
       setPageWithoutFetch(1);
-      await uploadFiles(files, {
+      const result = await uploadFiles(files, {
         query_user_id: current_drive_user_id,
       });
+      // No socket at all fails before any row exists, so say so here.
+      if (result?.error) {
+        Modal.confirm({
+          title: t("upload_files_title"),
+          content: result.error,
+          isShowCancelButton: false,
+        });
+      }
     } catch (error) {
       consola.error("ERROR: handleFiles", error);
     }

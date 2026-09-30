@@ -34,8 +34,11 @@ export const useSystemStore = create(
     // surface never rendered for any self-hoster. It degrades to an empty state
     // when nothing is installed, so showing it costs nothing.
     isShowMobileSource: true,
-    // api config
-    isShowAPIConfig: true,
+    // api config: off unless the server says so (it serves this page itself)
+    isShowAPIConfig: false,
+    // { email, code } while the server runs with its demo seeded; the sign-in
+    // page offers it, since a newcomer otherwise has no way to learn it there
+    demoSignIn: null,
     // 记录 (the ICPC-3 journal). Default ON for the same reason as the device
     // providers above: a self-hosted backend that predates the flag sends no
     // key, and reading that as "off" hides a whole nav entry on every install
@@ -55,6 +58,8 @@ export const useSystemStore = create(
           state.isShowAPIConfig = !!data.__IS_API_CONFIG_ON__;
           state.isShowWebAuthn = !!data.__IS_WEBAUTHN_ON__;
           state.isSignupCodeOn = !!data.__IS_SIGNUP_CODE_ON__;
+          const demo = data.__DEMO_SIGN_IN__;
+          state.demoSignIn = demo?.email && demo?.code ? { email: demo.email, code: demo.code } : null;
           // Absent key ≠ off (see above): only an explicit false hides it.
           if (data.__IS_MOBILE_SOURCE_ON__ !== undefined) {
             state.isShowMobileSource = !!data.__IS_MOBILE_SOURCE_ON__;

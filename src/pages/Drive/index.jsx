@@ -153,7 +153,11 @@ const DrivePage = () => {
       return;
     }
     if (!wsManager.isConnected() && !wsManager.isConnecting()) {
-      wsManager.tryConnect();
+      // Opening early only saves the first upload a wait; an upload that
+      // finds no socket opens its own, so a failure here is not the user's.
+      wsManager.tryConnect().catch((error) =>
+        consola.warn("DrivePage::Early WebSocket connect failed", error),
+      );
     }
   }, [current_drive_user_id]);
 
@@ -205,6 +209,7 @@ const DrivePage = () => {
               <UploadFiles
                 filesHighlightTrigger={filesHighlightTrigger}
                 pickerRef={filePickerRef}
+                onGenotypeFile={() => setActiveTab("genomics")}
               />
             </div>
 

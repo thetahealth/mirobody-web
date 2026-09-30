@@ -5,6 +5,11 @@ import consola from "consola";
 import dayjs from "dayjs";
 import { v4 as uuidv4 } from "uuid";
 import { useDriveStore } from "../../store/Drive/index.js";
+import { openSocket, withTimeout } from "./openSocket.js";
+
+// How long an upload waits for its socket before it says so. A server that is
+// restarting answers within a few seconds; one that is down never does.
+const CONNECT_TIMEOUT_MS = 10000;
 
 /**
  * WebSocketConnection - Represents a single WebSocket connection for a specific user
@@ -156,11 +161,8 @@ class WebSocketManager {
     // Global listeners (for all connections)
     this.listeners = new Set();
 
-    // Map of userId -> connection state (for non-leader tabs to track leader's connection state)
-    // This allows non-leader tabs to know if the leader has an active connection
-    this.leaderConnectionStates = new Map();
-
-    // Pending connect request resolvers (for ensureConnected)
+    // userId -> resolvers of a tab that is not the leader, waiting for the
+    // leader to report that user's socket open (see ensureConnected).
     this.connectResolvers = new Map();
 
     // Initialize broadcast-channel (global, not per-connection)
@@ -220,7 +222,8 @@ class WebSocketManager {
   }
 
   /**
-   * Connect WebSocket for current user (waits for leadership if needed)
+   * Connect WebSocket for current user (waits for leadership if needed) and
+   * resolve once the socket is OPEN.
    */
   async tryConnect() {
     const connection = this.getCurrentConnection();
@@ -234,22 +237,40 @@ class WebSocketManager {
       await this.elector.awaitLeadership();
     }
 
-    // Already connected
+    return this.openConnection(connection);
+  }
+
+  /**
+   * Open `connection`'s socket, or join the attempt already under way, and
+   * resolve once it is OPEN. One attempt at a time: a second upload while the
+   * first is still connecting waits on the same socket instead of opening
+   * another one.
+   */
+  openConnection(connection) {
     if (connection.ws && connection.ws.readyState === WebSocket.OPEN) {
-      return;
+      return Promise.resolve();
+    }
+    if (connection.opening) {
+      return connection.opening;
     }
 
     // Get URL
     connection.url = connection.getSocketUrl();
     if (!connection.url) {
       consola.error("WebSocketManager::tryConnect - cannot generate URL");
-      throw new Error("ERROR:: tryConnect no URL");
+      return Promise.reject(new Error("ERROR:: tryConnect no URL"));
     }
 
     // Create WebSocket
     try {
-      connection.ws = new WebSocket(connection.url);
+      const socket = new WebSocket(connection.url);
+      connection.ws = socket;
       connection.readyState = WebSocket.CONNECTING;
+      connection.opening = openSocket(socket, CONNECT_TIMEOUT_MS)
+        .then(() => undefined)
+        .finally(() => {
+          connection.opening = null;
+        });
 
       connection.ws.onopen = () => {
         connection.readyState = WebSocket.OPEN;
@@ -282,6 +303,8 @@ class WebSocketManager {
       };
 
       connection.ws.onerror = (error) => {
+        // A socket already replaced by a newer one speaks for nothing.
+        if (connection.ws !== socket) return;
         consola.error("WebSocketManager::WebSocket error:", error);
         connection.readyState = WebSocket.CLOSED;
 
@@ -297,6 +320,9 @@ class WebSocketManager {
       };
 
       connection.ws.onclose = (event) => {
+        // A late close from a replaced socket would stop the newer one's
+        // heartbeat and tell the other tabs it is closed.
+        if (connection.ws !== socket) return;
         connection.readyState = WebSocket.CLOSED;
         connection.stopHeartbeat();
 
@@ -325,7 +351,9 @@ class WebSocketManager {
       });
 
       this.notifyListeners("error", error, connection.userId);
+      return Promise.reject(error);
     }
+    return connection.opening;
   }
 
   /**
@@ -358,6 +386,8 @@ class WebSocketManager {
   /**
    * Send message via WebSocket for current user
    * If not leader, forwards message to leader via BroadcastChannel
+   * @returns {boolean} false when the message was not sent, so the caller can
+   *   fail the upload instead of waiting for an answer that cannot come
    */
   sendMessage(message) {
     const connection = this.getCurrentConnection();
@@ -365,7 +395,7 @@ class WebSocketManager {
       consola.error(
         "WebSocketManager:: sendMessage :: Cannot send message - no current connection",
       );
-      return;
+      return false;
     }
 
     // If not leader, forward message to leader via BroadcastChannel
@@ -377,7 +407,7 @@ class WebSocketManager {
         message:
           typeof message === "string" ? message : JSON.stringify(message),
       });
-      return;
+      return true;
     }
 
     // Leader: send directly to WebSocket
@@ -386,17 +416,19 @@ class WebSocketManager {
         const messageStr =
           typeof message === "string" ? message : JSON.stringify(message);
         connection.ws.send(messageStr);
+        return true;
       } catch (error) {
         consola.error(
           `WebSocketManager:: sendMessage :: Failed to send message:`,
           error,
         );
+        return false;
       }
-    } else {
-      consola.error(
-        `WebSocketManager:: sendMessage :: WebSocket not connected, cannot send message`,
-      );
     }
+    consola.error(
+      `WebSocketManager:: sendMessage :: WebSocket not connected, cannot send message`,
+    );
+    return false;
   }
 
   /**
@@ -413,6 +445,33 @@ class WebSocketManager {
       const connection = this.connections.get(userId);
       if (connection) {
         connection.readyState = msg.readyState;
+      }
+      if (msg.state === "open") {
+        const waiting = this.connectResolvers.get(userId);
+        this.connectResolvers.delete(userId);
+        waiting?.forEach((resolve) => resolve());
+      }
+    } else if (msg.type === "connect_request") {
+      // A tab that is not the leader is about to upload for this user.
+      if (this.elector.isLeader && msg.userId) {
+        const connection = this.getConnection(msg.userId);
+        this.openConnection(connection)
+          .then(() =>
+            // Also when the socket was already open, which broadcast nothing.
+            this.broadcastMessage({
+              type: "connection_state",
+              userId: connection.userId,
+              state: "open",
+              readyState: WebSocket.OPEN,
+              connectionId: connection.connectionId,
+            }),
+          )
+          .catch((error) =>
+            consola.error(
+              "WebSocketManager::Leader could not open the socket another tab asked for:",
+              error,
+            ),
+          );
       }
     } else if (msg.type === "message") {
       // Forward message to listeners (for the specific user)
@@ -432,22 +491,16 @@ class WebSocketManager {
           return;
         }
 
-        // If WebSocket is open, send immediately
-        if (connection.ws && connection.ws.readyState === WebSocket.OPEN) {
-          try {
-            connection.ws.send(msg.message);
-          } catch (error) {
+        // A socket the server closed (a restart) is reopened first: dropping
+        // the message here lost the other tab's upload without a word.
+        this.openConnection(connection)
+          .then(() => connection.ws.send(msg.message))
+          .catch((error) =>
             consola.error(
               `WebSocketManager::Failed to forward message to WebSocket for user ${connection.userId}:`,
               error,
-            );
-          }
-        } else {
-          // WebSocket not connected - log error
-          consola.error(
-            `WebSocketManager::WebSocket not connected for user ${connection.userId}, cannot forward message`,
+            ),
           );
-        }
       }
     }
   }
@@ -515,9 +568,10 @@ class WebSocketManager {
   }
 
   /**
-   * Ensure WebSocket is connected before sending messages
-   * For leader: connects directly if not connected
-   * For non-leader: trusts the message forwarding mechanism (sendMessage handles this)
+   * Ensure WebSocket is connected before sending messages; throws when it
+   * cannot be within CONNECT_TIMEOUT_MS.
+   * For leader: connects directly if not connected, and waits for it to open
+   * For non-leader: asks the leader to open it and waits for the leader to say so
    * @returns {Promise<boolean>} - true if ready to send messages
    */
   async ensureConnected() {
@@ -527,22 +581,37 @@ class WebSocketManager {
     if (!current_drive_user_id) {
       throw new Error("No current_drive_user_id");
     }
+    const connection = this.getCurrentConnection();
 
     // If we are the leader
     if (this.elector?.isLeader) {
-      // Already connected
-      if (this.isConnected()) {
-        return true;
-      }
-
-      // Try to connect
-      await this.tryConnect();
+      await this.openConnection(connection);
       return true;
     }
 
-    // For non-leader tabs, we rely on the BroadcastChannel message forwarding
-    // The sendMessage method will forward messages to the leader
-    // We trust that the leader has or will establish the connection
+    // Not the leader: another tab holds the socket, or this one is still
+    // winning the election a moment after the page loaded, when nobody holds
+    // it. Whichever comes first, the leader reporting the socket open or this
+    // tab becoming the leader, the socket is open before anything is sent.
+    let release;
+    const leaderOpened = new Promise((resolve) => {
+      const waiting = this.connectResolvers.get(connection.userId) || new Set();
+      waiting.add(resolve);
+      this.connectResolvers.set(connection.userId, waiting);
+      release = () => waiting.delete(resolve);
+      this.broadcastMessage({ type: "connect_request", userId: connection.userId });
+    });
+    const becameLeader = this.elector
+      .awaitLeadership()
+      .then(() => this.openConnection(connection));
+    try {
+      await withTimeout(
+        Promise.race([leaderOpened, becameLeader]),
+        CONNECT_TIMEOUT_MS,
+      );
+    } finally {
+      release();
+    }
     return true;
   }
 

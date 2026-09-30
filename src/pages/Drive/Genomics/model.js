@@ -20,6 +20,18 @@ export const activeSetFromResponse = (response) => {
 
 export const callRate = (set) => Math.round((set.n_called / set.n_rows) * 1000) / 10;
 
+// A file that names no vendor (a VCF, a bare rsID table) is stored as
+// `generic_<shape>`, an internal id the card printed verbatim. Returns what
+// to show: the vendor, the file's shape, or the id when neither applies.
+export const sourceName = (set) => {
+  if (set?.vendor) return { vendor: set.vendor };
+  const id = set?.format_id || "";
+  if (id.startsWith("generic_") && id.length > "generic_".length) {
+    return { shape: id.slice("generic_".length).toUpperCase() };
+  }
+  return id ? { vendor: id } : null;
+};
+
 export const geneticUploadEvent = (event, messageId) => {
   if (!messageId || event?.messageId !== messageId) return null;
   if (event.type === "upload_error" ||

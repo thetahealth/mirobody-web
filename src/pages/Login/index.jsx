@@ -31,6 +31,9 @@ function Login() {
 
   const showDeveloper = useSystemStore((s) => s.isShowDeveloper);
   const signupCodeOn = useSystemStore((s) => s.isSignupCodeOn);
+  const demoSignIn = useSystemStore((s) => s.demoSignIn);
+  // Bumped by "Use it", so the code form remounts holding the demo account.
+  const [demoFill, setDemoFill] = useState(0);
   const [error, setError] = useState("");
 
   /* oauth2 authorize → cross-app redirect whitelist → home */
@@ -73,9 +76,30 @@ function Login() {
 
   const form = (
     <>
+      {demoSignIn && (
+        <div className={styles.demoHint}>
+          <span>{t("login_demo_hint", demoSignIn)}</span>
+          <button
+            type="button"
+            className={styles.demoUse}
+            onClick={() => {
+              setAuthMode("code");
+              setDemoFill((n) => n + 1);
+            }}
+          >
+            {t("login_demo_use")}
+          </button>
+        </div>
+      )}
       <AuthModeTabs mode={authMode} onChange={setAuthMode} />
       {authMode === "code" ? (
-        <EmailOtpForm onSendCode={onSendCode} onSubmit={onSubmitEmail} />
+        <EmailOtpForm
+          key={demoFill}
+          onSendCode={onSendCode}
+          onSubmit={onSubmitEmail}
+          initialEmail={demoFill && demoSignIn ? demoSignIn.email : ""}
+          initialCode={demoFill && demoSignIn ? demoSignIn.code : ""}
+        />
       ) : (
         <PasswordForm
           mode={authMode === "register" ? "register" : "login"}

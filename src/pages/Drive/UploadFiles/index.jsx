@@ -5,7 +5,7 @@ import ReportDateBar from "./ReportDateBar";
 import Pagination from "./Pagination";
 import { useEffect, useState } from "react";
 
-const UploadFiles = ({ filesHighlightTrigger, pickerRef }) => {
+const UploadFiles = ({ filesHighlightTrigger, pickerRef, onGenotypeFile }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const UploadFiles = ({ filesHighlightTrigger, pickerRef }) => {
 
   return (
     <div className={styles.container}>
-      <UploadArea pickerRef={pickerRef} />
+      <UploadArea pickerRef={pickerRef} onGenotypeFile={onGenotypeFile} />
       {/* "which date?" for files extraction just found no date on (#53) */}
       <ReportDateBar />
       {/* No inner padding or panel background: the table aligns to the same
