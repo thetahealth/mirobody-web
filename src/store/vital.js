@@ -12,6 +12,9 @@ export const useVitalStore = create((set, get) => ({
   providers_list: [],
   loading_providers: false,
   total_providers: 0,
+  // False until the first request settles, so an empty list before then reads
+  // as "not asked yet", not as "this deployment has no sources".
+  providers_answered: false,
   setProvidersList: (providersList) => {
     set({ providers_list: providersList });
   },
@@ -50,6 +53,7 @@ export const useVitalStore = create((set, get) => ({
         providers_list: providers || [],
         total_providers: total || 0,
         loading_providers: false,
+        providers_answered: true,
         _pulseProvidersController: null,
       });
     } catch (error) {
@@ -57,7 +61,11 @@ export const useVitalStore = create((set, get) => ({
         return;
       }
       consola.error("ERROR: fetchProvidersList", error);
-      set({ loading_providers: false, _pulseProvidersController: null });
+      set({
+        loading_providers: false,
+        providers_answered: true,
+        _pulseProvidersController: null,
+      });
     }
   },
 

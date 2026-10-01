@@ -18,6 +18,7 @@ import { useDistributionStore } from "../../store/distribution";
 import Tabs from "../../components/Tabs";
 import Genomics from "./Genomics";
 import { VITAL_STATUS } from "../../enum/vital";
+import { sourcesView } from "./sources";
 import styles from "./index.module.scss";
 
 const TAB_KEYS = ["records", "upload_files", "genomics", "connect_data_source"];
@@ -56,6 +57,9 @@ const DrivePage = () => {
   );
   const fileTotal = useUploadStore((state) => state.total);
   const providers_list = useVitalStore((state) => state.providers_list);
+  const loading_providers = useVitalStore((state) => state.loading_providers);
+  const providers_answered = useVitalStore((state) => state.providers_answered);
+  const fetchProvidersList = useVitalStore((state) => state.fetchProvidersList);
   const current_drive_user_id = useDriveStore(
     (state) => state.current_drive_user_id,
   );
@@ -75,7 +79,13 @@ const DrivePage = () => {
   const connectedCount = providers_list.filter(
     (item) => item.status === VITAL_STATUS.CONNECTED,
   ).length;
-  const hasSources = isShowMobileSource && providers_list.length > 0;
+  const sources = sourcesView({
+    enabled: isShowMobileSource,
+    count: providers_list.length,
+    loading: loading_providers,
+    answered: providers_answered,
+  });
+  const hasSources = sources === "list";
   // Empty means a real zero for the person on screen — not the store's
   // placeholder before its first answer, and not the previous person's count
   // while a switch is in flight. It follows the switcher on purpose: a family
@@ -137,6 +147,17 @@ const DrivePage = () => {
     fetchBeneficiaryUsers();
   }, [fetchBeneficiaryUsers]);
 
+  // The page decides from this list whether the sources tab has anything to
+  // show, so the page asks for it. ProviderList used to be the only asker, and
+  // it rendered only once the list was non-empty: the list was never
+  // requested, and a deployment with Oura, WHOOP or Garmin configured showed
+  // "nothing to connect". Not gated on the drive user id, for the reason the
+  // file list above gives; a change of person re-asks.
+  useEffect(() => {
+    if (!isShowMobileSource) return;
+    fetchProvidersList();
+  }, [isShowMobileSource, current_drive_user_id, fetchProvidersList]);
+
   // The record's size decides whether the empty-state guide shows. It is
   // scoped to whoever the switcher points at, so a change of person re-asks.
   useEffect(() => {
@@ -184,7 +205,9 @@ const DrivePage = () => {
 
             <div hidden={currentTab !== "connect_data_source"}>
               <div className="flex flex-col gap-[var(--space-8)] pb-[var(--space-12)]">
-                {hasSources ? (
+                {/* "pending" renders the list too: its loading skeleton is the
+                    honest thing to show until the answer arrives. */}
+                {sources !== "empty" ? (
                   <ProviderList
                     highlightTrigger={highlightTrigger}
                     connectedWearablesRef={connectedWearablesRef}

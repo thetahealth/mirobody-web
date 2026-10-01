@@ -11,9 +11,11 @@ import { useAccountStore } from "../../../store/account";
 import { getApiBaseUrl } from "../../../utils";
 import consola from "consola";
 import { VITAL_STATUS } from "../../../enum/vital.js";
+import { providerLogo } from "./logos.js";
 
 const VitalItem = ({ datasource }) => {
   const [isOpenPasswordModel, setIsOpenPasswordModel] = useState(false);
+  const logo = providerLogo(datasource);
 
   const { t } = useTranslation();
   const fetchProvidersList = useVitalStore((state) => state.fetchProvidersList);
@@ -144,10 +146,10 @@ const VitalItem = ({ datasource }) => {
 
   return (
     <div className="w-[332px] h-[60px] overflow-hidden flex items-center p-[16px] border border-[var(--color-border)] rounded-[12px]">
-      {datasource?.logo && (
+      {logo && (
         <div className="w-[28px] h-[28px] rounded-[8px] overflow-hidden mr-[12px] border border-[var(--color-border)]">
           <img
-            src={datasource?.logo}
+            src={logo}
             alt={datasource?.name}
             className="w-full h-full object-cover"
           />
