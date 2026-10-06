@@ -21,6 +21,7 @@ import {
   IconLock,
   IconMessageCircle,
   IconRefresh,
+  IconSearch,
   IconShieldCheck,
   IconShieldLock,
 } from "@tabler/icons-react";
@@ -34,13 +35,22 @@ import wordmark from "../../assets/logo-wordmark-light.svg";
 import LanguageSwitch from "../Login/components/LanguageSwitch";
 import { loginReturningTo } from "../Login/returnPath";
 import {
+  badModelName,
   captureSetupToken,
   guessPlatform,
   isReady,
+  keyChoice,
+  localChoice,
   localModels,
+  modelDraft,
+  modelEditable,
+  modelInEffect,
   needsSignIn,
+  notServed,
+  offersDefault,
   rememberSetupToken,
   saveFailure,
+  servedChoices,
   skipSetup,
   startCommand,
 } from "./setup";
@@ -59,7 +69,8 @@ const cx = (...names) => names.filter(Boolean).join(" ");
 
 /**
  * `/setup` — which model reads this deployment's health data: a vendor's, with
- * one API key, or open models on this machine.
+ * one API key, or open models on this machine; and, in either case, which
+ * model by name, because vendors rename theirs faster than releases ship.
  *
  * The first page of a new deployment (RootLayout sends every other page here
  * while `/mirobody.json` says `__MODEL_SETUP__: "needed"`), and Settings ›
@@ -78,9 +89,19 @@ export default function Setup() {
   const [mode, setMode] = useState("key");
   const [provider, setProvider] = useState("");
   const [apiKey, setApiKey] = useState("");
+  // The model names typed for the chosen service; they start as the ones in use.
+  const [chatModel, setChatModel] = useState("");
+  const [utilsModel, setUtilsModel] = useState("");
   const [platform, setPlatform] = useState(guessPlatform);
   const [baseUrl, setBaseUrl] = useState("");
+  // What the local server said it serves, and the models chosen from it.
+  const [found, setFound] = useState(null);
+  const [finding, setFinding] = useState(false);
+  const [findError, setFindError] = useState(null);
+  const [agentChoice, setAgentChoice] = useState("");
+  const [ocrChoice, setOcrChoice] = useState("");
   const [saving, setSaving] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState(null);
   const [savedMode, setSavedMode] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -116,7 +137,10 @@ export default function Setup() {
         // Preselect the service whose key is already set, else the first one
         // the page may change; a key in .env is not the page's to replace.
         const choosable = (first.providers || []).filter((p) => !p.in_env_file);
-        setProvider((choosable.find((p) => p.set) || choosable[0] || {}).key || "");
+        const preselected = choosable.find((p) => p.set) || choosable[0];
+        setProvider(preselected?.key || "");
+        setChatModel(modelDraft(preselected?.chat_model));
+        setUtilsModel(modelDraft(preselected?.utils_model));
         if (first.local?.configured) setMode("local");
         setFirstRun(!!first.needed);
       })
@@ -132,6 +156,7 @@ export default function Setup() {
   const local = setup?.local || {};
   const models = localModels(local);
   const waiting = Boolean(local.configured) && models.some((m) => !isReady(m.status));
+  const fields = local.model_fields || {};
 
   // The first local start downloads the models, which takes minutes; the page
   // shows each one arriving instead of a single "saved".
@@ -141,9 +166,32 @@ export default function Setup() {
     return () => clearInterval(timer);
   }, [waiting, load]);
 
+  // A key is checked with one real request, which can take a minute and a
+  // half; a counter shows the page has not stalled.
+  useEffect(() => {
+    if (!saving) return undefined;
+    const started = Date.now();
+    const timer = setInterval(() => setElapsed(Math.round((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [saving]);
+
+  // Any change after a save is a new choice: the page offers to save again.
+  const edited = () => {
+    setSavedMode(null);
+    setError(null);
+  };
+
+  const pickProvider = (p) => {
+    setProvider(p.key);
+    setChatModel(modelDraft(p.chat_model));
+    setUtilsModel(modelDraft(p.utils_model));
+    edited();
+  };
+
   const save = async (body) => {
     if (saving || !token) return;
     try {
+      setElapsed(0);
       setSaving(true);
       setError(null);
       await api.saveSetup(body, token);
@@ -172,7 +220,36 @@ export default function Setup() {
     }
   };
 
+  const find = async () => {
+    if (finding || !token) return;
+    try {
+      setFinding(true);
+      setFindError(null);
+      edited();
+      const result = await api.findLocalServer(baseUrl.trim(), token);
+      const first = result.served?.[0]?.id || "";
+      setFound(result);
+      setAgentChoice(fields.agent?.model || result.models?.agent || first);
+      setOcrChoice(fields.ocr?.model || result.models?.ocr || first);
+    } catch (err) {
+      consola.error("ERROR: findLocalServer", err?.code ?? err?.name);
+      const failure = saveFailure(err, "find");
+      if (failure.forgetToken) {
+        rememberSetupToken("");
+        setAskToken(true);
+      }
+      setFound(null);
+      setFindError({ title: t(failure.reason), detail: failure.detail });
+    } finally {
+      setFinding(false);
+    }
+  };
+
   const openApp = () => navigate("/", { replace: true });
+
+  // After a save: into the app, or to sign in first. On a new deployment no
+  // account exists yet, and the sign-in page is where one is made.
+  const proceed = () => (signedIn ? openApp() : navigate("/login"));
 
   const putOff = () => {
     skipSetup();
@@ -196,12 +273,35 @@ export default function Setup() {
     }
   };
 
+  const chosen = (setup?.providers || []).find((p) => p.key === provider);
+  const missing = found ? notServed(found.served, [agentChoice, ocrChoice]) : [];
+
   const onSubmit = (event) => {
     event.preventDefault();
     if (mode === "key") {
-      if (provider && apiKey.trim()) save({ mode: "key", name: provider, value: apiKey.trim() });
+      if (!provider || !apiKey.trim()) return;
+      save(
+        keyChoice({
+          provider,
+          apiKey,
+          chatField: chosen?.chat_model,
+          chatTyped: chatModel,
+          utilsField: chosen?.utils_model,
+          utilsTyped: utilsModel,
+        }),
+      );
     } else {
-      save({ mode: "local", base_url: baseUrl.trim() });
+      // The models are chosen only from what a found server serves; without a
+      // lookup, the server searches its usual addresses for the ones in use.
+      save(
+        localChoice({
+          baseUrl: found?.base_url || baseUrl,
+          agentField: found ? fields.agent : null,
+          agentChosen: agentChoice,
+          ocrField: found ? fields.ocr : null,
+          ocrChosen: ocrChoice,
+        }),
+      );
     }
   };
 
@@ -210,11 +310,19 @@ export default function Setup() {
     body = <p className={styles.loading}>{t(loadFailed ? "setup_load_failed" : "loading")}</p>;
   } else {
     const keySaved = mode === "key" && savedMode === "key" && !setup.needed;
-    const localSaved = mode === "local" && local.configured;
-    const chosen = (setup.providers || []).find((p) => p.key === provider);
+    const localSaved = mode === "local" && savedMode === "local" && local.configured;
     const command = startCommand(platform, local.preset || DEFAULT_PRESET);
-    const canSubmit = token && !saving && (mode === "local" || (provider && apiKey.trim()));
+    const chatInEffect = modelInEffect(chosen?.chat_model, chatModel);
+    const utilsInEffect = modelInEffect(chosen?.utils_model, utilsModel);
+    const badName =
+      (modelEditable(chosen?.chat_model) && badModelName(chatModel)) ||
+      (modelEditable(chosen?.utils_model) && badModelName(utilsModel));
+    const canSubmit =
+      token &&
+      !saving &&
+      (mode === "local" ? missing.length === 0 : Boolean(provider && apiKey.trim() && !badName));
     const mustSignIn = signInRefused || needsSignIn({ needed: setup.needed, signedIn });
+    const candidates = local.candidates || [];
 
     body = (
       <>
@@ -308,7 +416,7 @@ export default function Setup() {
                         value={p.key}
                         checked={provider === p.key}
                         disabled={p.in_env_file}
-                        onChange={() => setProvider(p.key)}
+                        onChange={() => pickProvider(p)}
                       />
                       <span className={styles.providerName}>{p.label}</span>
                       <span className={styles.providerModel}>
@@ -317,6 +425,36 @@ export default function Setup() {
                     </label>
                   ))}
                 </div>
+                {chosen && (
+                  <ModelField
+                    id="setup-chat-model"
+                    label={t("setup_model_label")}
+                    field={chosen.chat_model}
+                    value={chatModel}
+                    onChange={(value) => {
+                      setChatModel(value);
+                      edited();
+                    }}
+                    hint={t("setup_model_hint", { label: chosen.label })}
+                    t={t}
+                  />
+                )}
+                {chosen && modelDraft(chosen.utils_model) && (
+                  <details className={styles.advanced}>
+                    <summary>{t("setup_advanced")}</summary>
+                    <ModelField
+                      id="setup-utils-model"
+                      label={t("setup_utils_model_label")}
+                      field={chosen.utils_model}
+                      value={utilsModel}
+                      onChange={(value) => {
+                        setUtilsModel(value);
+                        edited();
+                      }}
+                      t={t}
+                    />
+                  </details>
+                )}
               </div>
               <div className={styles.column}>
                 <Step n={2}>{t("setup_key_paste")}</Step>
@@ -332,9 +470,22 @@ export default function Setup() {
                   autoComplete="off"
                   value={apiKey}
                   placeholder={t("setup_key_placeholder")}
-                  onChange={(e) => setApiKey(e.target.value)}
+                  onChange={(e) => {
+                    setApiKey(e.target.value);
+                    edited();
+                  }}
                   aria-label={t("setup_key_paste")}
                 />
+                {chatInEffect && (
+                  <p className={styles.turnsOn}>
+                    <IconBolt size={15} stroke={1.8} aria-hidden="true" />
+                    <span>
+                      {utilsInEffect
+                        ? t("setup_key_turns_on", { chat: chatInEffect, utils: utilsInEffect })
+                        : t("setup_key_turns_on_chat", { chat: chatInEffect })}
+                    </span>
+                  </p>
+                )}
                 <p className={styles.hint}>
                   <IconLock size={14} stroke={1.8} aria-hidden="true" />
                   <span>{t("setup_key_stored")}</span>
@@ -439,25 +590,101 @@ export default function Setup() {
                         {t("setup_local_guide")}
                         <IconExternalLink size={13} stroke={1.8} aria-hidden="true" />
                       </a>
-                      <details className={styles.advanced}>
-                        <summary>{t("setup_local_address")}</summary>
-                        <input
-                          className={styles.input}
-                          type="url"
-                          value={baseUrl}
-                          placeholder={(local.candidates || [])[0] || ""}
-                          onChange={(e) => setBaseUrl(e.target.value)}
-                        />
-                        <small>
-                          {t("setup_local_address_hint", { list: (local.candidates || []).join(", ") })}
-                        </small>
-                      </details>
                     </>
                   )}
                 </div>
               </div>
+
+              <div className={styles.find}>
+                <Step n={3}>{t("setup_find_title")}</Step>
+                <p className={styles.hint}>{t("setup_find_intro")}</p>
+                <label className={styles.fieldLabel} htmlFor="setup-base-url">
+                  {t("setup_local_address")}
+                </label>
+                <div className={styles.findRow}>
+                  <input
+                    id="setup-base-url"
+                    className={styles.input}
+                    type="url"
+                    value={baseUrl}
+                    placeholder={candidates[0] || ""}
+                    onChange={(e) => {
+                      setBaseUrl(e.target.value);
+                      setFound(null);
+                      edited();
+                    }}
+                  />
+                  <button type="button" className={styles.secondary} onClick={find} disabled={finding || !token}>
+                    {finding ? (
+                      <IconLoader2 className={styles.spin} size={16} stroke={2} aria-hidden="true" />
+                    ) : (
+                      <IconSearch size={16} stroke={2} aria-hidden="true" />
+                    )}
+                    {t(finding ? "setup_finding" : "setup_find_button")}
+                  </button>
+                </div>
+                <small className={styles.findHint}>
+                  {t("setup_local_address_hint", { list: candidates.join(", ") })}
+                </small>
+                {findError && (
+                  <p className={styles.error} role="alert">
+                    <strong>{findError.title}</strong>
+                    {findError.detail && <span>{findError.detail}</span>}
+                  </p>
+                )}
+                {found && (
+                  <div className={styles.found}>
+                    <p className={styles.foundAt}>
+                      <IconCircleCheckFilled size={16} aria-hidden="true" />
+                      {t("setup_find_found", { url: found.base_url })}
+                    </p>
+                    <div className={styles.roles}>
+                      <RoleSelect
+                        id="setup-agent-model"
+                        label={t("setup_role_agent")}
+                        field={fields.agent}
+                        choices={servedChoices(found.served, fields.agent?.model)}
+                        value={agentChoice}
+                        onChange={(value) => {
+                          setAgentChoice(value);
+                          edited();
+                        }}
+                        t={t}
+                      />
+                      <RoleSelect
+                        id="setup-ocr-model"
+                        label={t("setup_role_ocr")}
+                        field={fields.ocr}
+                        choices={servedChoices(found.served, fields.ocr?.model)}
+                        value={ocrChoice}
+                        onChange={(value) => {
+                          setOcrChoice(value);
+                          edited();
+                        }}
+                        t={t}
+                      />
+                    </div>
+                    {missing.length > 0 && (
+                      <p className={styles.warn} role="alert">
+                        {t("setup_not_served", { models: missing.join(", ") })}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           )}
+
+          <p className={styles.privacy}>
+            <IconShieldLock size={15} stroke={1.8} aria-hidden="true" />
+            <span>
+              {mode === "local"
+                ? t("setup_privacy_local")
+                : chosen
+                  ? t("setup_privacy_key", { label: chosen.label })
+                  : t("setup_key_privacy")}
+            </span>
+          </p>
 
           <footer className={styles.footer}>
             {askToken ? (
@@ -491,17 +718,24 @@ export default function Setup() {
                   {error.detail && <span>{error.detail}</span>}
                 </p>
               )}
-              {keySaved && (
-                <p className={styles.success}>
-                  <IconCircleCheckFilled size={16} aria-hidden="true" />
-                  {t("setup_key_saved", { model: setup.chat_model })}
-                </p>
-              )}
               {keySaved || localSaved ? (
-                <button type="button" className={styles.primary} onClick={openApp}>
-                  {t("setup_open")}
-                  <IconArrowRight size={16} stroke={2} aria-hidden="true" />
-                </button>
+                <>
+                  {/* While the local models still download, the notice above
+                      says so; "ready" would not be true yet. */}
+                  {(keySaved || !waiting) && (
+                    <div className={styles.ready} role="status">
+                      <IconCircleCheckFilled size={20} aria-hidden="true" />
+                      <span>
+                        <strong>{t("setup_ready_title")}</strong>
+                        {t("setup_key_saved", { model: setup.chat_model })}
+                      </span>
+                    </div>
+                  )}
+                  <button type="button" className={styles.primary} onClick={proceed}>
+                    {t(signedIn ? "setup_open" : "setup_continue_sign_in")}
+                    <IconArrowRight size={16} stroke={2} aria-hidden="true" />
+                  </button>
+                </>
               ) : mustSignIn ? (
                 <>
                   <p className={styles.signIn} role={signInRefused ? "alert" : undefined}>
@@ -513,19 +747,26 @@ export default function Setup() {
                   </button>
                 </>
               ) : (
-                <button type="submit" className={styles.primary} disabled={!canSubmit}>
-                  {saving && <IconLoader2 className={styles.spin} size={16} stroke={2} aria-hidden="true" />}
-                  {t(
-                    saving
-                      ? mode === "key"
-                        ? "setup_key_checking"
-                        : "setup_local_checking"
-                      : mode === "key"
-                        ? "setup_key_submit"
-                        : "setup_local_submit",
+                <>
+                  {saving && mode === "key" && (
+                    <p className={styles.wait} role="status">
+                      {t("setup_checking_wait", { seconds: elapsed })}
+                    </p>
                   )}
-                  {!saving && <IconArrowRight size={16} stroke={2} aria-hidden="true" />}
-                </button>
+                  <button type="submit" className={styles.primary} disabled={!canSubmit}>
+                    {saving && <IconLoader2 className={styles.spin} size={16} stroke={2} aria-hidden="true" />}
+                    {t(
+                      saving
+                        ? mode === "key"
+                          ? "setup_key_checking"
+                          : "setup_local_checking"
+                        : mode === "key"
+                          ? "setup_key_submit"
+                          : "setup_local_submit",
+                    )}
+                    {!saving && <IconArrowRight size={16} stroke={2} aria-hidden="true" />}
+                  </button>
+                </>
               )}
             </div>
           </footer>
@@ -585,6 +826,72 @@ function Choice({ on, tone, icon, badge, title, desc, facts, onSelect }) {
         ))}
       </span>
     </button>
+  );
+}
+
+/**
+ * A model's name beside a key. Editable where the deployment may change it,
+ * read-only where .env sets it (which always wins) or the config names no
+ * variable for it; the configured default is one click away.
+ */
+function ModelField({ id, label, field, value, onChange, hint, t }) {
+  if (!modelDraft(field)) return null;
+  const editable = modelEditable(field);
+  const bad = editable && badModelName(value);
+  return (
+    <div className={styles.modelField}>
+      <label htmlFor={id} className={styles.fieldLabel}>
+        {label}
+      </label>
+      <input
+        id={id}
+        className={styles.input}
+        type="text"
+        value={editable ? value : modelDraft(field)}
+        readOnly={!editable}
+        placeholder={field.default}
+        autoComplete="off"
+        spellCheck={false}
+        aria-invalid={bad || undefined}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {field.in_env_file && <small>{t("setup_model_in_env", { env: field.env })}</small>}
+      {bad && <small className={styles.fieldError}>{t("setup_model_spaces")}</small>}
+      {offersDefault(field, value) && (
+        <button type="button" className={styles.reset} onClick={() => onChange(field.default)}>
+          <IconRefresh size={13} stroke={1.8} aria-hidden="true" />
+          {t("setup_model_reset", { model: field.default })}
+        </button>
+      )}
+      {editable && hint && <small>{hint}</small>}
+    </div>
+  );
+}
+
+/** One local role's model, chosen from what the found server serves. */
+function RoleSelect({ id, label, field, choices, value, onChange, t }) {
+  if (!modelDraft(field)) return null;
+  const editable = modelEditable(field);
+  return (
+    <div className={styles.modelField}>
+      <label htmlFor={id} className={styles.fieldLabel}>
+        {label}
+      </label>
+      <select
+        id={id}
+        className={cx(styles.input, styles.select)}
+        value={editable ? value : field.model}
+        disabled={!editable}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {choices.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.served ? c.id : t("setup_option_not_served", { model: c.id })}
+          </option>
+        ))}
+      </select>
+      {field.in_env_file && <small>{t("setup_model_in_env", { env: field.env })}</small>}
+    </div>
   );
 }
 

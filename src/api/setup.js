@@ -19,10 +19,26 @@ export const getSetup = (signal, token) => {
   });
 };
 
-// `{mode: "key", name, value}` or `{mode: "local", base_url}`. A key is kept
-// only after one real request through it works, and a local address only when
-// the server there serves the models; either can take a minute, hence the
-// timeout.
+// `{base_url, served: [{id, status}], models}`: what a local model server
+// serves, at `baseUrl` or at the first of the usual addresses that answers, so
+// the page can offer its models by name. It takes the token because it makes
+// the server send a request to an address the caller names. Each address gets
+// a few seconds, and there are up to three.
+export const findLocalServer = (baseUrl, token, signal) => {
+  return mcpRequestInstance.get("/api/setup/local", {
+    params: baseUrl ? { base_url: baseUrl } : {},
+    signal,
+    headers: token ? { "X-Setup-Token": token } : {},
+    timeout: 60000,
+    sensitive: true,
+  });
+};
+
+// `{mode: "key", name, value, model?, utils_model?}` or `{mode: "local",
+// base_url, model?, ocr_model?}`; a model name only where the person changed
+// it (pages/Setup/setup.js). A key is kept only after one real request through
+// it works, and a local address only when the server there serves the models;
+// the request waits up to 90 s on the vendor, hence the timeout.
 export const saveSetup = (body, token) => {
   return mcpRequestInstance.post("/api/setup", body, {
     headers: { "X-Setup-Token": token },

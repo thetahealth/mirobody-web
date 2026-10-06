@@ -2,14 +2,24 @@ import { describe, expect, it } from "vitest";
 
 import { SETUP_SKIPPED, SETUP_TOKEN } from "../../enum/storage.js";
 import {
+  badModelName,
   captureSetupToken,
   guessPlatform,
   isReady,
+  keyChoice,
+  localChoice,
   localModels,
+  modelDraft,
+  modelEditable,
+  modelInEffect,
+  modelToSend,
   needsSignIn,
+  notServed,
+  offersDefault,
   rememberSetupToken,
   saveFailure,
   sendsToSetup,
+  servedChoices,
   setupSkipped,
   skipSetup,
   startCommand,
@@ -231,6 +241,14 @@ describe("saveFailure", () => {
     });
   });
 
+  it("reads a failed lookup of the local server as nothing answering", () => {
+    expect(saveFailure({ code: 400, msg: "No model server answered at http://llama:8080/v1." }, "find")).toMatchObject({
+      reason: "setup_find_none",
+      detail: "No model server answered at http://llama:8080/v1.",
+    });
+    expect(saveFailure({ code: 403, msg: "wrong" }, "find")).toMatchObject({ forgetToken: true });
+  });
+
   it("falls back to a generic headline, with whatever the server said", () => {
     expect(saveFailure({ code: 500, msg: "boom" }, "key")).toEqual({
       reason: "setup_failed",
@@ -244,5 +262,172 @@ describe("saveFailure", () => {
       detail: "",
     });
     expect(saveFailure(undefined, "key").reason).toBe("setup_failed");
+  });
+});
+
+// `GET /api/setup`'s shape for one model.
+const field = (over = {}) => ({
+  model: "anthropic/claude-sonnet-5",
+  default: "anthropic/claude-sonnet-5",
+  env: "OPENROUTER_CHAT_MODEL",
+  in_env_file: false,
+  ...over,
+});
+
+describe("model fields", () => {
+  it("start as the model in use, else the configured one", () => {
+    expect(modelDraft(field({ model: "x/changed" }))).toBe("x/changed");
+    expect(modelDraft(field({ model: "" }))).toBe("anthropic/claude-sonnet-5");
+    expect(modelDraft(undefined)).toBe("");
+  });
+
+  it("are the page's to change only with a variable that .env does not set", () => {
+    expect(modelEditable(field())).toBe(true);
+    expect(modelEditable(field({ in_env_file: true }))).toBe(false);
+    expect(modelEditable(field({ env: "" }))).toBe(false);
+    expect(modelEditable(undefined)).toBe(false);
+  });
+
+  it("refuse a name with spaces, as the server does", () => {
+    expect(badModelName("anthropic/claude sonnet")).toBe(true);
+    expect(badModelName("x".repeat(201))).toBe(true);
+    expect(badModelName("  qwen3.8-flash  ")).toBe(false);
+    expect(badModelName("")).toBe(false);
+  });
+});
+
+describe("modelToSend", () => {
+  it("sends a name only when the person changed it", () => {
+    expect(modelToSend(field(), "anthropic/claude-sonnet-5")).toBe("");
+    expect(modelToSend(field(), " anthropic/claude-opus-5 ")).toBe("anthropic/claude-opus-5");
+  });
+
+  it("keeps the model in use for an emptied field, as the server reads empty", () => {
+    expect(modelToSend(field({ model: "x/changed" }), "  ")).toBe("");
+  });
+
+  it("sends the default back over a changed name, which the server stores as nothing", () => {
+    expect(modelToSend(field({ model: "x/changed" }), "anthropic/claude-sonnet-5")).toBe(
+      "anthropic/claude-sonnet-5",
+    );
+  });
+
+  it("sends nothing for a model .env fixes or the config names no variable for", () => {
+    expect(modelToSend(field({ in_env_file: true }), "x/other")).toBe("");
+    expect(modelToSend(field({ env: "" }), "x/other")).toBe("");
+    expect(modelToSend(undefined, "x/other")).toBe("");
+  });
+});
+
+describe("offersDefault", () => {
+  it("offers the default only while the field holds something else", () => {
+    expect(offersDefault(field(), "anthropic/claude-sonnet-5")).toBe(false);
+    expect(offersDefault(field(), "x/other")).toBe(true);
+    expect(offersDefault(field(), "")).toBe(true);
+  });
+
+  it("does not offer it where there is none, or the field cannot change", () => {
+    expect(offersDefault(field({ default: "" }), "x/other")).toBe(false);
+    expect(offersDefault(field({ in_env_file: true }), "x/other")).toBe(false);
+  });
+});
+
+describe("modelInEffect", () => {
+  it("names what a save would leave running", () => {
+    expect(modelInEffect(field(), "x/typed")).toBe("x/typed");
+    expect(modelInEffect(field({ model: "x/in-use" }), "")).toBe("x/in-use");
+    expect(modelInEffect(field({ in_env_file: true, model: "x/env" }), "x/typed")).toBe("x/env");
+    expect(modelInEffect(undefined, "x/typed")).toBe("");
+  });
+});
+
+describe("keyChoice", () => {
+  const chatField = field();
+  const utilsField = field({ model: "google/gemini-3-flash", default: "google/gemini-3-flash", env: "OPENROUTER_UTILS_MODEL" });
+
+  it("sends the key alone when no model name changed", () => {
+    expect(
+      keyChoice({
+        provider: "OPENROUTER_API_KEY",
+        apiKey: " sk-or-1 ",
+        chatField,
+        chatTyped: chatField.model,
+        utilsField,
+        utilsTyped: utilsField.model,
+      }),
+    ).toEqual({ mode: "key", name: "OPENROUTER_API_KEY", value: "sk-or-1" });
+  });
+
+  it("adds each changed name under its own field", () => {
+    expect(
+      keyChoice({
+        provider: "OPENROUTER_API_KEY",
+        apiKey: "sk-or-1",
+        chatField,
+        chatTyped: "anthropic/claude-opus-5",
+        utilsField,
+        utilsTyped: "google/gemini-3-flash-lite",
+      }),
+    ).toEqual({
+      mode: "key",
+      name: "OPENROUTER_API_KEY",
+      value: "sk-or-1",
+      model: "anthropic/claude-opus-5",
+      utils_model: "google/gemini-3-flash-lite",
+    });
+  });
+
+  it("works for a server that sends no model fields", () => {
+    expect(keyChoice({ provider: "OPENAI_API_KEY", apiKey: "sk-1", chatTyped: "gpt-x" })).toEqual({
+      mode: "key",
+      name: "OPENAI_API_KEY",
+      value: "sk-1",
+    });
+  });
+});
+
+describe("localChoice", () => {
+  const agentField = field({ model: "qwen3.8-27b", default: "qwen3.8-27b", env: "LOCAL_MODEL" });
+  const ocrField = field({ model: "glm-ocr-0.9b", default: "glm-ocr-0.9b", env: "LOCAL_OCR_MODEL" });
+
+  it("sends the address alone without a lookup, or when nothing changed", () => {
+    expect(localChoice({ baseUrl: "" })).toEqual({ mode: "local", base_url: "" });
+    expect(
+      localChoice({ baseUrl: " http://llama:8080/v1 ", agentField, agentChosen: "qwen3.8-27b", ocrField, ocrChosen: "glm-ocr-0.9b" }),
+    ).toEqual({ mode: "local", base_url: "http://llama:8080/v1" });
+  });
+
+  it("sends the agent as `model` and the reader as `ocr_model`", () => {
+    expect(
+      localChoice({ baseUrl: "http://llama:8080/v1", agentField, agentChosen: "qwen3.8-9b", ocrField, ocrChosen: "glm-ocr-1.2b" }),
+    ).toEqual({ mode: "local", base_url: "http://llama:8080/v1", model: "qwen3.8-9b", ocr_model: "glm-ocr-1.2b" });
+  });
+});
+
+describe("served models", () => {
+  const served = [
+    { id: "glm-ocr-0.9b", status: "loaded" },
+    { id: "qwen3.8-9b", status: "unloaded" },
+  ];
+
+  it("offers what the server serves, and the model in use first when it does not serve it", () => {
+    expect(servedChoices(served, "glm-ocr-0.9b")).toEqual([
+      { id: "glm-ocr-0.9b", served: true },
+      { id: "qwen3.8-9b", served: true },
+    ]);
+    expect(servedChoices(served, "qwen3.8-27b")).toEqual([
+      { id: "qwen3.8-27b", served: false },
+      { id: "glm-ocr-0.9b", served: true },
+      { id: "qwen3.8-9b", served: true },
+    ]);
+    expect(servedChoices(undefined, "")).toEqual([]);
+  });
+
+  it("names each chosen model the server does not serve, once", () => {
+    expect(notServed(served, ["qwen3.8-9b", "glm-ocr-0.9b"])).toEqual([]);
+    expect(notServed(served, ["qwen3.8-27b", "glm-ocr-0.9b"])).toEqual(["qwen3.8-27b"]);
+    expect(notServed(served, ["qwen3.8-27b", "qwen3.8-27b"])).toEqual(["qwen3.8-27b"]);
+    expect(notServed(served, ["", "glm-ocr-0.9b"])).toEqual([]);
+    expect(notServed([], ["a"])).toEqual(["a"]);
   });
 });

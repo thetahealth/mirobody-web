@@ -660,6 +660,8 @@
   }
 }
 
+// The model that reads documents: most people never change it, so it waits
+// behind a disclosure instead of asking a second question up front.
 .advanced {
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -669,17 +671,188 @@
     user-select: none;
   }
 
-  .input {
+  .modelField {
     margin-top: 10px;
   }
+}
+
+/* ---- model names ---- */
+
+.modelField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 
   small {
-    display: block;
-    margin-top: 6px;
     font-size: 12px;
     line-height: 1.5;
     color: var(--color-text-muted);
-    word-break: break-all;
+    word-break: break-word;
+  }
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.modelField .fieldError {
+  color: var(--color-danger);
+}
+
+// Model ids are code: the field shows them in the mono face they are printed in.
+.modelField .input {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+// A model .env fixes. `input` only: CSS counts every <select> as read-only.
+.modelField input:read-only {
+  background-color: var(--color-bg-soft);
+  color: var(--color-text-secondary);
+}
+
+.select {
+  appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+  // The caret LanguageSwitch draws, for the same reason: no icon dependency.
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+
+  &:disabled {
+    cursor: default;
+    background-color: var(--color-bg-soft);
+  }
+}
+
+.reset {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 5px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-accent);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// What the key turns on, in one line, from the names in the fields.
+.turnsOn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-info-bg);
+  color: var(--color-info-text);
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+/* ---- finding the local server ---- */
+
+.find {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.findRow {
+  display: flex;
+  gap: 10px;
+}
+
+.secondary {
+  @include auth.button-secondary;
+
+  & {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 48px;
+    padding: 0 18px;
+    white-space: nowrap;
+  }
+}
+
+.findHint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  word-break: break-all;
+}
+
+.found {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.foundAt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-success-text);
+  word-break: break-all;
+}
+
+.roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.warn {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.find .error {
+  text-align: left;
+}
+
+// Where the questions and documents go, said plainly for the mode on screen.
+.privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--color-gold);
   }
 }
 
@@ -824,13 +997,44 @@
   color: var(--color-text-secondary);
 }
 
-.success {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+// The vendor check runs while this shows: one real request, up to 90 s.
+.wait {
+  max-width: 480px;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: right;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ready {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 480px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-success-bg);
   color: var(--color-success-text);
+  font-size: 14px;
+  line-height: 1.5;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    word-break: break-word;
+  }
+
+  strong {
+    font-weight: 650;
+  }
 }
 
 .skip {
@@ -911,14 +1115,25 @@
     min-width: 0;
   }
   .error,
-  .signIn {
+  .signIn,
+  .wait {
     text-align: left;
+  }
+  .ready {
+    max-width: none;
+  }
+  .roles {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
 
 @include response(mobile) {
   .providers {
     grid-template-columns: 1fr;
+  }
+  .findRow {
+    flex-direction: column;
   }
   .fact {
     grid-template-columns: minmax(72px, max-content) 1fr;
