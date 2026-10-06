@@ -507,6 +507,8 @@
   "report_date_undone": "{{date}} に戻しました",
   "upload_error_connection": "サーバーに接続できませんでした。もう一度アップロードしてください。",
   "download_chart": "グラフをダウンロード",
+  "chart_not_drawn": "このグラフは描画できませんでした。",
+  "chart_show_data": "データを表示",
   "sidebar_workspace": "ワークスペース",
   "chat_send": "送信",
   "chat_stop": "生成を停止",

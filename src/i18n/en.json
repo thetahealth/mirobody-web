@@ -507,6 +507,8 @@
   "report_date_undone": "Filed back under {{date}}",
   "upload_error_connection": "Could not reach the server. Upload the file again.",
   "download_chart": "Download chart",
+  "chart_not_drawn": "This chart could not be drawn.",
+  "chart_show_data": "Show its data",
   "sidebar_workspace": "WORKSPACE",
   "chat_send": "Send",
   "chat_stop": "Stop generating",

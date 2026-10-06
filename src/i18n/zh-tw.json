@@ -507,6 +507,8 @@
   "report_date_undone": "已改回 {{date}}",
   "upload_error_connection": "無法連線到伺服器，請重新上傳。",
   "download_chart": "下載圖表",
+  "chart_not_drawn": "這張圖表無法繪製。",
+  "chart_show_data": "查看資料",
   "sidebar_workspace": "工作區",
   "chat_send": "傳送",
   "chat_stop": "停止產生",

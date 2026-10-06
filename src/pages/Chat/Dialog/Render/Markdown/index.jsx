@@ -5,11 +5,15 @@ import remarkCjkFriendly from "remark-cjk-friendly";
 import styles from "./index.module.scss";
 import { IconLink } from "@tabler/icons-react";
 import VisChart from "../VisChart";
+import { fenceClosed, normalizeChartFences } from "../VisChart/parseSource";
 
 function Markdown({ content }) {
   const handleLinkClick = (href) => {
     window.open(href, "_blank");
   };
+  // A chart fenced twice (```vis-chart then ```json) is collapsed first, or
+  // its stray closer turns the rest of the answer into a code block.
+  const source = normalizeChartFences(content);
   return (
     <div className={styles.prose}>
       <ReactMarkdown
@@ -44,11 +48,14 @@ function Markdown({ content }) {
             );
           },
           // Fenced code: language-vis-chart renders a chart, everything
-          // else stays a code block.
+          // else stays a code block. `node.position` spans the whole fenced
+          // block in `source`, closing fence included once it has streamed in.
           code(props) {
             const { className = "", children, ...rest } = props;
             if (className.includes("language-vis-chart")) {
-              return <VisChart source={String(children)} />;
+              const at = props.node?.position;
+              const raw = at ? source.slice(at.start.offset, at.end.offset) : "";
+              return <VisChart source={String(children)} complete={fenceClosed(raw)} />;
             }
             return (
               <code className={className} {...rest}>
@@ -67,7 +74,7 @@ function Markdown({ content }) {
           },
         }}
       >
-        {content}
+        {source}
       </ReactMarkdown>
     </div>
   );

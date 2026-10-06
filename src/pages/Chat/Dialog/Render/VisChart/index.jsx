@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as echarts from "echarts";
 import { buildEChartsOption } from "./buildOption";
+import { parseChartSource } from "./parseSource";
 import { IconDownload } from "@tabler/icons-react";
 import styles from "./index.module.scss";
 
@@ -20,10 +21,14 @@ function safeName(title) {
   return `${base || "chart"}.png`;
 }
 
-// Renders one ```vis-chart block. `source` is the raw JSON inside the fence.
-// While the answer is still streaming that JSON is incomplete, so a parse
-// failure means "draw nothing yet" and wait for the next, complete, pass.
-export default function VisChart({ source }) {
+// Renders one ```vis-chart block. `source` is the raw JSON inside the fence;
+// `complete` says the block's closing fence has arrived (Markdown decides,
+// from the block's source span). Until then a parse failure means "draw
+// nothing yet": the JSON is unfinished. Once complete, the model's common
+// slips are mended (`parseSource.js`), and a block that still cannot be drawn
+// says so and shows what it held. It used to draw nothing, with no sign a
+// chart was missing: one stray `}` from MiniCPM5-2B on a steps chart.
+export default function VisChart({ source, complete = false }) {
   const { t } = useTranslation();
   const elRef = useRef(null);
   const chartRef = useRef(null);
@@ -31,26 +36,26 @@ export default function VisChart({ source }) {
   const bucketRef = useRef(null);
   const [ready, setReady] = useState(false);
 
+  // What the block holds; mended only once it is finished.
+  const parsed = useMemo(() => parseChartSource(source, { repair: complete }), [source, complete]);
+  // Finished and still not a chart (unparseable, or a type the protocol does
+  // not have): say so rather than leave a blank gap.
+  const failed = complete && !(parsed && buildEChartsOption(parsed.config));
+
   // Parse + render (whenever source changes; safe mid-stream)
   useEffect(() => {
-    let config;
-    try {
-      config = JSON.parse(String(source).trim());
-    } catch {
-      return; // still streaming — the JSON is not complete yet
-    }
     const el = elRef.current;
-    if (!el) return;
+    if (!parsed || !el) return; // still streaming: the JSON is not complete yet
     const width = el.clientWidth || 0;
-    const option = buildEChartsOption(config, { width });
+    const option = buildEChartsOption(parsed.config, { width });
     if (!option) return;
 
-    configRef.current = config;
+    configRef.current = parsed.config;
     bucketRef.current = bucketOf(width);
     if (!chartRef.current) chartRef.current = echarts.init(el);
     chartRef.current.setOption(option, true);
     setReady(true);
-  }, [source]);
+  }, [parsed]);
 
   // Follow the container: watch the chart's own size (expand/collapse, stacking,
   // the sidebar, window zoom all land here).
@@ -104,10 +109,21 @@ export default function VisChart({ source }) {
     a.remove();
   };
 
+  // The chart element stays mounted while the note shows, so a block that
+  // becomes drawable (a regenerated answer) still has somewhere to draw.
   return (
     <div className={styles.wrapper}>
-      <div ref={elRef} className={styles.chart} />
-      {ready && (
+      <div ref={elRef} className={styles.chart} hidden={failed} />
+      {failed && (
+        <div className={styles.failed} role="note">
+          <p>{t("chart_not_drawn")}</p>
+          <details>
+            <summary>{t("chart_show_data")}</summary>
+            <pre>{String(source).trim()}</pre>
+          </details>
+        </div>
+      )}
+      {ready && !failed && (
         <button type="button" className={styles.download} onClick={handleDownload} title={t("download_chart")} aria-label={t("download_chart")}>
           <IconDownload size={15} stroke={1.8} aria-hidden="true" />
         </button>
