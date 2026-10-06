@@ -16,8 +16,9 @@ import {
 import styles from "./SettingModal.module.scss";
 import { useSystemStore } from "../../store/system.js";
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router";
 import { Button, Select, Switch } from "antd";
-import { IconChevronRight, IconCpu } from "@tabler/icons-react";
+import { IconChevronRight, IconCpu, IconServer2 } from "@tabler/icons-react";
 import CloseButton from "../CloseButton";
 import PersonalMcpLinks from "./PersonalMcpLinks.jsx";
 import api from "../../api";
@@ -40,6 +41,8 @@ const SettingModal = ({ isOpen, onClose }) => {
   const isShowAPIConfig = useSystemStore((state) => state.isShowAPIConfig);
   const isShowWebAuthn = useSystemStore((state) => state.isShowWebAuthn);
   const isShowDeveloper = useSystemStore((state) => state.isShowDeveloper);
+  const modelSetup = useSystemStore((state) => state.modelSetup);
+  const navigate = useNavigate();
 
   const [_api_base_url, set_api_base_url] = useState(api_base_url);
   const [api_error, setApiError] = useState("");
@@ -325,6 +328,31 @@ const SettingModal = ({ isOpen, onClose }) => {
                 <div className={styles.devCardDesc}>
                   {t("developer_platform_desc")}
                 </div>
+              </div>
+              <IconChevronRight className={styles.devCardArrow} size={16} stroke={1.8} />
+            </div>
+          </div>
+        )}
+        {/* Back to the first-run page, to change the model. Any value means
+            the server has that page; it checks the setup token and the
+            session itself. */}
+        {modelSetup && (
+          <div className={styles.section}>
+            <div
+              className={styles.devCard}
+              onClick={() => {
+                onClose?.();
+                navigate("/setup");
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <div className={styles.devCardIcon}>
+                <IconServer2 size={20} stroke={1.8} aria-hidden="true" />
+              </div>
+              <div className={styles.devCardBody}>
+                <div className={styles.devCardTitle}>{t("settings_model_title")}</div>
+                <div className={styles.devCardDesc}>{t("settings_model_desc")}</div>
               </div>
               <IconChevronRight className={styles.devCardArrow} size={16} stroke={1.8} />
             </div>

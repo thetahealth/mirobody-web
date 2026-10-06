@@ -306,6 +306,21 @@ mcpRequestInstance.interceptors.response.use(handleResponse, (error) => {
     return Promise.reject(error);
   }
 
+  // A request that carries a secret the person typed (the setup token, a
+  // vendor API key: api/setup.js) is logged by its status alone. The
+  // AxiosError holds the request's headers and body verbatim, and both lines
+  // below would print them, to the console and to Sentry where it is set up;
+  // `sanitizeHeaders` filters only Authorization.
+  if (error.config?.sensitive) {
+    consola.error("MCP Request Error", {
+      url: error.config.url,
+      method: error.config.method,
+      statusCode: error.response?.status,
+      errorMessage: error.message,
+    });
+    return Promise.reject(error);
+  }
+
   consola.error("MCP Request Error", error);
 
   // Log error with request parameters to Sentry via consola

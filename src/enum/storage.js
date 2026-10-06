@@ -33,3 +33,8 @@ export const SECURITY_SETTINGS = "SECURITY_SETTINGS";
 
 // session storage
 export const API_BASE_URL = "API_BASE_URL";
+// The first-run page's token, read once from `/setup?token=…` and kept for the
+// tab rather than left in the address bar (pages/Setup/setup.js).
+export const SETUP_TOKEN = "SETUP_TOKEN";
+// "Not now" on the first-run page: stop sending this tab back to it.
+export const SETUP_SKIPPED = "SETUP_SKIPPED";

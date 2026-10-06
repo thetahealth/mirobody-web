@@ -9,6 +9,7 @@ import * as indicators from "./indicators";
 import * as genomics from "./genomics";
 import * as medications from "./medications";
 import * as mcp from "./mcp";
+import * as setup from "./setup";
 /* data distribution */
 export const dataDistribution = (data, signal) => {
   return mcpRequestInstance.get("/api/v1/data/data-distribution", {
@@ -79,4 +80,5 @@ export default {
   ...genomics,
   ...medications,
   ...mcp,
+  ...setup,
 };

@@ -15,6 +15,7 @@ import LanguageSwitch from "./components/LanguageSwitch";
 import EmailOtpForm from "./components/EmailOtpForm";
 import PasswordForm from "./components/PasswordForm";
 import AuthModeTabs from "./components/AuthModeTabs";
+import { inAppPath } from "./returnPath";
 import styles from "./index.module.scss";
 
 function Login() {
@@ -36,7 +37,7 @@ function Login() {
   const [demoFill, setDemoFill] = useState(0);
   const [error, setError] = useState("");
 
-  /* oauth2 authorize → cross-app redirect whitelist → home */
+  /* oauth2 authorize → cross-app redirect whitelist → in-app return path → home */
   const handleLoginSuccess = async (authData) => {
     const { access_token } = authData || {};
     try {
@@ -53,7 +54,11 @@ function Login() {
         window.location.href = redirect;
         return;
       }
-      navigate("/");
+      // A page of this app that sent the person here gets them back: /setup
+      // (changing the model takes a signed-in account) and an upload whose
+      // session lapsed pass their own path. Those were dropped above, which
+      // takes absolute cross-app URLs only, and every sign-in landed on `/`.
+      navigate(inAppPath(redirect) || "/");
     } catch (err) {
       consola.error("ERROR: Oauth2 Authorize", err);
       throw err;

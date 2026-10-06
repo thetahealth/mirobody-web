@@ -13,6 +13,7 @@ const Share = lazy(() => import("../pages/Share/index.jsx"));
 const Profile = lazy(() => import("../pages/Profile/index.jsx"));
 const CareCircle = lazy(() => import("../pages/CareCircle/index.jsx"));
 const Activate = lazy(() => import("../pages/Activate/index.jsx"));
+const Setup = lazy(() => import("../pages/Setup/index.jsx"));
 const Indicators = lazy(() => import("../pages/Indicators/index.jsx"));
 const ChatList = lazy(() => import("../pages/Chat/ContentList/index.jsx"));
 const ChatEmpty = lazy(() => import("../pages/Chat/EmptyContent/index.jsx"));
@@ -40,6 +41,13 @@ export const routes = [
       {
         path: "/activate",
         Component: Activate,
+      },
+      // Public: on a new deployment it comes before any account exists. What
+      // it changes is guarded by the setup token, and once a model is set up
+      // by a sign-in as well (the server checks both).
+      {
+        path: "/setup",
+        Component: Setup,
       },
       {
         Component: ProtectedLayout,

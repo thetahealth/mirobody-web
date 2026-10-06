@@ -9,8 +9,9 @@ import {
 import { useSystemStore } from "./system";
 import api from "../api";
 import consola from "consola";
+import { parseModelEntry } from "../utils/modelLabels";
 
-/**
+/*
  * One model id per entry. There used to be an `agent` dimension here: the
  * backend answered `GET /api/models` with `"Agent/provider"` strings and this
  * store split them on `/`, so a selection was a (agent, model) pair and the
@@ -18,16 +19,9 @@ import consola from "consola";
  *
  * Mirobody 1.4.0 removed that: there is one agent, `/api/models` returns bare
  * provider names, and `/api/agents` is gone. So the model id IS the provider
- * name and there is nothing to split.
- *
- * @param {string} name - e.g. "gpt-5.2"
- * @returns {{ id: string, provider: string, show_name: string }}
+ * name and there is nothing to split. What the picker shows is the model that
+ * entry runs, when the server names it (`parseModelEntry`).
  */
-const parseModelName = (name) => ({
-  id: name,
-  provider: name,
-  show_name: name,
-});
 
 /**
  * Get storage key based on environment
@@ -156,14 +150,14 @@ export const useModelStore = create(
         const savedSelectedIds = loadSelectedModelIds();
 
         // Parse API response and apply selection state
-        const model_list = res.map((name) => {
-          const parsed = parseModelName(name);
-          return {
+        const model_list = res
+          .map(parseModelEntry)
+          .filter((parsed) => parsed.id)
+          .map((parsed) => ({
             ...parsed,
             is_selected: savedSelectedIds.includes(parsed.id),
             is_disabled: false,
-          };
-        });
+          }));
 
         // Default to the first model the backend offers. This used to prefer
         // an entry whose agent was "Deep", because the alternative
