@@ -447,36 +447,35 @@ describe("served models", () => {
   });
 });
 
-// `local.tiers` as config.llm.yaml writes it today: only Large measured.
+// `local.tiers` as config.llm.yaml writes it today.
 const TIERS = [
-  { id: "tiny", agent: "minicpm5-1b", ocr: "glm-ocr", sees: false, download_gb: 2.6, memory_gb: null, answer_s: null, checks: null, measured_on: null },
-  { id: "small", agent: "minicpm5-2b", ocr: "glm-ocr", sees: false, download_gb: 3, memory_gb: null, answer_s: null, checks: null, measured_on: null },
+  { id: "small", agent: "minicpm5-2b", ocr: "glm-ocr", sees: false, download_gb: 3, memory_gb: 5.7, answer_s: 28, checks: null, measured_on: "Apple M1 Pro, 16 GB" },
   { id: "large", agent: "qwen3.8-27b", ocr: "glm-ocr", sees: true, download_gb: 14.5, memory_gb: 20, answer_s: 134, checks: null, measured_on: "Apple M4 Pro, 48 GB" },
 ];
-const agentField = (model, def = "qwen3.8-27b") => ({ model, default: def, env: "LOCAL_MODEL", in_env_file: false });
+const agentField = (model, def = "minicpm5-2b") => ({ model, default: def, env: "LOCAL_MODEL", in_env_file: false });
 
 describe("pickTier", () => {
   it("opens on the size running here once local models are set up", () => {
-    expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("minicpm5-1b") } })).toBe("tiny");
+    expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("minicpm5-2b") } })).toBe("small");
     expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("qwen3.8-27b") } })).toBe("large");
   });
 
   it("reads `models.agent` when the server sends no model fields", () => {
-    expect(pickTier({ tiers: TIERS, configured: true, models: { agent: "minicpm5-1b" } })).toBe("tiny");
+    expect(pickTier({ tiers: TIERS, configured: true, models: { agent: "qwen3.8-27b" } })).toBe("large");
   });
 
   it("takes a model LOCAL_MODEL names as running, before local models are set up", () => {
-    expect(pickTier({ tiers: TIERS, configured: false, model_fields: { agent: agentField("minicpm5-1b") } })).toBe("tiny");
+    expect(pickTier({ tiers: TIERS, configured: false, model_fields: { agent: agentField("qwen3.8-27b") } })).toBe("large");
   });
 
   it("opens a new deployment on small, not on the config's default for an entry nothing calls", () => {
-    expect(pickTier({ tiers: TIERS, configured: false, model_fields: { agent: agentField("qwen3.8-27b") } })).toBe("small");
+    expect(pickTier({ tiers: TIERS, configured: false, model_fields: { agent: agentField("qwen3.8-27b", "qwen3.8-27b") } })).toBe("small");
     expect(pickTier({ tiers: TIERS })).toBe("small");
   });
 
   it("opens on small when what runs is no size, and on the first when there is no small", () => {
     expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("my-own-model") } })).toBe("small");
-    expect(pickTier({ tiers: [TIERS[2], TIERS[0]], configured: true, models: { agent: "x" } })).toBe("large");
+    expect(pickTier({ tiers: [TIERS[1]], configured: true, models: { agent: "x" } })).toBe("large");
     expect(pickTier({ tiers: [] })).toBe("");
     expect(pickTier(undefined)).toBe("");
   });
@@ -511,11 +510,9 @@ describe("figures", () => {
   it("gives every size of today's config a hardware line, and the two ends a badge", () => {
     expect(TIERS.map((tier) => tierHardware(tier.id))).toEqual([
       "setup_tier_hw_light",
-      "setup_tier_hw_light",
       "setup_tier_hw_large",
     ]);
     expect(TIERS.map((tier) => tierBadge(tier.id))).toEqual([
-      "setup_tier_badge_light",
       "setup_tier_badge_light",
       "setup_tier_badge_best",
     ]);
@@ -532,22 +529,22 @@ describe("tierOnServer", () => {
   ];
 
   it("is loaded when both models are", () => {
-    expect(tierOnServer(TIERS[2], served)).toBe("loaded");
+    expect(tierOnServer(TIERS[1], served)).toBe("loaded");
   });
 
   it("is unloaded while either is listed but not loaded: the server can fetch it", () => {
-    expect(tierOnServer(TIERS[1], served)).toBe("unloaded");
-    expect(tierOnServer(TIERS[1], [{ id: "glm-ocr", status: "loading" }, { id: "minicpm5-2b", status: "loaded" }])).toBe(
+    expect(tierOnServer(TIERS[0], served)).toBe("unloaded");
+    expect(tierOnServer(TIERS[0], [{ id: "glm-ocr", status: "loading" }, { id: "minicpm5-2b", status: "loaded" }])).toBe(
       "unloaded",
     );
   });
 
   it("is missing when either is not listed, a cached file under its repo id included", () => {
-    expect(tierOnServer(TIERS[0], served)).toBe("missing");
-    expect(tierOnServer(TIERS[1], [{ id: "openbmb/MiniCPM5-2B-GGUF:Q4_K_M", status: "ready" }, { id: "glm-ocr", status: "loaded" }])).toBe(
+    expect(tierOnServer(TIERS[1], [{ id: "glm-ocr", status: "loaded" }])).toBe("missing");
+    expect(tierOnServer(TIERS[0], [{ id: "openbmb/MiniCPM5-2B-GGUF:Q4_K_M", status: "ready" }, { id: "glm-ocr", status: "loaded" }])).toBe(
       "missing",
     );
-    expect(tierOnServer(TIERS[1], undefined)).toBe("missing");
+    expect(tierOnServer(TIERS[0], undefined)).toBe("missing");
   });
 
   it("offers the preset's models by name, not the cache's repo ids", () => {

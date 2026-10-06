@@ -131,8 +131,8 @@ export function startCommand(platform, preset) {
  *
  * "Running here" needs local models set up, or LOCAL_MODEL naming one.
  * Before that the agent's model is only config.llm.yaml's default for an
- * entry nothing calls yet, and that default is the large model: opening a
- * new deployment on it would point an ordinary computer at 20 GB.
+ * entry nothing calls yet, which is not a choice anyone made, so a new
+ * deployment opens on small: the size an ordinary computer runs.
  *
  * @param {object} local - `GET /api/setup`'s `local`
  * @returns {string} a tier id, or "" when the server offers none
@@ -164,13 +164,12 @@ export function answerTime(seconds) {
   return seconds < 90 ? { unit: "sec", n: Math.round(seconds) } : { unit: "min", n: Math.round(seconds / 60) };
 }
 
-// What a size needs, by its id: the two small ones run anywhere.
+// What a size needs, by its id.
 const TIER_HARDWARE = {
-  tiny: "setup_tier_hw_light",
   small: "setup_tier_hw_light",
   large: "setup_tier_hw_large",
 };
-const TIER_BADGE = { tiny: "setup_tier_badge_light", small: "setup_tier_badge_light", large: "setup_tier_badge_best" };
+const TIER_BADGE = { small: "setup_tier_badge_light", large: "setup_tier_badge_best" };
 
 /** The i18n key of a size's hardware line, or "" for an id the page does not know. */
 export const tierHardware = (id) => TIER_HARDWARE[id] || "";
