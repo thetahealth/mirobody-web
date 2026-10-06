@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { SETUP_SKIPPED, SETUP_TOKEN } from "../../enum/storage.js";
 import {
+  answerTime,
   badModelName,
   captureSetupToken,
   guessPlatform,
@@ -16,6 +17,9 @@ import {
   needsSignIn,
   notServed,
   offersDefault,
+  oneDecimal,
+  pickTier,
+  presetModels,
   rememberSetupToken,
   saveFailure,
   sendsToSetup,
@@ -23,6 +27,10 @@ import {
   setupSkipped,
   skipSetup,
   startCommand,
+  tierBadge,
+  tierFor,
+  tierHardware,
+  tierOnServer,
 } from "./setup";
 
 // The parts of `window` the token helpers touch.
@@ -138,10 +146,11 @@ describe("sendsToSetup", () => {
 });
 
 describe("guessPlatform", () => {
-  it("picks the Mac tab on a Mac and the GPU container elsewhere", () => {
+  it("picks llama.cpp itself on a Mac or a Windows PC, and the GPU container elsewhere", () => {
     expect(guessPlatform({ userAgentData: { platform: "macOS" } })).toBe("mac");
     expect(guessPlatform({ platform: "MacIntel" })).toBe("mac");
-    expect(guessPlatform({ platform: "Win32" })).toBe("gpu");
+    expect(guessPlatform({ platform: "Win32" })).toBe("windows");
+    expect(guessPlatform({ userAgentData: { platform: "Windows" } })).toBe("windows");
     expect(guessPlatform({ userAgentData: { platform: "Linux" } })).toBe("gpu");
     expect(guessPlatform({})).toBe("gpu");
   });
@@ -150,7 +159,13 @@ describe("guessPlatform", () => {
 describe("startCommand", () => {
   it("runs llama.cpp itself on a Mac, with the server's preset", () => {
     expect(startCommand("mac", "docker/local-models.ini")).toBe(
-      "brew install llama.cpp\nllama-server --models-preset docker/local-models.ini --port 8080",
+      "brew install llama.cpp\nllama-server --models-preset docker/local-models.ini --port 8080 --models-max 2",
+    );
+  });
+
+  it("installs the Vulkan build on Windows, with the preset in Windows' separators", () => {
+    expect(startCommand("windows", "docker/local-models.ini")).toBe(
+      "winget install --id ggml.llamacpp\nllama-server --models-preset docker\\local-models.ini --port 8080 --models-max 2",
     );
   });
 
@@ -429,5 +444,117 @@ describe("served models", () => {
     expect(notServed(served, ["qwen3.8-27b", "qwen3.8-27b"])).toEqual(["qwen3.8-27b"]);
     expect(notServed(served, ["", "glm-ocr-0.9b"])).toEqual([]);
     expect(notServed([], ["a"])).toEqual(["a"]);
+  });
+});
+
+// `local.tiers` as config.llm.yaml writes it today: only Large measured.
+const TIERS = [
+  { id: "tiny", agent: "minicpm5-1b", ocr: "glm-ocr", sees: false, download_gb: 2.6, memory_gb: null, answer_s: null, checks: null, measured_on: null },
+  { id: "small", agent: "minicpm5-2b", ocr: "glm-ocr", sees: false, download_gb: 3, memory_gb: null, answer_s: null, checks: null, measured_on: null },
+  { id: "medium", agent: "qwen3.5-9b", ocr: "glm-ocr", sees: true, download_gb: 8, memory_gb: null, answer_s: null, checks: null, measured_on: null },
+  { id: "large", agent: "qwen3.8-27b", ocr: "glm-ocr", sees: true, download_gb: 14.5, memory_gb: 20, answer_s: 134, checks: null, measured_on: "Apple M4 Pro, 48 GB" },
+];
+const agentField = (model, def = "qwen3.8-27b") => ({ model, default: def, env: "LOCAL_MODEL", in_env_file: false });
+
+describe("pickTier", () => {
+  it("opens on the size running here once local models are set up", () => {
+    expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("qwen3.5-9b") } })).toBe("medium");
+    expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("qwen3.8-27b") } })).toBe("large");
+  });
+
+  it("reads `models.agent` when the server sends no model fields", () => {
+    expect(pickTier({ tiers: TIERS, configured: true, models: { agent: "minicpm5-1b" } })).toBe("tiny");
+  });
+
+  it("takes a model LOCAL_MODEL names as running, before local models are set up", () => {
+    expect(pickTier({ tiers: TIERS, configured: false, model_fields: { agent: agentField("minicpm5-1b") } })).toBe("tiny");
+  });
+
+  it("opens a new deployment on small, not on the config's default for an entry nothing calls", () => {
+    expect(pickTier({ tiers: TIERS, configured: false, model_fields: { agent: agentField("qwen3.8-27b") } })).toBe("small");
+    expect(pickTier({ tiers: TIERS })).toBe("small");
+  });
+
+  it("opens on small when what runs is no size, and on the first when there is no small", () => {
+    expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("my-own-model") } })).toBe("small");
+    expect(pickTier({ tiers: [TIERS[2], TIERS[3]], configured: true, models: { agent: "x" } })).toBe("medium");
+    expect(pickTier({ tiers: [] })).toBe("");
+    expect(pickTier(undefined)).toBe("");
+  });
+});
+
+describe("tierFor", () => {
+  it("names the size a pair makes up, and none for another pair", () => {
+    expect(tierFor(TIERS, "minicpm5-2b", "glm-ocr")?.id).toBe("small");
+    expect(tierFor(TIERS, "minicpm5-2b", "other-ocr")).toBeNull();
+    expect(tierFor(undefined, "a", "b")).toBeNull();
+  });
+});
+
+describe("figures", () => {
+  it("prints sizes with one decimal, and null for an unmeasured one", () => {
+    expect(oneDecimal(3)).toBe("3.0");
+    expect(oneDecimal(14.5)).toBe("14.5");
+    expect(oneDecimal(2.64)).toBe("2.6");
+    expect(oneDecimal(null)).toBeNull();
+    expect(oneDecimal(undefined)).toBeNull();
+    expect(oneDecimal(Number.NaN)).toBeNull();
+  });
+
+  it("reads an answer time in seconds under a minute and a half, else in minutes", () => {
+    expect(answerTime(134)).toEqual({ unit: "min", n: 2 });
+    expect(answerTime(45.4)).toEqual({ unit: "sec", n: 45 });
+    expect(answerTime(89)).toEqual({ unit: "sec", n: 89 });
+    expect(answerTime(null)).toBeNull();
+    expect(answerTime(0)).toBeNull();
+  });
+
+  it("gives every size of today's config a hardware line, and the two ends a badge", () => {
+    expect(TIERS.map((tier) => tierHardware(tier.id))).toEqual([
+      "setup_tier_hw_light",
+      "setup_tier_hw_light",
+      "setup_tier_hw_medium",
+      "setup_tier_hw_large",
+    ]);
+    expect(TIERS.map((tier) => tierBadge(tier.id))).toEqual([
+      "setup_tier_badge_light",
+      "setup_tier_badge_light",
+      "",
+      "setup_tier_badge_best",
+    ]);
+    expect(tierHardware("huge")).toBe("");
+  });
+});
+
+describe("tierOnServer", () => {
+  const served = [
+    { id: "glm-ocr", status: "loaded" },
+    { id: "minicpm5-2b", status: "unloaded" },
+    { id: "qwen3.8-27b", status: "loaded" },
+    { id: "openbmb/MiniCPM5-2B-GGUF:Q4_K_M", status: "ready" },
+  ];
+
+  it("is loaded when both models are", () => {
+    expect(tierOnServer(TIERS[3], served)).toBe("loaded");
+  });
+
+  it("is unloaded while either is listed but not loaded: the server can fetch it", () => {
+    expect(tierOnServer(TIERS[1], served)).toBe("unloaded");
+    expect(tierOnServer(TIERS[1], [{ id: "glm-ocr", status: "loading" }, { id: "minicpm5-2b", status: "loaded" }])).toBe(
+      "unloaded",
+    );
+  });
+
+  it("is missing when either is not listed, a cached file under its repo id included", () => {
+    expect(tierOnServer(TIERS[0], served)).toBe("missing");
+    expect(tierOnServer(TIERS[1], [{ id: "openbmb/MiniCPM5-2B-GGUF:Q4_K_M", status: "ready" }, { id: "glm-ocr", status: "loaded" }])).toBe(
+      "missing",
+    );
+    expect(tierOnServer(TIERS[1], undefined)).toBe("missing");
+  });
+
+  it("offers the preset's models by name, not the cache's repo ids", () => {
+    expect(presetModels(served).map((m) => m.id)).toEqual(["glm-ocr", "minicpm5-2b", "qwen3.8-27b"]);
+    expect(presetModels(undefined)).toEqual([]);
   });
 });

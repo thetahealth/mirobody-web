@@ -446,41 +446,120 @@
 
 /* ---- local models ---- */
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-
-.stat {
+// Four sizes, smallest first. Each says what it downloads, the memory it
+// held and the time an answer took where someone measured them, and "not
+// measured yet" where nobody has.
+.sizes {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 16px 18px;
-  border-radius: 14px;
-  background-color: var(--color-bg-soft);
+  gap: 12px;
 }
 
-.statLabel {
-  display: inline-flex;
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.tier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background-color: var(--color-bg-light);
+  color: var(--color-text-primary);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--t-fast),
+    box-shadow var(--t-fast);
+
+  &:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+}
+
+.tierOn,
+.tierOn:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.tierHead {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.tierName {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.tierBadge {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tierModels {
+  max-width: 100%;
+  font-family: var(--font-mono);
   font-size: 12px;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.tierFacts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.tierFact {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tierFactLabel {
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--color-text-muted);
 }
 
-.statValue {
-  margin-top: 2px;
-  font-size: 26px;
-  font-weight: 650;
-  line-height: 1.15;
-  color: var(--color-navy);
-  font-variant-numeric: tabular-nums;
+.unmeasured {
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
-.statHint {
+.tierMeasured {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.tierHardware {
   font-size: 12px;
   line-height: 1.45;
   color: var(--color-text-secondary);
@@ -554,6 +633,11 @@
 .pillWait {
   background-color: var(--color-warning-bg);
   color: var(--color-warning-text);
+}
+
+.pillMissing {
+  background-color: var(--color-bg-soft);
+  color: var(--color-text-muted);
 }
 
 .segmented {
@@ -671,7 +755,8 @@
     user-select: none;
   }
 
-  .modelField {
+  .modelField,
+  .roles {
     margin-top: 10px;
   }
 }
@@ -1057,6 +1142,9 @@
     grid-template-columns: 1fr;
     gap: 28px;
   }
+  .tiers {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1071,32 +1159,11 @@
   .lead {
     font-size: 15px;
   }
-  .choices,
-  .stats {
+  .choices {
     grid-template-columns: 1fr;
   }
   .choice {
     padding: 20px 18px 14px;
-  }
-  .stats {
-    gap: 8px;
-  }
-  // One line per figure: label left, value right, hint under both.
-  .stat {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: baseline;
-    column-gap: 12px;
-    padding: 12px 14px;
-  }
-  .statValue {
-    grid-row: 1;
-    grid-column: 2;
-    margin: 0;
-    font-size: 19px;
-  }
-  .statHint {
-    grid-column: 1 / -1;
   }
   .panel {
     padding: 20px 18px;
@@ -1129,7 +1196,8 @@
 }
 
 @include response(mobile) {
-  .providers {
+  .providers,
+  .tiers {
     grid-template-columns: 1fr;
   }
   .findRow {

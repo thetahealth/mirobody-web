@@ -13,7 +13,6 @@ import {
   IconCpu,
   IconDatabase,
   IconDeviceDesktop,
-  IconDownload,
   IconExternalLink,
   IconFileText,
   IconKey,
@@ -35,6 +34,7 @@ import wordmark from "../../assets/logo-wordmark-light.svg";
 import LanguageSwitch from "../Login/components/LanguageSwitch";
 import { loginReturningTo } from "../Login/returnPath";
 import {
+  answerTime,
   badModelName,
   captureSetupToken,
   guessPlatform,
@@ -48,18 +48,25 @@ import {
   needsSignIn,
   notServed,
   offersDefault,
+  oneDecimal,
+  pickTier,
+  presetModels,
   rememberSetupToken,
   saveFailure,
   servedChoices,
   skipSetup,
   startCommand,
+  tierBadge,
+  tierFor,
+  tierHardware,
+  tierOnServer,
 } from "./setup";
 import styles from "./index.module.scss";
 
 // A page a person opens, not a request the app makes: the guide lives in the
 // backend repo, next to the compose profiles it explains.
 const GUIDE_URL = "https://github.com/thetahealth/mirobody/blob/main/docs/local-models.md";
-const PLATFORMS = ["mac", "gpu", "cpu", "other"];
+const PLATFORMS = ["mac", "windows", "gpu", "cpu", "other"];
 // The preset the backend ships, for a server that does not say which it uses.
 const DEFAULT_PRESET = "docker/local-models.ini";
 // How often the page asks again while a local model downloads or loads.
@@ -94,7 +101,8 @@ export default function Setup() {
   const [utilsModel, setUtilsModel] = useState("");
   const [platform, setPlatform] = useState(guessPlatform);
   const [baseUrl, setBaseUrl] = useState("");
-  // What the local server said it serves, and the models chosen from it.
+  // The local pair: a size sets both, "Other model" either one. A lookup of
+  // the server says which of them it has.
   const [found, setFound] = useState(null);
   const [finding, setFinding] = useState(false);
   const [findError, setFindError] = useState(null);
@@ -141,6 +149,9 @@ export default function Setup() {
         setProvider(preselected?.key || "");
         setChatModel(modelDraft(preselected?.chat_model));
         setUtilsModel(modelDraft(preselected?.utils_model));
+        const tier = (first.local?.tiers || []).find((t) => t.id === pickTier(first.local));
+        setAgentChoice(tier?.agent || modelDraft(first.local?.model_fields?.agent));
+        setOcrChoice(tier?.ocr || modelDraft(first.local?.model_fields?.ocr));
         if (first.local?.configured) setMode("local");
         setFirstRun(!!first.needed);
       })
@@ -179,6 +190,12 @@ export default function Setup() {
   const edited = () => {
     setSavedMode(null);
     setError(null);
+  };
+
+  const pickSize = (tier) => {
+    setAgentChoice(tier.agent);
+    setOcrChoice(tier.ocr || "");
+    edited();
   };
 
   const pickProvider = (p) => {
@@ -226,11 +243,8 @@ export default function Setup() {
       setFinding(true);
       setFindError(null);
       edited();
-      const result = await api.findLocalServer(baseUrl.trim(), token);
-      const first = result.served?.[0]?.id || "";
-      setFound(result);
-      setAgentChoice(fields.agent?.model || result.models?.agent || first);
-      setOcrChoice(fields.ocr?.model || result.models?.ocr || first);
+      // The pair stays as chosen: the lookup says whether the server has it.
+      setFound(await api.findLocalServer(baseUrl.trim(), token));
     } catch (err) {
       consola.error("ERROR: findLocalServer", err?.code ?? err?.name);
       const failure = saveFailure(err, "find");
@@ -291,14 +305,14 @@ export default function Setup() {
         }),
       );
     } else {
-      // The models are chosen only from what a found server serves; without a
-      // lookup, the server searches its usual addresses for the ones in use.
+      // The address that answered the lookup, else the one typed, else the
+      // server tries its usual ones. It refuses a pair the server lacks.
       save(
         localChoice({
           baseUrl: found?.base_url || baseUrl,
-          agentField: found ? fields.agent : null,
+          agentField: fields.agent,
           agentChosen: agentChoice,
-          ocrField: found ? fields.ocr : null,
+          ocrField: fields.ocr,
           ocrChosen: ocrChoice,
         }),
       );
@@ -323,6 +337,32 @@ export default function Setup() {
       (mode === "local" ? missing.length === 0 : Boolean(provider && apiKey.trim() && !badName));
     const mustSignIn = signInRefused || needsSignIn({ needed: setup.needed, signedIn });
     const candidates = local.candidates || [];
+    const tiers = local.tiers || [];
+    const selectedTier = tierFor(tiers, agentChoice, ocrChoice);
+    const pairOnServer = found && selectedTier ? tierOnServer(selectedTier, found.served) : "";
+    // Step numbers shift by one when there are sizes to choose first.
+    const step = tiers.length > 0 ? 1 : 0;
+    // What runs: the pair chosen, with its state where one is known (the
+    // lookup's answer, or the status of the models set up now).
+    const servedStatus = new Map((found?.served || []).map((m) => [m.id, m.status]));
+    const statusOf = (model, role) =>
+      found
+        ? servedStatus.get(model) || "missing"
+        : local.configured && model === local.models?.[role]
+          ? local.status?.[role] || "missing"
+          : "";
+    const pair = agentChoice
+      ? [
+          { model: agentChoice, reads: false, status: statusOf(agentChoice, "agent") },
+          ...(ocrChoice && ocrChoice !== agentChoice
+            ? [{ model: ocrChoice, reads: true, status: statusOf(ocrChoice, "ocr") }]
+            : []),
+        ]
+      : models.map((m) => ({
+          model: m.model,
+          reads: m.model === local.models?.ocr,
+          status: local.configured ? m.status : "",
+        }));
 
     body = (
       <>
@@ -384,7 +424,7 @@ export default function Setup() {
               [
                 <IconCpu size={15} stroke={1.8} />,
                 t("setup_row_needs"),
-                t("setup_local_needs", { gb: local.memory_gb }),
+                t("setup_local_needs"),
               ],
             ]}
             onSelect={() => {
@@ -494,54 +534,49 @@ export default function Setup() {
             </div>
           ) : (
             <>
-              <div className={styles.stats}>
-                <Stat
-                  icon={<IconDownload size={18} stroke={1.8} aria-hidden="true" />}
-                  label={t("setup_stat_download")}
-                  value={`${local.download_gb} GB`}
-                  hint={t("setup_stat_download_hint")}
-                />
-                <Stat
-                  icon={<IconCpu size={18} stroke={1.8} aria-hidden="true" />}
-                  label={t("setup_stat_memory")}
-                  value={`~${local.memory_gb} GB`}
-                  hint={t("setup_stat_memory_hint")}
-                />
-                <Stat
-                  icon={<IconClock size={18} stroke={1.8} aria-hidden="true" />}
-                  label={t("setup_stat_speed")}
-                  value={t("setup_stat_speed_value")}
-                  hint={t("setup_stat_speed_hint")}
-                />
-              </div>
+              {tiers.length > 0 && (
+                <div className={styles.sizes}>
+                  <Step n={1}>{t("setup_tier_title")}</Step>
+                  <p className={styles.hint}>{t("setup_tier_intro")}</p>
+                  <div className={styles.tiers} role="radiogroup" aria-label={t("setup_tier_title")}>
+                    {tiers.map((tier) => (
+                      <TierCard
+                        key={tier.id}
+                        tier={tier}
+                        on={selectedTier?.id === tier.id}
+                        onServer={found ? tierOnServer(tier, found.served) : ""}
+                        onSelect={() => pickSize(tier)}
+                        t={t}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className={styles.columns}>
                 <div className={styles.column}>
-                  <Step n={1}>{t("setup_local_what")}</Step>
+                  <Step n={step + 1}>{t("setup_local_what")}</Step>
                   <ul className={styles.models}>
-                    {models.map((m) => {
-                      const reads = m.model === local.models?.ocr;
-                      return (
-                        <li key={m.model}>
-                          <span className={styles.modelIcon}>
-                            {reads ? (
-                              <IconFileText size={18} stroke={1.8} aria-hidden="true" />
-                            ) : (
-                              <IconMessageCircle size={18} stroke={1.8} aria-hidden="true" />
-                            )}
-                          </span>
-                          <span className={styles.modelText}>
-                            <code>{m.model}</code>
-                            <small>{t(reads ? "setup_local_role_ocr" : "setup_local_role_agent")}</small>
-                          </span>
-                          {local.configured && <StatusPill status={m.status} t={t} />}
-                        </li>
-                      );
-                    })}
+                    {pair.map((m) => (
+                      <li key={m.model}>
+                        <span className={styles.modelIcon}>
+                          {m.reads ? (
+                            <IconFileText size={18} stroke={1.8} aria-hidden="true" />
+                          ) : (
+                            <IconMessageCircle size={18} stroke={1.8} aria-hidden="true" />
+                          )}
+                        </span>
+                        <span className={styles.modelText}>
+                          <code>{m.model}</code>
+                          <small>{t(m.reads ? "setup_local_role_ocr" : "setup_local_role_agent")}</small>
+                        </span>
+                        {m.status && <StatusPill status={m.status} t={t} />}
+                      </li>
+                    ))}
                   </ul>
                   <p className={styles.hint}>{t("setup_local_open")}</p>
                 </div>
                 <div className={styles.column}>
-                  <Step n={2}>{t("setup_local_start")}</Step>
+                  <Step n={step + 2}>{t("setup_local_start")}</Step>
                   {local.configured ? (
                     <div className={cx(styles.notice, waiting ? styles.noticeWait : styles.noticeOk)}>
                       {waiting ? (
@@ -586,6 +621,9 @@ export default function Setup() {
                           </pre>
                         </div>
                       )}
+                      {command.includes("--models-max") && (
+                        <p className={styles.hint}>{t("setup_local_models_max")}</p>
+                      )}
                       <a href={GUIDE_URL} target="_blank" rel="noreferrer" className={styles.link}>
                         {t("setup_local_guide")}
                         <IconExternalLink size={13} stroke={1.8} aria-hidden="true" />
@@ -596,7 +634,7 @@ export default function Setup() {
               </div>
 
               <div className={styles.find}>
-                <Step n={3}>{t("setup_find_title")}</Step>
+                <Step n={step + 3}>{t("setup_find_title")}</Step>
                 <p className={styles.hint}>{t("setup_find_intro")}</p>
                 <label className={styles.fieldLabel} htmlFor="setup-base-url">
                   {t("setup_local_address")}
@@ -638,32 +676,43 @@ export default function Setup() {
                       <IconCircleCheckFilled size={16} aria-hidden="true" />
                       {t("setup_find_found", { url: found.base_url })}
                     </p>
-                    <div className={styles.roles}>
-                      <RoleSelect
-                        id="setup-agent-model"
-                        label={t("setup_role_agent")}
-                        field={fields.agent}
-                        choices={servedChoices(found.served, fields.agent?.model)}
-                        value={agentChoice}
-                        onChange={(value) => {
-                          setAgentChoice(value);
-                          edited();
-                        }}
-                        t={t}
-                      />
-                      <RoleSelect
-                        id="setup-ocr-model"
-                        label={t("setup_role_ocr")}
-                        field={fields.ocr}
-                        choices={servedChoices(found.served, fields.ocr?.model)}
-                        value={ocrChoice}
-                        onChange={(value) => {
-                          setOcrChoice(value);
-                          edited();
-                        }}
-                        t={t}
-                      />
-                    </div>
+                    {pairOnServer && pairOnServer !== "missing" && (
+                      <div className={cx(styles.notice, pairOnServer === "loaded" ? styles.noticeOk : styles.noticeWait)}>
+                        <IconCircleCheckFilled size={18} aria-hidden="true" />
+                        <span>{t(pairOnServer === "loaded" ? "setup_pair_loaded" : "setup_pair_unloaded")}</span>
+                      </div>
+                    )}
+                    {/* Any model the preset serves, for a pair no size makes
+                        up. Open on its own when the pair is already one. */}
+                    <details className={styles.advanced} open={!selectedTier || undefined}>
+                      <summary>{t("setup_other_model")}</summary>
+                      <div className={styles.roles}>
+                        <RoleSelect
+                          id="setup-agent-model"
+                          label={t("setup_role_agent")}
+                          field={fields.agent}
+                          choices={servedChoices(presetModels(found.served), agentChoice)}
+                          value={agentChoice}
+                          onChange={(value) => {
+                            setAgentChoice(value);
+                            edited();
+                          }}
+                          t={t}
+                        />
+                        <RoleSelect
+                          id="setup-ocr-model"
+                          label={t("setup_role_ocr")}
+                          field={fields.ocr}
+                          choices={servedChoices(presetModels(found.served), ocrChoice)}
+                          value={ocrChoice}
+                          onChange={(value) => {
+                            setOcrChoice(value);
+                            edited();
+                          }}
+                          t={t}
+                        />
+                      </div>
+                    </details>
                     {missing.length > 0 && (
                       <p className={styles.warn} role="alert">
                         {t("setup_not_served", { models: missing.join(", ") })}
@@ -904,16 +953,64 @@ function Step({ n, children }) {
   );
 }
 
-function Stat({ icon, label, value, hint }) {
+/** One size: what it runs, what it takes, and where that was measured. */
+function TierCard({ tier, on, onServer, onSelect, t }) {
+  const badge = tierBadge(tier.id);
+  const hardware = tierHardware(tier.id);
+  const download = oneDecimal(tier.download_gb);
+  const memory = oneDecimal(tier.memory_gb);
+  const answer = answerTime(tier.answer_s);
+  // Null is unmeasured: said so, never filled with an estimate.
+  const unmeasured = <span className={styles.unmeasured}>{t("setup_tier_unmeasured")}</span>;
   return (
-    <div className={styles.stat}>
-      <span className={styles.statLabel}>
-        {icon}
-        {label}
+    <button
+      type="button"
+      role="radio"
+      aria-checked={on}
+      className={cx(styles.tier, on && styles.tierOn)}
+      onClick={onSelect}
+    >
+      <span className={styles.tierHead}>
+        <span className={styles.tierName}>{t(`setup_tier_name_${tier.id}`, { defaultValue: tier.id })}</span>
+        {badge && <span className={styles.tierBadge}>{t(badge)}</span>}
       </span>
-      <span className={styles.statValue}>{value}</span>
-      <span className={styles.statHint}>{hint}</span>
-    </div>
+      <code className={styles.tierModels}>{tier.ocr ? `${tier.agent} + ${tier.ocr}` : tier.agent}</code>
+      <span className={styles.tierFacts}>
+        <TierFact label={t("setup_tier_download")}>{download ? `${download} GB` : unmeasured}</TierFact>
+        <TierFact label={t("setup_tier_memory")}>{memory ? `${memory} GB` : unmeasured}</TierFact>
+        <TierFact label={t("setup_tier_answer")}>
+          {answer
+            ? t(answer.unit === "min" ? "setup_tier_answer_min" : "setup_tier_answer_sec", { n: answer.n })
+            : unmeasured}
+        </TierFact>
+        <TierFact label={t("setup_tier_photos")}>
+          {t(tier.sees ? "setup_tier_sees" : "setup_tier_text_only")}
+        </TierFact>
+      </span>
+      {(memory || answer) && tier.measured_on && (
+        <span className={styles.tierMeasured}>{t("setup_tier_measured_on", { machine: tier.measured_on })}</span>
+      )}
+      {hardware && <span className={styles.tierHardware}>{t(hardware)}</span>}
+      {onServer && (
+        <span
+          className={cx(
+            styles.pill,
+            onServer === "loaded" ? styles.pillOk : onServer === "unloaded" ? styles.pillWait : styles.pillMissing,
+          )}
+        >
+          {t(`setup_tier_${onServer}`)}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function TierFact({ label, children }) {
+  return (
+    <span className={styles.tierFact}>
+      <span className={styles.tierFactLabel}>{label}</span>
+      <span>{children}</span>
+    </span>
   );
 }
 

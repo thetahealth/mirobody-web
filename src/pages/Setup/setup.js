@@ -79,23 +79,37 @@ export const sendsToSetup = ({ modelSetup, pathname, skipped }) =>
   !skipped &&
   !SETUP_EXEMPT_PATHS.some((path) => pathname.startsWith(path));
 
-/** The local-models tab a visitor most likely needs: a Mac runs llama.cpp itself, anything else an NVIDIA container. */
+/**
+ * The local-models tab a visitor most likely needs: a Mac or a Windows PC runs
+ * llama.cpp itself (Metal there, Vulkan here), anything else the NVIDIA
+ * container.
+ */
 export function guessPlatform(nav = navigator) {
   const platform = nav?.userAgentData?.platform || nav?.platform || "";
-  return /mac/i.test(platform) ? "mac" : "gpu";
+  if (/mac/i.test(platform)) return "mac";
+  if (/win/i.test(platform)) return "windows";
+  return "gpu";
 }
 
 /**
  * What starts the model server, run in the mirobody folder (docs/local-models.md
  * in the backend repo). "other" has no one command; the guide has the steps.
  *
- * @param {"mac" | "gpu" | "cpu" | "other"} platform
+ * `--models-max 2` keeps one answering model and the document reader loaded,
+ * so choosing another size unloads the one before instead of holding both;
+ * the compose profiles pass it themselves.
+ *
+ * @param {"mac" | "windows" | "gpu" | "cpu" | "other"} platform
  * @param {string} preset - the llama.cpp models preset the server ships
  */
 export function startCommand(platform, preset) {
   switch (platform) {
     case "mac":
-      return `brew install llama.cpp\nllama-server --models-preset ${preset} --port 8080`;
+      return `brew install llama.cpp\nllama-server --models-preset ${preset} --port 8080 --models-max 2`;
+    case "windows":
+      // winget's llama.cpp is the Vulkan build: it uses an Intel, AMD or NVIDIA
+      // GPU, else the CPU. The preset path is relative, in Windows' separators.
+      return `winget install --id ggml.llamacpp\nllama-server --models-preset ${preset.replaceAll("/", "\\")} --port 8080 --models-max 2`;
     case "gpu":
       return "docker compose --profile local up -d";
     case "cpu":
@@ -104,6 +118,89 @@ export function startCommand(platform, preset) {
       return "";
   }
 }
+
+/*
+ * Sizes. `GET /api/setup`'s `local.tiers`, smallest first: each an answering
+ * model beside the document reader, with what it downloads, the memory it
+ * held and the seconds an answer took on the machine named. A figure nobody
+ * has measured is null, and the page says so instead of guessing one.
+ */
+
+/**
+ * The size the page opens on: the one running here, else "small".
+ *
+ * "Running here" needs local models set up, or LOCAL_MODEL naming one.
+ * Before that the agent's model is only config.llm.yaml's default for an
+ * entry nothing calls yet, and that default is the large model: opening a
+ * new deployment on it would point an ordinary computer at 20 GB.
+ *
+ * @param {object} local - `GET /api/setup`'s `local`
+ * @returns {string} a tier id, or "" when the server offers none
+ */
+export function pickTier(local) {
+  const tiers = local?.tiers || [];
+  const field = local?.model_fields?.agent;
+  const current = field?.model || local?.models?.agent || "";
+  const chosen = Boolean(local?.configured) || Boolean(field?.model && field?.default && field.model !== field.default);
+  const running = chosen ? tiers.find((tier) => tier.agent === current) : null;
+  return (running || tiers.find((tier) => tier.id === "small") || tiers[0])?.id || "";
+}
+
+/** The tier a pair of models makes up, if it is one. */
+export const tierFor = (tiers, agent, ocr) =>
+  (tiers || []).find((tier) => tier.agent === agent && (tier.ocr || "") === (ocr || "")) || null;
+
+/** A size in GB with one decimal, or null when unmeasured. */
+export const oneDecimal = (n) => (typeof n === "number" && Number.isFinite(n) ? n.toFixed(1) : null);
+
+/**
+ * Seconds per answer, the way a person reads it: seconds under a minute and
+ * a half, else whole minutes. Null when unmeasured.
+ *
+ * @returns {{unit: "sec" | "min", n: number} | null}
+ */
+export function answerTime(seconds) {
+  if (typeof seconds !== "number" || !Number.isFinite(seconds) || seconds <= 0) return null;
+  return seconds < 90 ? { unit: "sec", n: Math.round(seconds) } : { unit: "min", n: Math.round(seconds / 60) };
+}
+
+// What a size needs, by its id: the two small ones run anywhere.
+const TIER_HARDWARE = {
+  tiny: "setup_tier_hw_light",
+  small: "setup_tier_hw_light",
+  medium: "setup_tier_hw_medium",
+  large: "setup_tier_hw_large",
+};
+const TIER_BADGE = { tiny: "setup_tier_badge_light", small: "setup_tier_badge_light", large: "setup_tier_badge_best" };
+
+/** The i18n key of a size's hardware line, or "" for an id the page does not know. */
+export const tierHardware = (id) => TIER_HARDWARE[id] || "";
+
+/** The i18n key of a size's badge, or "". */
+export const tierBadge = (id) => TIER_BADGE[id] || "";
+
+/**
+ * Where a size stands on a found server: "loaded", "unloaded" (listed, so
+ * the server can fetch it: Mirobody asks it to load the pair after a save,
+ * and the first load downloads it) or "missing".
+ *
+ * @param {{agent: string, ocr?: string}} tier
+ * @param {{id: string, status: string}[]} served
+ */
+export function tierOnServer(tier, served) {
+  const status = new Map((served || []).map((m) => [m.id, m.status]));
+  const ids = [tier?.agent, tier?.ocr].filter(Boolean);
+  if (!ids.length || ids.some((id) => !status.has(id))) return "missing";
+  return ids.every((id) => isReady(status.get(id))) ? "loaded" : "unloaded";
+}
+
+/**
+ * The served models a person may pick by name: the preset's sections. A
+ * llama.cpp router also lists what its cache holds, under Hugging Face repo
+ * ids ("openbmb/MiniCPM5-2B-GGUF:Q4_K_M"); those are files, not models the
+ * preset configures, and no entry asks for them by that name.
+ */
+export const presetModels = (served) => (served || []).filter((m) => m?.id && !/[/:]/.test(m.id));
 
 /**
  * The local models, once each: `agent` and `utils` usually name the same one,
