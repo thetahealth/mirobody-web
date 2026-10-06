@@ -457,7 +457,7 @@
 
 .tiers {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
@@ -1141,9 +1141,6 @@
   .columns {
     grid-template-columns: 1fr;
     gap: 28px;
-  }
-  .tiers {
-    grid-template-columns: 1fr 1fr;
   }
 }
 

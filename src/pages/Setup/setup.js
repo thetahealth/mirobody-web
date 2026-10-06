@@ -168,7 +168,6 @@ export function answerTime(seconds) {
 const TIER_HARDWARE = {
   tiny: "setup_tier_hw_light",
   small: "setup_tier_hw_light",
-  medium: "setup_tier_hw_medium",
   large: "setup_tier_hw_large",
 };
 const TIER_BADGE = { tiny: "setup_tier_badge_light", small: "setup_tier_badge_light", large: "setup_tier_badge_best" };

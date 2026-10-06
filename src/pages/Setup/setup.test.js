@@ -451,14 +451,13 @@ describe("served models", () => {
 const TIERS = [
   { id: "tiny", agent: "minicpm5-1b", ocr: "glm-ocr", sees: false, download_gb: 2.6, memory_gb: null, answer_s: null, checks: null, measured_on: null },
   { id: "small", agent: "minicpm5-2b", ocr: "glm-ocr", sees: false, download_gb: 3, memory_gb: null, answer_s: null, checks: null, measured_on: null },
-  { id: "medium", agent: "qwen3.5-9b", ocr: "glm-ocr", sees: true, download_gb: 8, memory_gb: null, answer_s: null, checks: null, measured_on: null },
   { id: "large", agent: "qwen3.8-27b", ocr: "glm-ocr", sees: true, download_gb: 14.5, memory_gb: 20, answer_s: 134, checks: null, measured_on: "Apple M4 Pro, 48 GB" },
 ];
 const agentField = (model, def = "qwen3.8-27b") => ({ model, default: def, env: "LOCAL_MODEL", in_env_file: false });
 
 describe("pickTier", () => {
   it("opens on the size running here once local models are set up", () => {
-    expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("qwen3.5-9b") } })).toBe("medium");
+    expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("minicpm5-1b") } })).toBe("tiny");
     expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("qwen3.8-27b") } })).toBe("large");
   });
 
@@ -477,7 +476,7 @@ describe("pickTier", () => {
 
   it("opens on small when what runs is no size, and on the first when there is no small", () => {
     expect(pickTier({ tiers: TIERS, configured: true, model_fields: { agent: agentField("my-own-model") } })).toBe("small");
-    expect(pickTier({ tiers: [TIERS[2], TIERS[3]], configured: true, models: { agent: "x" } })).toBe("medium");
+    expect(pickTier({ tiers: [TIERS[2], TIERS[0]], configured: true, models: { agent: "x" } })).toBe("large");
     expect(pickTier({ tiers: [] })).toBe("");
     expect(pickTier(undefined)).toBe("");
   });
@@ -513,13 +512,11 @@ describe("figures", () => {
     expect(TIERS.map((tier) => tierHardware(tier.id))).toEqual([
       "setup_tier_hw_light",
       "setup_tier_hw_light",
-      "setup_tier_hw_medium",
       "setup_tier_hw_large",
     ]);
     expect(TIERS.map((tier) => tierBadge(tier.id))).toEqual([
       "setup_tier_badge_light",
       "setup_tier_badge_light",
-      "",
       "setup_tier_badge_best",
     ]);
     expect(tierHardware("huge")).toBe("");
@@ -535,7 +532,7 @@ describe("tierOnServer", () => {
   ];
 
   it("is loaded when both models are", () => {
-    expect(tierOnServer(TIERS[3], served)).toBe("loaded");
+    expect(tierOnServer(TIERS[2], served)).toBe("loaded");
   });
 
   it("is unloaded while either is listed but not loaded: the server can fetch it", () => {
