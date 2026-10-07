@@ -84,9 +84,12 @@ export const getPrompts = ({ signal }) => {
   });
 };
 
-// get /api/models
+// get /api/models — with `labels=1` each entry is `{name, model}` rather than a
+// bare name, so the picker can show "minicpm5-2b" where it showed "local"
+// (utils/modelLabels.js).
 export const getModels = ({ signal }) => {
   return mcpRequestInstance.get("/api/models", {
+    params: { labels: 1 },
     signal,
   });
 };

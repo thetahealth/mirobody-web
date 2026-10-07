@@ -51,6 +51,10 @@ export const useSystemStore = create(
     isShowMedications: false,
     // Registering takes a code sent to the address (the server sends mail).
     isSignupCodeOn: false,
+    // "needed" while no chat model works (RootLayout sends the page to /setup),
+    // "ready" once one does. Empty from a server without the first-run page,
+    // which also hides Settings › Model.
+    modelSetup: "",
     initMirobodyConfig: async () => {
       try {
         const data = await api.getMirobodyConfig();
@@ -58,6 +62,7 @@ export const useSystemStore = create(
           state.isShowAPIConfig = !!data.__IS_API_CONFIG_ON__;
           state.isShowWebAuthn = !!data.__IS_WEBAUTHN_ON__;
           state.isSignupCodeOn = !!data.__IS_SIGNUP_CODE_ON__;
+          state.modelSetup = data.__MODEL_SETUP__ || "";
           const demo = data.__DEMO_SIGN_IN__;
           state.demoSignIn = demo?.email && demo?.code ? { email: demo.email, code: demo.code } : null;
           // Absent key ≠ off (see above): only an explicit false hides it.

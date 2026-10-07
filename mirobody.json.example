@@ -3,5 +3,6 @@
   "__IS_API_CONFIG_ON__": true,
   "__IS_WEBAUTHN_ON__": false,
   "__IS_MOBILE_SOURCE_ON__": true,
+  "__MODEL_SETUP__": "ready",
   "__IS_NEW_FEATURES_ON__": []
 }

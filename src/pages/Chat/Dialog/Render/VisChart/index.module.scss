@@ -76,3 +76,31 @@
     opacity: 0.55;
   }
 }
+
+/* A block that could not be drawn: a quiet note in place of the chart, with
+   what the block held one click away, rather than a blank gap. */
+.failed {
+  padding: 10px 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+
+  p {
+    margin: 0;
+  }
+
+  summary {
+    margin-top: 6px;
+    cursor: pointer;
+  }
+
+  pre {
+    margin: 6px 0 0;
+    max-height: 240px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 12px;
+  }
+}

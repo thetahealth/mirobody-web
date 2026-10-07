@@ -29,7 +29,7 @@ npm run dev            # http://localhost:5173
 configure. Point it elsewhere with `VITE_DEV_PROXY_TARGET` in a `.env.local`.
 
 ```bash
-npm test               # vitest — the pure helpers (auth, report dates, i18n parity, chart folding)
+npm test               # vitest — the pure helpers (auth, report dates, setup, i18n parity, chart folding)
 npm run lint           # eslint
 npm run build          # production bundle into dist/
 npm run analyze        # same build + a bundle treemap in dist/stats.html
@@ -87,7 +87,7 @@ src/
   api/         one module per backend surface (chat, data, indicators, mcp, upload, …)
   service/     axios instance, interceptors, SSE reader
   store/       zustand stores (chat, drive, upload, account, system, …)
-  pages/       Chat (/ask) · Drive (/data) · Home · Login · Share · Developer
+  pages/       Chat (/ask) · Drive (/data) · Home · Login · Setup · Share · Developer
   components/  shared UI — modals, form items, file items, header
   router/      routes, protected layout, legacy redirects
   utils/       auth, session manager, websocket manager, i18n, file helpers
@@ -96,9 +96,20 @@ src/
 docs/          implementation notes (vis-chart rendering)
 ```
 
-Client-side routes: `/login`, `/mcplogin`, `/share/:shareSessionId`, `/ask`,
-`/ask/:sessionId`, `/data`, `/home`, plus `/chat`, `/chat/:sessionId` and
-`/drive` as legacy redirects, and `/developer` when `VITE_CDM_URL` is set.
+Client-side routes: `/login`, `/mcplogin`, `/setup`, `/share/:shareSessionId`,
+`/ask`, `/ask/:sessionId`, `/data`, `/home`, plus `/chat`, `/chat/:sessionId`
+and `/drive` as legacy redirects, and `/developer` when `VITE_CDM_URL` is set.
+
+`/setup` is the first-run page: which model reads the deployment's data, a
+vendor's (one API key) or open models on the same machine, served by
+llama.cpp's `llama-server` in one of two sizes. While
+`/mirobody.json` says `"__MODEL_SETUP__": "needed"` every other page leads
+there, except the ones opened from a link made for someone (`/mcplogin`,
+`/share/…`, `/activate`); Settings › Model returns to it. It works signed out,
+because a new deployment has no account yet. Saving takes the setup token
+(`SETUP_TOKEN` in the `.env` next to `compose.yaml`; `./deploy.sh` prints a
+`/setup?token=…` link, and the page moves the token out of the URL into the
+tab's sessionStorage), and once a model is set up, a sign-in as well.
 
 ## Conventions
 

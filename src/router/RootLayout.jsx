@@ -1,6 +1,7 @@
-import { Outlet } from "react-router";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import { useSystemStore } from "../store/system";
 import { useEffect, Suspense } from "react";
+import { sendsToSetup, setupSkipped } from "../pages/Setup/setup.js";
 
 // Loading fallback component for lazy loaded routes
 function PageLoading() {
@@ -36,10 +37,22 @@ function PageLoading() {
 
 function RootLayout() {
   const initializeSystem = useSystemStore((state) => state.initializeSystem);
+  const modelSetup = useSystemStore((state) => state.modelSetup);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     initializeSystem();
   }, [initializeSystem]);
+
+  // Here, not in ProtectedLayout: a new deployment has no account yet, and
+  // the sign-in page is where it would otherwise stop. The setup page itself
+  // works signed out.
+  useEffect(() => {
+    if (sendsToSetup({ modelSetup, pathname, skipped: setupSkipped() })) {
+      navigate("/setup", { replace: true });
+    }
+  }, [modelSetup, pathname, navigate]);
 
   return (
     <Suspense fallback={<PageLoading />}>

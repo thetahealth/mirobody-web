@@ -181,8 +181,10 @@ const ModelDropdown = () => {
                   ) : (
                     <CheckboxUnchecked />
                   )}
+                  {/* The model the entry runs, as on the trigger above; the
+                      entry's name ("local") is only what gets sent. */}
                   <div className={styles.dropdown_item_text}>
-                    {model.provider || model.show_name}
+                    {model.show_name || model.provider}
                   </div>
                 </button>
               ))}
