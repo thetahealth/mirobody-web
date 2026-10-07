@@ -2,7 +2,7 @@
 // `{name, model}`. Framework-free so it unit-tests under the node-env vitest.
 //
 // An entry's NAME ("local", "openrouter") is what a chat request sends and what
-// a saved selection holds. The MODEL it runs ("qwen3.8-27b") is what a person
+// a saved selection holds. The MODEL it runs ("minicpm5-2b") is what a person
 // knows it by, and with the first-run page choosing the model, the name alone
 // no longer says which one answers: "local" is whatever the deployment's own
 // server runs. So the picker shows the model and still sends the name.

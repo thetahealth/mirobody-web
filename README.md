@@ -101,7 +101,8 @@ Client-side routes: `/login`, `/mcplogin`, `/setup`, `/share/:shareSessionId`,
 and `/drive` as legacy redirects, and `/developer` when `VITE_CDM_URL` is set.
 
 `/setup` is the first-run page: which model reads the deployment's data, a
-vendor's (one API key) or open models on the same machine. While
+vendor's (one API key) or open models on the same machine, served by
+llama.cpp's `llama-server` in one of two sizes. While
 `/mirobody.json` says `"__MODEL_SETUP__": "needed"` every other page leads
 there, except the ones opened from a link made for someone (`/mcplogin`,
 `/share/…`, `/activate`); Settings › Model returns to it. It works signed out,

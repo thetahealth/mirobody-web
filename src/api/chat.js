@@ -85,7 +85,7 @@ export const getPrompts = ({ signal }) => {
 };
 
 // get /api/models — with `labels=1` each entry is `{name, model}` rather than a
-// bare name, so the picker can show "qwen3.8-27b" where it showed "local"
+// bare name, so the picker can show "minicpm5-2b" where it showed "local"
 // (utils/modelLabels.js).
 export const getModels = ({ signal }) => {
   return mcpRequestInstance.get("/api/models", {
