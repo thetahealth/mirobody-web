@@ -81,14 +81,19 @@ export const sendsToSetup = ({ modelSetup, pathname, skipped }) =>
 
 /**
  * The local-models tab a visitor most likely needs: a Mac or a Windows PC runs
- * llama.cpp itself (Metal there, Vulkan here), anything else the NVIDIA
- * container.
+ * llama.cpp itself (Metal there, Vulkan here); anything else, Linux mostly,
+ * the no-GPU container, the 1.5.4 target of an ordinary computer. Most Linux
+ * desktops and servers people try this on have no NVIDIA GPU, and the page
+ * cannot tell: WebGL's renderer string and WebGPU's adapter name the GPU of
+ * the machine running the browser, which need not be the one running Docker,
+ * browsers may mask them, and a GPU says nothing of the NVIDIA Container
+ * Toolkit the `local` profile needs. The NVIDIA tab is one click away.
  */
 export function guessPlatform(nav = navigator) {
   const platform = nav?.userAgentData?.platform || nav?.platform || "";
   if (/mac/i.test(platform)) return "mac";
   if (/win/i.test(platform)) return "windows";
-  return "gpu";
+  return "cpu";
 }
 
 /**

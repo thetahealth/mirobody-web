@@ -146,13 +146,15 @@ describe("sendsToSetup", () => {
 });
 
 describe("guessPlatform", () => {
-  it("picks llama.cpp itself on a Mac or a Windows PC, and the GPU container elsewhere", () => {
+  it("picks llama.cpp itself on a Mac or a Windows PC, and the no-GPU container elsewhere", () => {
     expect(guessPlatform({ userAgentData: { platform: "macOS" } })).toBe("mac");
     expect(guessPlatform({ platform: "MacIntel" })).toBe("mac");
     expect(guessPlatform({ platform: "Win32" })).toBe("windows");
     expect(guessPlatform({ userAgentData: { platform: "Windows" } })).toBe("windows");
-    expect(guessPlatform({ userAgentData: { platform: "Linux" } })).toBe("gpu");
-    expect(guessPlatform({})).toBe("gpu");
+    expect(guessPlatform({ userAgentData: { platform: "Linux" } })).toBe("cpu");
+    expect(guessPlatform({ platform: "Linux x86_64" })).toBe("cpu");
+    expect(guessPlatform({ userAgentData: { platform: "Chrome OS" } })).toBe("cpu");
+    expect(guessPlatform({})).toBe("cpu");
   });
 });
 
