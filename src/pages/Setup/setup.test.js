@@ -451,8 +451,8 @@ describe("served models", () => {
 
 // `local.tiers` as config.llm.yaml writes it today.
 const TIERS = [
-  { id: "small", agent: "minicpm5-2b", ocr: "glm-ocr", sees: false, download_gb: 3, memory_gb: 5.7, answer_s: 28, checks: null, measured_on: "Apple M1 Pro, 16 GB" },
-  { id: "large", agent: "qwen3.8-27b", ocr: "glm-ocr", sees: true, download_gb: 14.5, memory_gb: 20, answer_s: 134, checks: null, measured_on: "Apple M4 Pro, 48 GB" },
+  { id: "small", agent: "minicpm5-2b", ocr: "glm-ocr", sees: false, download_gb: 3, memory_gb: 5.7, answer_s: 28, checks: null, measured_on: "Apple silicon GPU (Metal), 16 GB" },
+  { id: "large", agent: "qwen3.8-27b", ocr: "glm-ocr", sees: true, download_gb: 14.5, memory_gb: 20, answer_s: 134, checks: null, measured_on: "Apple silicon GPU (Metal), 48 GB" },
 ];
 const agentField = (model, def = "minicpm5-2b") => ({ model, default: def, env: "LOCAL_MODEL", in_env_file: false });
 
