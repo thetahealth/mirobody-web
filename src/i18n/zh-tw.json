@@ -882,6 +882,7 @@
   "cite_reported": "日記裡記的",
   "cite_lines": "第 {{start}}–{{end}} 行",
   "cite_reference": "參考資料 {{id}}",
+  "cite_open_source": "開啟來源",
   "cite_loading": "正在查找來源…",
   "cite_gone": "這筆讀數已被刪除。",
   "cite_unknown": "在這段對話裡找不到這個來源。",

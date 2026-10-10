@@ -46,6 +46,23 @@ function Reading({ row }) {
   );
 }
 
+// A medical-knowledge passage: public, so it opens in a new tab.
+function Reference({ id, row }) {
+  const { t } = useTranslation();
+  if (!row || row.status !== "ok") return <div className={styles.muted}>{t("cite_reference", { id })}</div>;
+  return (
+    <div className={styles.reading}>
+      <div className={styles.name}>{row.title}</div>
+      <div className={styles.muted}>
+        {row.source} ·{" "}
+        <a className={styles.file} href={row.url} target="_blank" rel="noopener noreferrer">
+          {t("cite_open_source")}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function Details({ id, row }) {
   const { t } = useTranslation();
   const kind = citeKind(id);
@@ -58,7 +75,7 @@ function Details({ id, row }) {
       </div>
     );
   }
-  if (kind === "ref") return <div className={styles.muted}>{t("cite_reference", { id })}</div>;
+  if (kind === "ref") return <Reference id={id} row={row} />;
   // `r0` or a made-up form: nothing to look up, so it never resolves.
   if (kind === "unknown") return <div className={styles.muted}>{t("cite_unknown")}</div>;
   if (row === null) return <div className={styles.muted}>{t("cite_private")}</div>;
@@ -93,11 +110,13 @@ export default function CiteChip({ id, label }) {
   const sessionId = useCitationSession();
   const row = useCitationStore((s) => s.resolved[sessionId]?.[id]);
   const request = useCitationStore((s) => s.request);
-  const isRow = citeKind(id) === "row";
+  const kind = citeKind(id);
+  const isRow = kind === "row";
+  const resolvable = isRow || kind === "ref";
   useEffect(() => {
-    if (isRow && sessionId) request(sessionId, id);
-  }, [isRow, sessionId, id, request]);
-  const gone = citeKind(id) === "unknown" || (row && row.status !== "ok");
+    if (resolvable && sessionId) request(sessionId, id);
+  }, [resolvable, sessionId, id, request]);
+  const gone = kind === "unknown" || (row && row.status !== "ok");
   return (
     <Popover
       trigger="click"
