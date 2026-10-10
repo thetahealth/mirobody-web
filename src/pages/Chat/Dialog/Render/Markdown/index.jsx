@@ -1,11 +1,16 @@
 import { memo } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import styles from "./index.module.scss";
 import { IconLink } from "@tabler/icons-react";
 import VisChart from "../VisChart";
 import { fenceClosed, normalizeChartFences } from "../VisChart/parseSource";
+import CiteChip from "../Citations/CiteChip";
+import { CITE_SCHEME, citationsToMarkdown, citeIdFromHref } from "../Citations/markup";
+
+// react-markdown drops a URL whose scheme it does not know; a cite is ours.
+const urlTransform = (url) => (url.startsWith(CITE_SCHEME) ? url : defaultUrlTransform(url));
 
 function Markdown({ content }) {
   const handleLinkClick = (href) => {
@@ -13,7 +18,8 @@ function Markdown({ content }) {
   };
   // A chart fenced twice (```vis-chart then ```json) is collapsed first, or
   // its stray closer turns the rest of the answer into a code block.
-  const source = normalizeChartFences(content);
+  // Citation markup becomes `[n](cite:<id>)` links, drawn as chips below.
+  const source = normalizeChartFences(citationsToMarkdown(content));
   return (
     <div className={styles.prose}>
       <ReactMarkdown
@@ -23,12 +29,15 @@ function Markdown({ content }) {
         // and models write exactly that in Chinese answers. This plugin
         // relaxes the delimiter test for CJK text.
         remarkPlugins={[remarkGfm, remarkCjkFriendly]}
+        urlTransform={urlTransform}
         components={{
           // The glyph marks it as a link; the label says where it goes. Only
           // the glyph was rendered before, so every link in an answer was the
           // same anonymous 20x20 square.
           a: (props) => {
             const { href, children } = props;
+            const citeId = citeIdFromHref(href);
+            if (citeId) return <CiteChip id={citeId} label={children} />;
             return (
               <span
                 className={styles.link}

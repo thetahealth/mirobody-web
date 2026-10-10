@@ -93,3 +93,10 @@ export const getModels = ({ signal }) => {
     signal,
   });
 };
+
+// what the rows an answer cites stand for now: GET /api/citations
+export const resolveCitations = ({ session_id, rids }) => {
+  return mcpRequestInstance.get("/api/citations", {
+    params: { session_id, rids: rids.join(",") },
+  });
+};

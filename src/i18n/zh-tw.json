@@ -875,5 +875,16 @@
   "setup_tier_missing": "伺服器上沒有",
   "setup_pair_loaded": "兩個模型都在這個伺服器上，已載入。",
   "setup_pair_unloaded": "兩個模型都在這個伺服器上，但還沒載入。Mirobody 會讓伺服器載入它們，第一次載入時會下載。",
-  "setup_other_model": "其他模型"
+  "setup_other_model": "其他模型",
+  "cite_open_file": "開啟原檔案",
+  "cite_device": "裝置記錄",
+  "cite_manual": "手動輸入",
+  "cite_reported": "日記裡記的",
+  "cite_lines": "第 {{start}}–{{end}} 行",
+  "cite_reference": "參考資料 {{id}}",
+  "cite_loading": "正在查找來源…",
+  "cite_gone": "這筆讀數已被刪除。",
+  "cite_unknown": "在這段對話裡找不到這個來源。",
+  "cite_private": "只有對話的主人能開啟來源。",
+  "cite_readings_n": "共 {{count}} 筆讀數"
 }

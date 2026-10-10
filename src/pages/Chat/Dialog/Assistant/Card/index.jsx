@@ -1,4 +1,5 @@
 import { CHART_MESSAGE_TYPE } from "../../../../../enum/chat";
+import { stripCitations } from "../../Render/Citations/markup";
 import styles from "./index.module.scss";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -28,7 +29,7 @@ function AssistantCard({
   const onClickCopy = (datasource) => {
     const content = datasource?.messages
       .filter((msg) => msg.type === CHART_MESSAGE_TYPE.TEXT)
-      .map((msg) => msg.text)
+      .map((msg) => stripCitations(msg.text))
       .filter(Boolean)
       .join("\n");
     navigator.clipboard.writeText(content);

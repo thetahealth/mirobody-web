@@ -875,5 +875,16 @@
   "setup_tier_missing": "サーバーにありません",
   "setup_pair_loaded": "どちらのモデルもこのサーバーにあり、読み込み済みです。",
   "setup_pair_unloaded": "どちらのモデルもこのサーバーにありますが、まだ読み込まれていません。Mirobody がサーバーに読み込みを頼みます。初回の読み込みでダウンロードされます。",
-  "setup_other_model": "ほかのモデル"
+  "setup_other_model": "ほかのモデル",
+  "cite_open_file": "元のファイルを開く",
+  "cite_device": "デバイスの記録",
+  "cite_manual": "手入力",
+  "cite_reported": "日記の記録",
+  "cite_lines": "{{start}}–{{end}} 行目",
+  "cite_reference": "参考資料 {{id}}",
+  "cite_loading": "出典を確認しています…",
+  "cite_gone": "この測定値は削除されています。",
+  "cite_unknown": "この会話の中に出典が見つかりません。",
+  "cite_private": "出典を開けるのは会話の持ち主だけです。",
+  "cite_readings_n": "{{count}} 件の測定値"
 }

@@ -875,5 +875,16 @@
   "setup_tier_missing": "服务器上没有",
   "setup_pair_loaded": "两个模型都在这个服务器上，已加载。",
   "setup_pair_unloaded": "两个模型都在这个服务器上，但还没加载。Mirobody 会让服务器加载它们，第一次加载时会下载。",
-  "setup_other_model": "其他模型"
+  "setup_other_model": "其他模型",
+  "cite_open_file": "打开原文件",
+  "cite_device": "设备记录",
+  "cite_manual": "手动录入",
+  "cite_reported": "日记里记的",
+  "cite_lines": "第 {{start}}–{{end}} 行",
+  "cite_reference": "参考资料 {{id}}",
+  "cite_loading": "正在查找来源…",
+  "cite_gone": "这条读数已被删除。",
+  "cite_unknown": "在这段对话里找不到这个来源。",
+  "cite_private": "只有对话的主人能打开来源。",
+  "cite_readings_n": "共 {{count}} 条读数"
 }

@@ -5,6 +5,7 @@ import RenderErrorBoundary from "../Render/ErrorBoundary";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import AssistantCard from "./AssistantCard";
 import { CHART_MESSAGE_TYPE } from "../../../../enum/chat";
+import { stripCitations } from "../Render/Citations/markup";
 import Analyzing from "./Analyzing";
 import { transformMessagesToThinkingGroup } from "../../../../utils";
 import CostIcon from "./CostIcon";
@@ -33,7 +34,7 @@ function AssistantDialog({
     // copy all messages content to clipboard
     const content = messages
       .filter((msg) => msg.type === CHART_MESSAGE_TYPE.TEXT)
-      .map((msg) => msg.text)
+      .map((msg) => stripCitations(msg.text))
       .filter(Boolean)
       .join("\n");
     navigator.clipboard.writeText(content);
