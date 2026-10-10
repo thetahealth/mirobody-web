@@ -13,6 +13,8 @@ import { getFileType } from "../../utils/file";
 import { mergeConsecutiveSameTypeMessages } from "../../store/Chart/history";
 import RenderHistoryList from "../Chat/ContentList/History/RenderHistoryList";
 import AssistantCard from "../Chat/Dialog/Assistant/AssistantCard";
+import { buildCiteRegistry } from "../Chat/Dialog/Render/Citation/registry";
+import CiteRegistryProvider from "../Chat/Dialog/Render/Citation/CiteRegistryProvider";
 import { useModelStore } from "../../store/model";
 import consola from "consola";
 
@@ -24,6 +26,7 @@ function Share() {
   const [error, setError] = useState("");
   const [isShowFullpage, setIsShowFullpage] = useState(false);
   const [fullpageDatasource, setFullpageDatasource] = useState(null);
+  const [citeRegistry, setCiteRegistry] = useState(null);
   const getModelShowName = useModelStore((state) => state.getModelShowName);
 
   const initializeModel = useModelStore((state) => state.init);
@@ -52,6 +55,18 @@ function Share() {
       // Transform flat history to grouped structure
       const transformedHistory = transformHistory(chatHistory || []);
       setHistory(transformedHistory);
+      // Same client-side registry as the chat page: the shared transcript
+      // carries its tool tables verbatim, so chips resolve without login or
+      // an extra endpoint.
+      setCiteRegistry(
+        buildCiteRegistry(
+          transformedHistory
+            .filter((item) => item.role === MESSAGE_ROLE.ASSISTANT)
+            .flatMap((item) =>
+              (item.datasource || []).map((d) => d.messages || []),
+            ),
+        ),
+      );
     } catch (err) {
       consola.error("Fetch share content error:", err);
       setError(t("share_not_found") || "Share link not found or expired");
@@ -196,9 +211,10 @@ function Share() {
 
           {!loading && !error && history.length > 0 && (
             <div className={styles.content_list}>
-              <RenderHistoryList
-                history_list={history}
-                assistantDialogProps={{
+              <CiteRegistryProvider registry={citeRegistry}>
+                <RenderHistoryList
+                  history_list={history}
+                  assistantDialogProps={{
                   isShowFullpage,
                   fullpageDatasource,
                   onToggleFullpage: (datasource) => {
@@ -212,6 +228,7 @@ function Share() {
                   },
                 }}
               />
+              </CiteRegistryProvider>
             </div>
           )}
         </div>
@@ -222,21 +239,23 @@ function Share() {
           }`}
         >
           {isShowFullpage && fullpageDatasource && (
-            <AssistantCard
-              datasource={fullpageDatasource}
-              isShowFullpage={isShowFullpage}
-              fullpageDatasource={fullpageDatasource}
-              onToggleFullpage={(datasource) => {
-                if (datasource) {
-                  setFullpageDatasource(datasource);
-                  setIsShowFullpage(true);
-                } else {
-                  setFullpageDatasource(null);
-                  setIsShowFullpage(false);
-                }
-              }}
-              modelShowName={getModelShowName(fullpageDatasource?.provider)}
-            />
+            <CiteRegistryProvider registry={citeRegistry}>
+              <AssistantCard
+                datasource={fullpageDatasource}
+                isShowFullpage={isShowFullpage}
+                fullpageDatasource={fullpageDatasource}
+                onToggleFullpage={(datasource) => {
+                  if (datasource) {
+                    setFullpageDatasource(datasource);
+                    setIsShowFullpage(true);
+                  } else {
+                    setFullpageDatasource(null);
+                    setIsShowFullpage(false);
+                  }
+                }}
+                modelShowName={getModelShowName(fullpageDatasource?.provider)}
+              />
+            </CiteRegistryProvider>
           )}
         </div>
       </div>

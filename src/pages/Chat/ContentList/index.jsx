@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useChartDataStore } from "../../../store/Chart/data";
 import { useChatStore } from "../../../store/Chart";
 import { useParams } from "react-router";
+import CiteRegistryProvider from "../Dialog/Render/Citation/CiteRegistryProvider";
 
 // How close to the bottom still counts as "following the live reply".
 const NEAR_BOTTOM_PX = 120;
@@ -14,6 +15,13 @@ function ContentList() {
   const contentListRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
   const current_session_id = useChatStore((state) => state.current_session_id);
+  // Session-wide on purpose: the backend mints one RidTable per record, so a
+  // later turn may cite a row an earlier turn surfaced. The registry is
+  // indexed in the store at write time (data.js), so this selector's value
+  // only changes when a tool_result lands — not per streamed token.
+  const citeRegistry = useChartDataStore(
+    (state) => state.chartData[current_session_id]?.cite_registry,
+  );
 
   // Sync URL → store: restore session from URL on mount/refresh
   useEffect(() => {
@@ -99,8 +107,10 @@ function ContentList() {
       ref={contentListRef}
     >
       <div className={styles.content_list} style={{ minHeight: "100%" }}>
-        <HistoryList />
-        <List containerHeight={containerHeight} />
+        <CiteRegistryProvider registry={citeRegistry}>
+          <HistoryList />
+          <List containerHeight={containerHeight} />
+        </CiteRegistryProvider>
       </div>
     </div>
   );

@@ -1,11 +1,19 @@
 import { memo } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import styles from "./index.module.scss";
 import { IconLink } from "@tabler/icons-react";
 import VisChart from "../VisChart";
 import { fenceClosed, normalizeChartFences } from "../VisChart/parseSource";
+import { CITE_SCHEME, citeMarkdownSource } from "../Citation/parse";
+import CitationChip from "../Citation/CitationChip";
+
+// `cite:` is this app's own link scheme (answer → CitationChip); everything
+// else keeps react-markdown's default sanitizer. The whitelist, not a blanket
+// `url => url`, so a model-written `javascript:` stays stripped.
+const citeAwareUrlTransform = (url) =>
+  url.startsWith(CITE_SCHEME) ? url : defaultUrlTransform(url);
 
 function Markdown({ content }) {
   const handleLinkClick = (href) => {
@@ -13,7 +21,9 @@ function Markdown({ content }) {
   };
   // A chart fenced twice (```vis-chart then ```json) is collapsed first, or
   // its stray closer turns the rest of the answer into a code block.
-  const source = normalizeChartFences(content);
+  // Cites after charts: citeMarkdownSource consumes the <statement>/<cite>
+  // markup and is a no-op byte-for-byte on answers that carry none.
+  const source = citeMarkdownSource(normalizeChartFences(content));
   return (
     <div className={styles.prose}>
       <ReactMarkdown
@@ -23,12 +33,20 @@ function Markdown({ content }) {
         // and models write exactly that in Chinese answers. This plugin
         // relaxes the delimiter test for CJK text.
         remarkPlugins={[remarkGfm, remarkCjkFriendly]}
+        urlTransform={citeAwareUrlTransform}
         components={{
           // The glyph marks it as a link; the label says where it goes. Only
           // the glyph was rendered before, so every link in an answer was the
-          // same anonymous 20x20 square.
+          // same anonymous 20x20 square. A `cite:` href is not a link at all:
+          // it is a citation token the chip resolves against the session's
+          // tool_result registry.
           a: (props) => {
             const { href, children } = props;
+            if (href && href.startsWith(CITE_SCHEME)) {
+              return (
+                <CitationChip token={decodeURIComponent(href.slice(CITE_SCHEME.length))} />
+              );
+            }
             return (
               <span
                 className={styles.link}

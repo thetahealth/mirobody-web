@@ -1,0 +1,41 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 220px;
+  margin: 0 1px;
+  padding: 0 7px;
+  height: 19px;
+  vertical-align: baseline;
+  border-radius: 9px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.chip_label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip_clickable {
+  cursor: pointer;
+}
+
+.chip_clickable:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+// A cite the registry cannot back is shown, not cleaned: same verdict the
+// judge gives the statement. Dashed border + the "未核实" label make the
+// difference from a resolved source readable at a glance.
+.chip_unverified {
+  border-style: dashed;
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+  opacity: 0.85;
+}

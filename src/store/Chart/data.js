@@ -18,7 +18,38 @@ import {
   zipPaneHistories,
   COMPARE_PREFIX,
 } from "../../utils/compareSession";
+import {
+  buildCiteRegistry,
+  mergeCiteBlock,
+} from "../../pages/Chat/Dialog/Render/Citation/registry";
 import consola from "consola";
+
+/**
+ * Fold one block into the session's citation registry (rid → row, ref →
+ * passage), so the CitationChip on an answer can resolve its source without
+ * another backend call. Kept on the session entry, registry-wide rather than
+ * per answer: the backend keeps one RidTable per record, so a later turn may
+ * cite a row an earlier turn surfaced.
+ *
+ * Indexed at write time (here) rather than read time (render): a streaming
+ * frame re-renders the tree many times, but a tool_result block lands once.
+ */
+const indexCiteBlock = (chartSession, block) => {
+  if (block?.type !== CHART_MESSAGE_TYPE.TOOL_RESULT) return;
+  if (!chartSession.cite_registry) {
+    chartSession.cite_registry = { rids: {}, refs: {} };
+  }
+  mergeCiteBlock(chartSession.cite_registry, block);
+};
+
+/** Rebuild a session's registry from its /api/history list (assignments in
+ * `switchSession`; history rows hold assistant blocks under `datasource`). */
+const citeRegistryFromHistory = (historyList) =>
+  buildCiteRegistry(
+    (historyList || [])
+      .filter((item) => item?.role === MESSAGE_ROLE.ASSISTANT)
+      .flatMap((item) => (item.datasource || []).map((d) => d.messages || [])),
+  );
 
 /**
  * Append ONE streamed block to an assistant's messages, joining it to the
@@ -108,6 +139,8 @@ export const useChartDataStore = create(
       set((state) => {
         if (state.chartData[session_id]) {
           state.chartData[session_id].history = history;
+          state.chartData[session_id].cite_registry =
+            citeRegistryFromHistory(history);
         }
       });
     },
@@ -246,6 +279,7 @@ export const useChartDataStore = create(
 
         for (const frame of frames) {
           appendFrameToAssistant(assistantItem, frame);
+          indexCiteBlock(currentChartData, frame);
         }
       });
     },
@@ -269,6 +303,7 @@ export const useChartDataStore = create(
         if (!assistantItem) return;
 
         appendFrameToAssistant(assistantItem, block);
+        indexCiteBlock(currentChartData, block);
       });
     },
     /* switch session */
@@ -313,6 +348,9 @@ export const useChartDataStore = create(
             currentChartData.history =
               await fetchChatHistoryBySessionId(session_id);
           }
+          currentChartData.cite_registry = citeRegistryFromHistory(
+            currentChartData.history,
+          );
         }
         setCurrentSessionId(session_id);
         if (query_user_id) {

@@ -875,5 +875,6 @@
   "setup_tier_missing": "Not on this server",
   "setup_pair_loaded": "Both models are on this server and loaded.",
   "setup_pair_unloaded": "Both models are on this server but not loaded yet. Mirobody will ask the server to load them; the first load downloads them.",
-  "setup_other_model": "Other model"
+  "setup_other_model": "Other model",
+  "cite_unverified": "Unverified"
 }

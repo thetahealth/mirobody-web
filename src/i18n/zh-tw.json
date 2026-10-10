@@ -875,5 +875,6 @@
   "setup_tier_missing": "伺服器上沒有",
   "setup_pair_loaded": "兩個模型都在這個伺服器上，已載入。",
   "setup_pair_unloaded": "兩個模型都在這個伺服器上，但還沒載入。Mirobody 會讓伺服器載入它們，第一次載入時會下載。",
-  "setup_other_model": "其他模型"
+  "setup_other_model": "其他模型",
+  "cite_unverified": "未核實"
 }

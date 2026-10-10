@@ -875,5 +875,6 @@
   "setup_tier_missing": "服务器上没有",
   "setup_pair_loaded": "两个模型都在这个服务器上，已加载。",
   "setup_pair_unloaded": "两个模型都在这个服务器上，但还没加载。Mirobody 会让服务器加载它们，第一次加载时会下载。",
-  "setup_other_model": "其他模型"
+  "setup_other_model": "其他模型",
+  "cite_unverified": "未核实"
 }
