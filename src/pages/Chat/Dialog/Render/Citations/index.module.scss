@@ -1,0 +1,80 @@
+/* A cite in an answer: a small numbered chip after the claim, the way a paper
+   numbers its references. Clicking opens what it points at. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  margin: 0 1px;
+  padding: 0 4px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  vertical-align: super;
+  color: var(--color-accent);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text-on-accent);
+    background: var(--color-accent);
+    outline: none;
+  }
+}
+
+.chip_gone {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.popover {
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+.reading + .reading {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.flag {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.file {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.members {
+  margin-top: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}

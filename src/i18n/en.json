@@ -875,5 +875,16 @@
   "setup_tier_missing": "Not on this server",
   "setup_pair_loaded": "Both models are on this server and loaded.",
   "setup_pair_unloaded": "Both models are on this server but not loaded yet. Mirobody will ask the server to load them; the first load downloads them.",
-  "setup_other_model": "Other model"
+  "setup_other_model": "Other model",
+  "cite_open_file": "Open the file",
+  "cite_device": "Recorded by a device",
+  "cite_manual": "Entered by hand",
+  "cite_reported": "Reported in the journal",
+  "cite_lines": "Lines {{start}}–{{end}}",
+  "cite_reference": "Reference {{id}}",
+  "cite_loading": "Looking up the source…",
+  "cite_gone": "This reading has been deleted.",
+  "cite_unknown": "This source could not be found in the conversation.",
+  "cite_private": "Only the conversation's owner can open its sources.",
+  "cite_readings_n": "{{count}} readings"
 }

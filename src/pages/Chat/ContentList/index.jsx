@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useChartDataStore } from "../../../store/Chart/data";
 import { useChatStore } from "../../../store/Chart";
 import { useParams } from "react-router";
+import { CitationSessionContext } from "../Dialog/Render/Citations/context";
 
 // How close to the bottom still counts as "following the live reply".
 const NEAR_BOTTOM_PX = 120;
@@ -99,8 +100,11 @@ function ContentList() {
       ref={contentListRef}
     >
       <div className={styles.content_list} style={{ minHeight: "100%" }}>
-        <HistoryList />
-        <List containerHeight={containerHeight} />
+        {/* Saved and live answers both resolve their cites in this conversation. */}
+        <CitationSessionContext.Provider value={current_session_id || ""}>
+          <HistoryList />
+          <List containerHeight={containerHeight} />
+        </CitationSessionContext.Provider>
       </div>
     </div>
   );

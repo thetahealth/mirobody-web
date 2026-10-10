@@ -5,6 +5,7 @@ import { useCallback, useEffect } from "react";
 import FileViewer from "./FileViewer";
 import Sidebar, { MobileTopBar } from "../../components/Sidebar";
 import AssistantCard from "./Dialog/Assistant/AssistantCard";
+import { CitationSessionContext } from "./Dialog/Render/Citations/context";
 import { useChatStore } from "../../store/Chart/index";
 import { useAccountStore } from "../../store/account";
 import { useChatHistoryStore } from "../../store/Chart/history";
@@ -97,13 +98,15 @@ function Chat() {
             {isShowFullpage &&
               currentSessionId !== null &&
               fullpageDatasource && (
-                <AssistantCard
-                  datasource={fullpageDatasource}
-                  isShowFullpage={isShowFullpage}
-                  fullpageDatasource={fullpageDatasource}
-                  onToggleFullpage={handleToggleFullpage}
-                  modelShowName={getModelShowName(fullpageDatasource?.provider)}
-                />
+                <CitationSessionContext.Provider value={currentSessionId || ""}>
+                  <AssistantCard
+                    datasource={fullpageDatasource}
+                    isShowFullpage={isShowFullpage}
+                    fullpageDatasource={fullpageDatasource}
+                    onToggleFullpage={handleToggleFullpage}
+                    modelShowName={getModelShowName(fullpageDatasource?.provider)}
+                  />
+                </CitationSessionContext.Provider>
               )}
           </div>
         </div>
