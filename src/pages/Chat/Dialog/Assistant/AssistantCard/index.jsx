@@ -3,7 +3,7 @@ import Card from "../Card";
 import ContentRender from "../../Render";
 import RenderErrorBoundary from "../../Render/ErrorBoundary";
 import StatusHeader from "../StatusHeader";
-import { transformMessagesToThinkingGroup } from "../../../../../utils";
+import { markActiveGroup, transformMessagesToThinkingGroup } from "../../../../../utils";
 import { useModelStore } from "../../../../../store/model";
 import { useTranslation } from "react-i18next";
 
@@ -48,7 +48,7 @@ function AssistantCard({
     );
   }
 
-  const groupedMessages = transformMessagesToThinkingGroup(messages);
+  const groupedMessages = markActiveGroup(transformMessagesToThinkingGroup(messages), status !== "end");
 
   return (
     <Card

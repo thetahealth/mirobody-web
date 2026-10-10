@@ -1,7 +1,6 @@
 import { CHART_MESSAGE_TYPE, blockText } from "../../../../enum/chat";
 import Markdown from "./Markdown";
 import ThinkingGroup from "./ThinkingGroup";
-import QueryGroup from "./QueryGroup";
 import styles from "./index.module.scss";
 import QueryTitleRender from "./QueryTitle";
 import QueryDetailRender from "./QueryDetail";
@@ -51,11 +50,7 @@ const ContentRender = ({ datasource }) => {
   }
   // thinking group
   if (type === CHART_MESSAGE_TYPE.THINKING_GROUP) {
-    return <ThinkingGroup datasource={datasource.content} />;
-  }
-  // query group
-  if (type === CHART_MESSAGE_TYPE.QUERY_GROUP) {
-    return <QueryGroup datasource={datasource} />;
+    return <ThinkingGroup datasource={datasource.content} active={datasource.active} />;
   }
   // the model's own reasoning
   if (type === CHART_MESSAGE_TYPE.REASONING) {

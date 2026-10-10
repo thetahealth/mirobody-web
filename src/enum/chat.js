@@ -14,7 +14,6 @@ export const CHART_MESSAGE_TYPE = {
   USER_QUESTION: "user_question",
   USER_FILE_LIST: "user_file_list",
   THINKING_GROUP: "__thinking_group__",
-  QUERY_GROUP: "__query_group__",
   // Blocks the backend streams, named the way `langchain_core.messages.content`
   // names them. Before Mirobody 1.4.4 these were `reply` / `thinking` /
   // `queryTitle` / `queryArguments` / `queryDetail` / `costStatistics` /

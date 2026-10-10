@@ -214,6 +214,17 @@ export const transformMessagesToThinkingGroup = (messages) => {
   return finalState.result;
 };
 
+/**
+ * Marks the thinking group that is still working: the last item of a turn that
+ * is streaming. Once anything follows it (the answer's text) it is done.
+ */
+export const markActiveGroup = (grouped, streaming) => {
+  if (!streaming || !grouped.length) return grouped;
+  const last = grouped[grouped.length - 1];
+  if (last.type !== CHART_MESSAGE_TYPE.THINKING_GROUP) return grouped;
+  return [...grouped.slice(0, -1), { ...last, active: true }];
+};
+
 /* can send */
 export const canSend = (question, file_list, vs_list) => {
   // Validate required parameters

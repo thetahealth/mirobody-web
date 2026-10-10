@@ -37,15 +37,19 @@ import consola from "consola";
 const appendFrameToAssistant = (assistantItem, block) => {
   const { type } = block;
   const last = assistantItem.messages[assistantItem.messages.length - 1];
+  // `at` / `end` time a block as it arrives, for "thought for 12s"; a stored
+  // conversation has neither and shows no duration.
+  const now = Date.now();
   if (last && last.type === type && APPENDABLE_MESSAGE_TYPES.includes(type)) {
     const field = type === CHART_MESSAGE_TYPE.TEXT ? "text" : "reasoning";
     last[field] = (last[field] ?? "") + (block[field] ?? "");
+    last.end = now;
     return;
   }
   // A `tool_call` carries the call id in `id`, and the thinking group pairs it
   // with its `tool_result.tool_call_id` on that value — so it must not be
   // overwritten. Blocks without one get a key to render by.
-  assistantItem.messages.push({ ...block, id: block.id || uuidv4() });
+  assistantItem.messages.push({ ...block, id: block.id || uuidv4(), at: now });
 };
 
 /**

@@ -1,155 +1,174 @@
-import { useState, useEffect, useRef } from "react";
-import styles from "./index.module.scss";
-import { IconChevronDown } from "@tabler/icons-react";
-import Markdown from "../Markdown";
-import ContentRender from "../index";
-import RenderErrorBoundary from "../ErrorBoundary";
-import { CHART_MESSAGE_TYPE } from "../../../../../enum/chat";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  IconAlertTriangle,
+  IconBook,
+  IconCalculator,
+  IconChevronDown,
+  IconDatabase,
+  IconDna,
+  IconFileText,
+  IconFolder,
+  IconLanguage,
+  IconListCheck,
+  IconMessageQuestion,
+  IconPencil,
+  IconPill,
+  IconSparkles,
+  IconTool,
+} from "@tabler/icons-react";
+import Markdown from "../Markdown";
+import QueryDetail from "../QueryDetail";
+import { STEP_THOUGHT, currentStep, durationOf, latestHeading, toSteps, toolCount } from "./steps";
+import styles from "./index.module.scss";
 
-// Pair each tool_call with its tool_result into one collapsible QUERY_GROUP.
-// The two blocks are joined on the call id, which `tool_call` carries as `id`
-// and `tool_result` as `tool_call_id` — LangChain's names for the same thing.
-const preprocessThinkingData = (datasource) => {
-  if (!datasource || datasource.length === 0) return datasource;
-
-  const isHistoricalData = datasource.some((item) => item.isHistorical);
-
-  const resultByCallId = new Map();
-  datasource.forEach((item) => {
-    if (item.type === CHART_MESSAGE_TYPE.TOOL_RESULT && item.tool_call_id) {
-      resultByCallId.set(item.tool_call_id, item.content);
-    }
-  });
-
-  const result = [];
-  datasource.forEach((item, index) => {
-    if (item.type === CHART_MESSAGE_TYPE.TOOL_CALL) {
-      const detail = item.id ? resultByCallId.get(item.id) || "" : "";
-      // Spin while the call is the last thing that happened and has no result
-      // yet: that is a tool still running. Anything arriving after it stops the
-      // spinner, so a turn that dies mid-tool cannot leave one turning forever.
-      // The condition this replaces read `item.status === "streaming"`, a field
-      // no block has ever carried, so the spinner never once appeared.
-      const isQueryDetailStreaming =
-        !detail && !isHistoricalData && index === datasource.length - 1;
-
-      result.push({
-        type: CHART_MESSAGE_TYPE.QUERY_GROUP,
-        id: item.id,
-        title: item.name,
-        detail: detail,
-        isQueryDetailStreaming: isQueryDetailStreaming,
-      });
-    } else if (item.type !== CHART_MESSAGE_TYPE.TOOL_RESULT) {
-      // a tool_result is folded into its call's group above
-      result.push(item);
-    }
-  });
-
-  return result;
+const ICONS = {
+  data: IconDatabase,
+  pill: IconPill,
+  dna: IconDna,
+  calculator: IconCalculator,
+  book: IconBook,
+  file: IconFileText,
+  folder: IconFolder,
+  pencil: IconPencil,
+  list: IconListCheck,
+  language: IconLanguage,
+  question: IconMessageQuestion,
+  tool: IconTool,
 };
 
-const ThinkingGroup = ({ datasource }) => {
-  const [isExpanded, setIsExpanded] = useState(false); // collapsed by default
-  const contentEndRef = useRef(null);
-  const previousContentLength = useRef(0);
-  const { t } = useTranslation();
+const stepLabel = (t, step, running) =>
+  t(`process_${step.kind.key}_${running ? "running" : "done"}`, { name: step.name });
 
-  const processedDatasource = preprocessThinkingData(datasource);
-
+// A clock that ticks once a second while the group is working.
+function useNow(ticking) {
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (isExpanded && processedDatasource) {
-      const currentLength = processedDatasource.length;
-      const hasNewContent = currentLength > previousContentLength.current;
+    if (!ticking) return undefined;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [ticking]);
+  return now;
+}
 
-      if (hasNewContent && contentEndRef.current) {
-        contentEndRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      }
-
-      previousContentLength.current = currentLength;
-    }
-  }, [processedDatasource, isExpanded]);
-
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  if (!processedDatasource || processedDatasource.length === 0) return null;
-
-  const queryCount = processedDatasource.filter(
-    (item) =>
-      item.type === CHART_MESSAGE_TYPE.QUERY_GROUP ||
-      item.type === CHART_MESSAGE_TYPE.REASONING,
-  ).length;
-
+function ToolStep({ step, running }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const Icon = ICONS[step.kind.icon] || IconTool;
+  const canOpen = step.done && Boolean(step.detail);
   return (
-    <div
-      className={
-        isExpanded
-          ? "flex flex-col bg-[var(--color-bg-soft)] rounded-[12px] px-[12px] py-[8px] gap-[8px]"
-          : "flex flex-col bg-[var(--color-bg-soft)] w-fit rounded-[12px] px-[12px] h-[36px] items-center justify-center gap-[8px]"
-      }
-    >
-      <div
-        className="flex items-center gap-[8px] cursor-pointer select-none"
-        onClick={toggleExpanded}
+    <div className={styles.step}>
+      <button
+        type="button"
+        className={styles.step_row}
+        onClick={() => canOpen && setOpen((v) => !v)}
+        aria-expanded={canOpen ? open : undefined}
+        disabled={!canOpen}
       >
-        <div
-          className={
-            isExpanded
-              ? "text-[14px] font-[500] text-[var(--color-text-secondary)]"
-              : "text-[var(--color-text-secondary)] text-[14px] font-[600]"
-          }
-        >
-          {isExpanded ? t("hide") : queryCount} &nbsp;
-          {queryCount === 1 ? t("step") : t("steps")}
-        </div>
-        <div className="w-[21px] h-[21px] flex items-center justify-center">
+        <Icon size={15} stroke={1.8} className={styles.step_icon} aria-hidden="true" />
+        <span className={running ? `${styles.step_label} ${styles.shimmer}` : styles.step_label}>
+          {stepLabel(t, step, running)}
+        </span>
+        {step.summary ? <span className={styles.step_summary}>{step.summary}</span> : null}
+        {step.failed ? (
+          <span className={styles.step_failed}>
+            <IconAlertTriangle size={13} stroke={1.8} aria-hidden="true" />
+            {t("process_failed")}
+          </span>
+        ) : null}
+        {running ? <span className={styles.spinner} aria-hidden="true" /> : null}
+        {canOpen ? (
           <IconChevronDown
             size={13}
             stroke={2}
-            className={`transition-transform duration-300 text-[var(--color-text-secondary)] ${
-              isExpanded ? "rotate-180" : ""
-            }`}
+            className={open ? `${styles.chevron} ${styles.chevron_open}` : styles.chevron}
+            aria-hidden="true"
           />
-        </div>
-      </div>
-      <div
-        className={`${styles.thinking_content} ${
-          !isExpanded ? styles.thinking_content_hidden : ""
-        }`}
+        ) : null}
+      </button>
+      {open ? <QueryDetail content={step.detail} /> : null}
+    </div>
+  );
+}
+
+// The work behind an answer, the way Gemini and DeepSeek show it: open and
+// streaming while the model thinks and calls tools, folded to one line ("Thought
+// for 12s · 3 steps") once the answer begins. A reader who opened or closed it
+// keeps their choice.
+const ThinkingGroup = ({ datasource, active = false }) => {
+  const { t } = useTranslation();
+  const [userOpen, setUserOpen] = useState(null);
+  const bodyRef = useRef(null);
+  const now = useNow(active);
+  const steps = toSteps(datasource);
+  const open = userOpen ?? active;
+
+  useEffect(() => {
+    // Keep the newest line in view while the thinking streams.
+    if (active && open && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  });
+
+  if (!steps.length) return null;
+
+  const current = active ? currentStep(steps) : null;
+  const seconds = durationOf(datasource, active ? now : undefined);
+  const tools = toolCount(steps);
+
+  let headline;
+  if (active) {
+    const detail =
+      current && current.type !== STEP_THOUGHT ? current.summary : latestHeading(current?.text);
+    headline = (
+      <>
+        <span className={styles.pulse} aria-hidden="true" />
+        <span className={`${styles.head_label} ${styles.shimmer}`}>
+          {current && current.type !== STEP_THOUGHT ? stepLabel(t, current, true) : t("process_thinking")}
+        </span>
+        {detail ? <span className={styles.head_detail}>{detail}</span> : null}
+        {seconds ? <span className={styles.head_time}>{t("process_seconds", { count: seconds })}</span> : null}
+      </>
+    );
+  } else {
+    const parts = [seconds ? t("process_thought_for", { count: seconds }) : t("process_thought")];
+    if (tools) parts.push(t("process_steps", { count: tools }));
+    headline = (
+      <>
+        <IconSparkles size={15} stroke={1.8} className={styles.head_icon} aria-hidden="true" />
+        <span className={styles.head_label}>{parts.join(" · ")}</span>
+      </>
+    );
+  }
+
+  return (
+    <div className={active ? `${styles.process} ${styles.process_active}` : styles.process}>
+      <button
+        type="button"
+        className={styles.head}
+        onClick={() => setUserOpen(!open)}
+        aria-expanded={open}
       >
-        {processedDatasource.map((item, index) => {
-          const isQueryGroup = item.type === CHART_MESSAGE_TYPE.QUERY_GROUP;
-
-          // For QueryGroups, determine if it's the last one and pass the flag
-          if (isQueryGroup) {
-            const isLastQueryGroup = !processedDatasource
-              .slice(index + 1)
-              .some(
-                (nextItem) => nextItem.type === CHART_MESSAGE_TYPE.QUERY_GROUP,
-              );
-
-            return (
-              <RenderErrorBoundary key={index}>
-                <ContentRender
-                  datasource={{ ...item, isLast: isLastQueryGroup }}
-                />
-              </RenderErrorBoundary>
+        {headline}
+        <IconChevronDown
+          size={14}
+          stroke={2}
+          className={open ? `${styles.chevron} ${styles.chevron_open}` : styles.chevron}
+          aria-hidden="true"
+        />
+      </button>
+      {open ? (
+        <div ref={bodyRef} className={active ? `${styles.body} ${styles.body_live}` : styles.body}>
+          {steps.map((step, index) => {
+            const running = active && index === steps.length - 1 && !step.done;
+            return step.type === STEP_THOUGHT ? (
+              <div key={step.id || index} className={styles.thought}>
+                <Markdown content={step.text} />
+              </div>
+            ) : (
+              <ToolStep key={step.id || index} step={step} running={running} />
             );
-          }
-
-          return (
-            <RenderErrorBoundary key={index}>
-              <ContentRender datasource={item} />
-            </RenderErrorBoundary>
-          );
-        })}
-      </div>
+          })}
+        </div>
+      ) : null}
     </div>
   );
 };
