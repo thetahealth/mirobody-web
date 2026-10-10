@@ -882,6 +882,7 @@
   "cite_reported": "Reported in the journal",
   "cite_lines": "Lines {{start}}–{{end}}",
   "cite_reference": "Reference {{id}}",
+  "cite_open_source": "Open the source",
   "cite_loading": "Looking up the source…",
   "cite_gone": "This reading has been deleted.",
   "cite_unknown": "This source could not be found in the conversation.",

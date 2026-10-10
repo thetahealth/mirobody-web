@@ -882,6 +882,7 @@
   "cite_reported": "日记里记的",
   "cite_lines": "第 {{start}}–{{end}} 行",
   "cite_reference": "参考资料 {{id}}",
+  "cite_open_source": "打开来源",
   "cite_loading": "正在查找来源…",
   "cite_gone": "这条读数已被删除。",
   "cite_unknown": "在这段对话里找不到这个来源。",

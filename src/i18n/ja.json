@@ -882,6 +882,7 @@
   "cite_reported": "日記の記録",
   "cite_lines": "{{start}}–{{end}} 行目",
   "cite_reference": "参考資料 {{id}}",
+  "cite_open_source": "出典を開く",
   "cite_loading": "出典を確認しています…",
   "cite_gone": "この測定値は削除されています。",
   "cite_unknown": "この会話の中に出典が見つかりません。",
