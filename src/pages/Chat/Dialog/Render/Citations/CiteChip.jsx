@@ -59,6 +59,8 @@ function Details({ id, row }) {
     );
   }
   if (kind === "ref") return <div className={styles.muted}>{t("cite_reference", { id })}</div>;
+  // `r0` or a made-up form: nothing to look up, so it never resolves.
+  if (kind === "unknown") return <div className={styles.muted}>{t("cite_unknown")}</div>;
   if (row === null) return <div className={styles.muted}>{t("cite_private")}</div>;
   if (!row) return <div className={styles.muted}>{t("cite_loading")}</div>;
   if (row.status === "gone") return <div className={styles.muted}>{t("cite_gone")}</div>;
@@ -95,7 +97,7 @@ export default function CiteChip({ id, label }) {
   useEffect(() => {
     if (isRow && sessionId) request(sessionId, id);
   }, [isRow, sessionId, id, request]);
-  const gone = row && row.status !== "ok";
+  const gone = citeKind(id) === "unknown" || (row && row.status !== "ok");
   return (
     <Popover
       trigger="click"
