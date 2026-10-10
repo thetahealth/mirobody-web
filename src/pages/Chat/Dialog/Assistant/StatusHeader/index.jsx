@@ -1,43 +1,25 @@
-import { IconAlertTriangle, IconCircleCheckFilled } from "@tabler/icons-react";
+import { IconAlertTriangle } from "@tabler/icons-react";
+import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
-import {
-  LINE_DONE,
-  LINE_ERROR,
-  statusLineFor,
-} from "./statusLine";
-
-const ChartLoadingIcon = () => {
-  return (
-    <div className={styles.loadingIcon} aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </div>
-  );
-};
-
-const StatusIcon = ({ kind }) => {
-  if (kind === LINE_DONE)
-    return <IconCircleCheckFilled size={14} className={styles.doneIcon} aria-hidden="true" />;
-  if (kind === LINE_ERROR)
-    return <IconAlertTriangle size={14} stroke={1.8} className={styles.errorIcon} aria-hidden="true" />;
-  return <ChartLoadingIcon />;
-};
+import { LINE_ERROR, statusLineFor } from "./statusLine";
 
 /**
- * The line above an answer. Everything it decides lives in `statusLine.js`,
- * which is a pure function of the messages and is tested there; this component
- * only picks an icon and prints the text.
+ * The line above an answer. What it says lives in `statusLine.js`, a pure
+ * function of the messages tested there; most of the time it says nothing.
  */
 const StatusHeader = ({ datasource }) => {
-  const { kind, text } = statusLineFor(datasource);
+  const { t } = useTranslation();
+  const { kind, key } = statusLineFor(datasource);
+  if (!key) return null;
 
   return (
-    <div className="flex items-center h-[36px] bg-[var(--color-bg-soft)] rounded-[12px] px-[12px] w-fit">
-      <StatusIcon kind={kind} />
-      <div className="text-[14px] text-[var(--color-text-primary)] font-[600] ml-[8px]">
-        {text}
-      </div>
+    <div className={kind === LINE_ERROR ? `${styles.line} ${styles.line_error}` : styles.line} role="status">
+      {kind === LINE_ERROR ? (
+        <IconAlertTriangle size={14} stroke={1.8} className={styles.errorIcon} aria-hidden="true" />
+      ) : (
+        <span className={styles.pulse} aria-hidden="true" />
+      )}
+      <span className={kind === LINE_ERROR ? styles.text : `${styles.text} ${styles.shimmer}`}>{t(key)}</span>
     </div>
   );
 };

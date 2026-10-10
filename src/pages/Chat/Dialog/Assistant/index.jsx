@@ -7,7 +7,7 @@ import AssistantCard from "./AssistantCard";
 import { CHART_MESSAGE_TYPE } from "../../../../enum/chat";
 import { stripCitations } from "../Render/Citations/markup";
 import Analyzing from "./Analyzing";
-import { transformMessagesToThinkingGroup } from "../../../../utils";
+import { markActiveGroup, transformMessagesToThinkingGroup } from "../../../../utils";
 import CostIcon from "./CostIcon";
 import { useTranslation } from "react-i18next";
 import { useModelStore } from "../../../../store/model";
@@ -62,7 +62,7 @@ function AssistantDialog({
       );
     }
     const usage = messages.find((msg) => msg.type === CHART_MESSAGE_TYPE.USAGE);
-    const groupedMessages = transformMessagesToThinkingGroup(messages);
+    const groupedMessages = markActiveGroup(transformMessagesToThinkingGroup(messages), status !== "end");
 
     return (
       <div className={styles.single_wrapper}>

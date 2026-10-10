@@ -1,59 +1,268 @@
-.thinking_group:first-child {
-  margin-top: 0 !important;
-}
-
-.thinking_wrapper {
+.process {
   display: flex;
   flex-direction: column;
+  max-width: 100%;
 }
 
-.thinking_header {
-  display: flex;
+.head {
+  display: inline-flex;
   align-items: center;
-  padding: 10px 16px;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-soft);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-  .thinking_title {
-    color: #000;
-    font-size: 14px;
+  transition: background-color var(--t-fast, 120ms) ease;
+
+  &:hover {
+    background: var(--color-border-soft);
   }
-  .arrow_icon {
-    display: flex;
-    align-items: center;
-    width: 24px;
-    height: 24px;
-    transition: transform 0.2s ease;
-    margin-left: 4px;
-    svg {
-      width: 24px;
-      height: 24px;
-      fill: var(--color-text-secondary);
-    }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
   }
 }
 
+.head_icon {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
 
-.thinking_content {
-  animation: slideDown 0.2s ease-out;
-  transition: all 0.2s ease-out;
+.head_label {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.head_detail,
+.head_time {
+  min-width: 0;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head_detail {
+  max-width: 360px;
+}
+
+.head_time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+
+  &::before {
+    content: "·";
+    margin-right: 8px;
+  }
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.chevron_open {
+  transform: rotate(180deg);
+}
+
+// A soft dot that breathes while the model works.
+.pulse {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// The label of what is happening now, swept by a light band.
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-text-secondary) 0%,
+    var(--color-text-primary) 45%,
+    var(--color-text-secondary) 90%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  margin: 10px 0 2px 6px;
+  padding-left: 14px;
+  border-left: 2px solid var(--color-border);
+  animation: reveal 0.18s ease-out;
 }
 
-.thinking_content_hidden {
-  display: none;
+// While it streams, the newest lines stay in view and older ones fade out.
+.body_live {
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 28px);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-
-@keyframes slideDown {
+@keyframes reveal {
   from {
     opacity: 0;
-    max-height: 0;
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
-    max-height: 5000px;
+    transform: none;
+  }
+}
+
+.thought {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+
+  :global(p) {
+    margin: 0 0 6px;
+  }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.step_row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+}
+
+.step_icon {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.step_label {
+  flex-shrink: 0;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.step_summary {
+  min-width: 0;
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  font-size: 12.5px;
+}
+
+.step_failed {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  color: var(--color-warning-text);
+  font-size: 12.5px;
+}
+
+.spinner {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .shimmer,
+  .spinner,
+  .body {
+    animation: none;
+  }
+
+  .shimmer {
+    color: var(--color-text-primary);
+    background: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .head_detail {
+    max-width: 140px;
+  }
+
+  .step_summary {
+    max-width: 180px;
   }
 }
