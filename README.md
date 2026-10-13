@@ -3,7 +3,7 @@
 Source for the Mirobody web client — chat with the health agent, upload
 reports, browse the indicators extracted from them. React 19 + Vite.
 
-**Private repo, and the source of the bundle only.** What ships publicly is the
+**The source of the bundle.** What the backend serves is the
 *build output*: it is synced into the [mirobody](https://github.com/thetahealth/mirobody)
 backend repo under `frontend/`, which serves that directory as its UI. The
 product's open surface is the backend's HTTP + MCP API
@@ -135,3 +135,7 @@ tab's sessionStorage), and once a model is set up, a sign-in as well.
 - Before pushing: `npm run lint`, `npm test`, `npm run build`. The build is the
   only one of the three that catches a broken import path, a deleted asset or a
   worker that stops resolving.
+
+## License
+
+Apache 2.0, the same as the backend: see [LICENSE](LICENSE).
