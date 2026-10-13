@@ -98,6 +98,22 @@ describe("normalizeChartFences", () => {
     expect(fenceClosed(spans[0].raw)).toBe(true);
   });
 
+  it("moves a closer glued to the JSON onto its own line", () => {
+    const md = "Chart:\n\n```vis-chart\n" + JSON_TEXT + "```\n\n**After the chart.**";
+    // Unnormalized: the block never closes and swallows the text after it.
+    expect(fenceClosed(codeSpans(md)[0].raw)).toBe(false);
+    const spans = codeSpans(normalizeChartFences(md));
+    expect(spans).toHaveLength(1);
+    expect(JSON.parse(spans[0].value)).toEqual(CHART);
+    expect(fenceClosed(spans[0].raw)).toBe(true);
+    expect(normalizeChartFences(md).endsWith("**After the chart.**")).toBe(true);
+  });
+
+  it("waits for a glued closer to arrive in full", () => {
+    const md = "```vis-chart\n" + JSON_TEXT + "``";
+    expect(normalizeChartFences(md)).toBe(md);
+  });
+
   it("leaves other fences and a single chart fence alone", () => {
     const md = "```js\nconst a = 1;\n```\n\n```vis-chart\n" + JSON_TEXT + "\n```\n";
     expect(normalizeChartFences(md)).toBe(md);

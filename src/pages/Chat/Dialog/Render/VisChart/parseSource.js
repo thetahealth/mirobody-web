@@ -36,9 +36,17 @@ export function fenceClosed(raw) {
 const DOUBLE_FENCE =
   /```vis-chart[^\n]*\n[ \t]*```[\w-]*[ \t]*\n([\s\S]*?)\n[ \t]*```[ \t]*\n[ \t]*```[ \t]*(?=\n|$)/g;
 
-/** The answer's markdown with doubled chart fences collapsed to one. */
+// The closer written on the JSON's last line (`…]}```), which markdown does
+// not read as a closer: the block ran to the end of the answer and the text
+// after the chart was lost with it. MiniCPM5-2B, 2026-10-13 e2e.
+const GLUED_CLOSER = /(```vis-chart[^\n]*\n)((?:(?!```)[\s\S])*?[}\]])[ \t]*```[ \t]*(?=\n|$)/g;
+
+/** The answer's markdown with doubled chart fences collapsed to one and a
+ * closer glued to the JSON moved onto its own line. */
 export function normalizeChartFences(markdown) {
-  return String(markdown ?? "").replace(DOUBLE_FENCE, "```vis-chart\n$1\n```");
+  return String(markdown ?? "")
+    .replace(DOUBLE_FENCE, "```vis-chart\n$1\n```")
+    .replace(GLUED_CLOSER, "$1$2\n```");
 }
 
 // A fence line left inside the block's text (the inner opener whose closer
