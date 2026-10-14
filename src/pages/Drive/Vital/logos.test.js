@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { providerLogo } from "./logos";
 
-const CDN = "https://static.thetahealth.ai/res/oura.png";
+const CDN = "https://cdn.example/res/oura.png";
 
 describe("providerLogo", () => {
   it("uses the bundled logo for every built-in provider, never the API's URL", () => {
