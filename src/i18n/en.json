@@ -886,7 +886,7 @@
   "cite_private": "Only the conversation's owner can open its sources.",
   "cite_readings_n": "{{count}} readings",
   "process_thinking": "Thinking",
-  "process_thought": "Thought it through",
+  "process_thought": "Thinking and tools",
   "process_thought_for_one": "Thought for {{count}} second",
   "process_thought_for_other": "Thought for {{count}} seconds",
   "process_seconds_one": "{{count}}s",
@@ -931,5 +931,13 @@
   "status_unavailable": "The model could not be reached",
   "status_stopped_early": "The answer stopped early",
   "status_empty": "The model returned no answer",
-  "status_error": "Something went wrong, please retry"
+  "status_error": "Something went wrong, please retry",
+  "process_preparing": "Preparing your response",
+  "process_partial": "Partial result",
+  "process_unfinished": "Not completed",
+  "process_context_running": "Summarizing earlier messages",
+  "process_context_done": "Context summary ready",
+  "process_context_hint": "This conversation is long. Preparing a summary before continuing.",
+  "status_cancelled": "Stopped receiving this response",
+  "copy_answer_failed": "Could not copy. Please select the answer and copy it manually."
 }

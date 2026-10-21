@@ -1,14 +1,13 @@
 import { create } from "zustand";
 import api from "../../api";
 import { useAccountStore } from "../account";
-import { CHART_MESSAGE_TYPE, isValidChartMessageType } from "../../enum/chat";
 import { SSE_ERROR_TYPE } from "../../enum/error";
 import { v4 as uuidv4 } from "uuid";
 import i18n from "i18next";
 import { useModelStore } from "../model";
 import { useChartInputStore } from "./input";
 import { useChartDataStore } from "./data";
-import { createFrameCoalescer } from "./frameCoalescer";
+import { streamTurn } from "./streamTurn";
 import { useChatHistoryStore } from "./history";
 import { canSend } from "../../utils";
 import {
@@ -65,17 +64,16 @@ const isSessionStreaming = (sessionId) => {
  * @param {string} sessionId
  * @param {string} question
  * @param {Array} fileList
- * @returns {{ questionId: string, assistantId: string }}
+ * @returns {{ questionId: string }}
  */
 const prepareConversation = (sessionId, question, fileList) => {
   const { addUserQuestionBySessionId, addAssistantResponseBySessionId } =
     useChartDataStore.getState();
 
-  const questionId = uuidv4();
-  addUserQuestionBySessionId(sessionId, question, fileList);
-  const assistantId = addAssistantResponseBySessionId(sessionId, questionId);
+  const questionId = addUserQuestionBySessionId(sessionId, question, fileList);
+  addAssistantResponseBySessionId(sessionId, questionId);
 
-  return { questionId, assistantId };
+  return { questionId };
 };
 
 /**
@@ -86,7 +84,6 @@ const prepareConversation = (sessionId, question, fileList) => {
 const startSSEConnections = async ({
   vsList,
   sessionId,
-  assistantId,
   question,
   fileList,
   queryUserId,
@@ -115,7 +112,6 @@ const startSSEConnections = async ({
         question,
         session_id: sessionId,
         backend_session_id: paneSessionId,
-        assistant_id: assistantId,
         file_list: fileList,
         current_query_user_id: queryUserId,
         questionId,
@@ -139,7 +135,9 @@ const cleanupSSESession = (
   sseControllers,
   setIsStreaming,
   updateStore,
+  controllers,
 ) => {
+  if (sseControllers.get(sessionId) !== controllers) return;
   setIsStreaming(sessionId, false);
   sseControllers.delete(sessionId);
   updateStore({ _sseControllers: new Map(sseControllers) });
@@ -228,6 +226,13 @@ export const useChatStore = create((set, get) => ({
       set({ _sseControllers: new Map(_sseControllers) });
     }
 
+    const turns = useChartDataStore.getState().chartData[session_id]?.conversations || [];
+    for (const assistant of turns.at(-1)?.assistant_list || []) {
+      if (assistant.status !== "end") {
+        useChartDataStore.getState().finishAssistantTurn(session_id, assistant.provider, assistant.question_id,
+          assistant.messages.some((block) => block.type === "end") ? "completed" : "cancelled");
+      }
+    }
     setIsStreamingBySessionId(session_id, false);
   },
 
@@ -265,7 +270,7 @@ export const useChatStore = create((set, get) => ({
     // Step 4: Determine session (existing or new)
     let sessionId = current_session_id;
     let isNewSession = false;
-    let questionId, assistantId;
+    let questionId;
 
     if (!sessionId && input.vsList.length > 1) {
       // ---- Compare mode: frontend-generated group, one session per pane ----
@@ -275,7 +280,7 @@ export const useChatStore = create((set, get) => ({
       sessionId = groupKey;
 
       // Optimistic UI: group key is known immediately, no temp→real swap.
-      ({ questionId, assistantId } = prepareConversation(
+      ({ questionId } = prepareConversation(
         groupKey,
         input.question,
         input.fileList,
@@ -312,7 +317,7 @@ export const useChatStore = create((set, get) => ({
       const pendingKey = `temp_${uuidv4()}`;
 
       // Prepare conversation immediately → ContentList shows Analyzing
-      ({ questionId, assistantId } = prepareConversation(
+      ({ questionId } = prepareConversation(
         pendingKey,
         input.question,
         input.fileList,
@@ -353,10 +358,12 @@ export const useChatStore = create((set, get) => ({
       set({ current_session_id: sessionId });
     }
 
+    if (isNewSession && !isSessionStreaming(sessionId)) return;
+    const controllers = [];
     try {
       // Step 5: Prepare conversation for existing sessions
       if (!isNewSession) {
-        ({ questionId, assistantId } = prepareConversation(
+        ({ questionId } = prepareConversation(
           sessionId,
           input.question,
           input.fileList,
@@ -366,7 +373,6 @@ export const useChatStore = create((set, get) => ({
 
       // Step 8: Setup SSE controllers
       const { _sseControllers } = get();
-      const controllers = [];
       _sseControllers.set(sessionId, controllers);
       set({ _sseControllers: new Map(_sseControllers) });
 
@@ -374,7 +380,6 @@ export const useChatStore = create((set, get) => ({
       await startSSEConnections({
         vsList: input.vsList,
         sessionId,
-        assistantId,
         question: input.question,
         fileList: input.fileList,
         queryUserId: current_query_user_id,
@@ -391,6 +396,7 @@ export const useChatStore = create((set, get) => ({
         get()._sseControllers,
         setIsStreamingBySessionId,
         set,
+        controllers,
       );
     } catch (error) {
       consola.error("ERROR: startMultipleChatSSE", error);
@@ -401,177 +407,44 @@ export const useChatStore = create((set, get) => ({
           get()._sseControllers,
           setIsStreamingBySessionId,
           set,
+          controllers,
         );
       }
     }
   },
   /* sse for single */
-  fetchStartChatSSE: ({
-    provider,
-    question = "",
-    session_id,
-    backend_session_id,
-    assistant_id,
-    file_list = [],
-    current_query_user_id,
-    questionId,
-    controller,
-    is_new_session,
-    prompt_name,
+  fetchStartChatSSE: async ({
+    provider, question = "", session_id, backend_session_id,
+    file_list = [], current_query_user_id, questionId, controller,
+    is_new_session, prompt_name,
   }) => {
-    // session_id is the chartData/store key (group key in compare mode).
-    // backend_session_id is the id sent to the backend (the per-pane id in
-    // compare mode); defaults to session_id for single-model.
-    const backendSessionId = backend_session_id || session_id;
-    return new Promise((resolve, reject) => {
-      try {
-        if (!session_id) {
-          throw new Error("session_id is required");
-        }
-        if (!current_query_user_id) {
-          throw new Error("current_query_user_id is required");
-        }
-        if (!assistant_id) {
-          throw new Error("assistant_id is required");
-        }
-
-        const { pushBlockByProvider } = useChartDataStore.getState();
-        const { refreshHistory } = useChatHistoryStore.getState();
-
-        // No `agent`, no `group_id`: Mirobody 1.4.0 accepts and ignores both
-        // (and `enable_mcp` / `reference_task_id`, which this client never
-        // sent), and will drop them from `ChatStreamRequest` once no client
-        // sends them. `group_id` was only ever echoed back.
-        const payload = {
-          question,
-          session_id: backendSessionId,
-          provider,
-          query_user_id: current_query_user_id,
-          file_list:
-            file_list?.map((f) => ({
-              file_key: f.file_key,
-              file_type: f.original_file_type,
-              file_name: f.file_name,
-              file_url: f.file_url,
-              file_size: f.file_size,
-            })) || [],
-          question_id: questionId,
-          prompt_name: prompt_name || null,
-        };
-
-        // Coalesce content frames into one store update per ~60ms. One
-        // setState per SSE frame re-renders the whole conversation tree per
-        // token — O(n²) over a long answer. Frames that change CONTROL flow
-        // (error / close) must NOT overtake buffered content, so those paths
-        // flush first.
-        const { push: queueFrame, flush: flushFrames } = createFrameCoalescer(
-          (frames) => {
-            // Drop the buffered tail once the user has stopped this stream:
-            // a timer armed just before the abort would otherwise land the
-            // dead stream's tail in the session's LAST conversation — which
-            // may already be a NEW question by the time it fires.
-            if (controller?.signal.aborted) return;
-            useChartDataStore
-              .getState()
-              .applyStreamingFrames(session_id, provider, frames);
-          },
-        );
-
-        // start chat sse
-        api.startChatSSE({
-          payload,
-          signal: controller ? controller.signal : undefined,
-          onmessage: async (message) => {
-            try {
-              // Check if request has been aborted, if so don't update UI
-              if (controller && controller.signal.aborted) {
-                return;
-              }
-              const { type } = message;
-
-              // Blocks about the stream rather than the answer: `start` opens
-              // it with the id the answer is saved under, `heartbeat` keeps an
-              // idle connection open. Consume them quietly.
-              if (type === "start" || type === "heartbeat") {
-                return;
-              }
-
-              // Validate block type - ignore unknown types from backend
-              if (!isValidChartMessageType(type)) {
-                consola.warn(`[SSE] Ignoring unknown block type: "${type}"`, message);
-                return;
-              }
-
-              // The block rides through as the backend sent it, so every field
-              // it carries reaches the renderer: `tool_result.status` off the
-              // tool's envelope (`ok` / `partial` / `error`, plus `error_kind`
-              // and `truncated`), `end.finish_reason` (`stop` / `error` /
-              // `unavailable` / `empty`). The status line reads them to say
-              // WHICH of those happened instead of "Answer Completed" for all.
-              //
-              // Frame coalescing: ordinary blocks reach the store at most once
-              // every 60ms.
-              queueFrame(message);
-            } catch (error) {
-              consola.error("ERROR: fetchStartChatSSE onmessage", error);
-            }
-          },
-          onerror: (error) => {
-            consola.error("ERROR: fetchStartChatSSE", error);
-            flushFrames(); // error card must land AFTER the buffered content
-
-            // Display localized error message in UI
-            // For backend errors, use original message; otherwise use i18n key
-            const errorMessage =
-              error?.type === SSE_ERROR_TYPE.BACKEND_ERROR && error?.message
-                ? error.message
-                : i18n.t(error?.type || "sse_error_unknown");
-
-            pushBlockByProvider(session_id, provider, {
-              type: CHART_MESSAGE_TYPE.ERROR,
-              message: errorMessage,
-            });
-            reject(error);
-          },
-          onclose: () => {
-            flushFrames(); // apply the buffered tail before marking "end"
-            // Update assistant status to "end" when SSE closes
-            useChartDataStore.setState((state) => {
-              const sessionData = state.chartData[session_id];
-              if (sessionData?.conversations) {
-                const conversation =
-                  sessionData.conversations[
-                    sessionData.conversations.length - 1
-                  ];
-                if (conversation?.assistant_list) {
-                  // `provider` alone identifies a pane: compare mode compares
-                  // providers, and the (provider, agent) composite key existed
-                  // only because two agents could serve the same provider.
-                  const assistant = conversation.assistant_list.find(
-                    (item) => item.provider === provider,
-                  );
-                  if (assistant) {
-                    assistant.status = "end";
-                  }
-                }
-              }
-            });
-
-            resolve({ provider });
-
-            // Only refresh history for new session's first completed SSE
-            const { _refreshedSessionIds } = get();
-            if (is_new_session && !_refreshedSessionIds.has(session_id)) {
-              _refreshedSessionIds.add(session_id);
-              refreshHistory();
-            }
-          },
-        });
-      } catch (error) {
-        consola.error("ERROR: fetchStartChatSSE", error);
-        reject(error);
-      }
+    const payload = {
+      question,
+      session_id: backend_session_id || session_id,
+      provider,
+      query_user_id: current_query_user_id,
+      file_list: file_list.map((f) => ({
+        file_key: f.file_key, file_type: f.original_file_type,
+        file_name: f.file_name, file_url: f.file_url, file_size: f.file_size,
+      })),
+      question_id: questionId,
+      prompt_name: prompt_name || null,
+    };
+    const reason = await streamTurn({
+      request: api.startChatSSE,
+      payload,
+      signal: controller?.signal,
+      apply: (frames) => useChartDataStore.getState().applyStreamingFrames(session_id, provider, frames, questionId),
+      finish: (reason) => useChartDataStore.getState().finishAssistantTurn(session_id, provider, questionId, reason),
+      errorMessage: (error) => error?.type === SSE_ERROR_TYPE.BACKEND_ERROR && error?.message
+        ? error.message : i18n.t(error?.type || "sse_error_unknown"),
     });
+    const { _refreshedSessionIds } = get();
+    if (reason === "completed" && is_new_session && !_refreshedSessionIds.has(session_id)) {
+      _refreshedSessionIds.add(session_id);
+      useChatHistoryStore.getState().refreshHistory();
+    }
+    return { provider, reason };
   },
   /* loading */
   loading_chart_session: false,

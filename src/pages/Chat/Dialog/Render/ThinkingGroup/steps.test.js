@@ -10,6 +10,7 @@ import {
   latestHeading,
   toSteps,
   toolCount,
+  stepState,
 } from "./steps";
 
 const thought = (reasoning, at) => ({ type: CHART_MESSAGE_TYPE.REASONING, id: "t", reasoning, at });
@@ -20,6 +21,7 @@ describe("each tool reads as the work it does", () => {
   it.each([
     ["query_health_indicators", {}, "health"],
     ["eval", {}, "compute"],
+    ["python_exec", { code: "print(7 / 3)" }, "compute"],
     ["eval", { code: "const r = await tools.queryHealthIndicators({keywords: ['LDL']})" }, "compute_data"],
     ["eval", { code: "const mean = xs.reduce((a, b) => a + b) / xs.length" }, "compute"],
     ["search_medical_knowledge", {}, "knowledge"],
@@ -31,6 +33,29 @@ describe("each tool reads as the work it does", () => {
     ["a_tool_from_a_plugin", {}, "tool"],
   ])("%s %o is %s", (name, args, key) => {
     expect(kindOf(name, args).key).toBe(key);
+  });
+});
+
+describe("truthful lifecycle", () => {
+  it("keeps concurrent tools pending when a later call has finished", () => {
+    const steps = toSteps([call("a", "python_exec"), call("b", "read_file"), result("b")]);
+    expect(currentStep(steps).id).toBe("a");
+    expect(stepState(steps[0], true)).toBe("running");
+    expect(stepState(steps[0], false)).toBe("unfinished");
+    expect(stepState(steps[1], false)).toBe("done");
+  });
+  it("empty successful results still finish, truncated results are partial", () => {
+    const steps = toSteps([call("a", "python_exec"), result("a", { content: "" }), call("b", "read_file"), result("b", { truncated: true })]);
+    expect(steps[0].done).toBe(true);
+    expect(stepState(steps[1], false)).toBe("partial");
+  });
+  it("joins actual summary start and completion without exposing summary text", () => {
+    const start = { type: "context", phase: "summarization", id: "s1", status: "started", at: 1000 };
+    expect(stepState(toSteps([start])[0], true)).toBe("running");
+    const steps = toSteps([start, { ...start, status: "completed", at: 7000 }]);
+    expect(steps).toHaveLength(1);
+    expect(steps[0]).toMatchObject({ type: "context", done: true, end: 7000 });
+    expect(stepState(toSteps([start, { ...start, status: "failed" }])[0], false)).toBe("failed");
   });
 });
 

@@ -1,8 +1,7 @@
 import { FILE_TYPE, FILE_STATUS } from "../enum/file";
 import { LANGUAGE_CODE, LANGUAGE_LIST } from "../enum/lang";
 import { LANGUAGE, API_BASE_URL } from "../enum/storage";
-import { CHART_MESSAGE_TYPE, CHART_MESSAGE_STATUS } from "../enum/chat";
-import { v4 as uuidv4 } from "uuid";
+import { CHART_MESSAGE_TYPE } from "../enum/chat";
 
 /* is cn environment */
 export const isCnEnvironment = () => {
@@ -89,140 +88,54 @@ export const getMessageTypeFromFile = (file) => {
   return FILE_TYPE.FILE;
 };
 
-/* transform messages to thinking group */
-const THINKING_GROUP_MESSAGE_TYPES = [
-  CHART_MESSAGE_TYPE.REASONING,
-  CHART_MESSAGE_TYPE.TOOL_CALL,
-  CHART_MESSAGE_TYPE.TOOL_RESULT,
-];
-
-// Helper: Check if message type is a thinking type
-const isThinkingType = (type) => THINKING_GROUP_MESSAGE_TYPES.includes(type);
-
-// Helper: Ensure message has an id
-const ensureMessageId = (message) => ({
-  ...message,
-  id: message.id || uuidv4(),
-});
-
-// Helper: Create a new thinking group
-const createThinkingGroup = () => ({
-  type: CHART_MESSAGE_TYPE.THINKING_GROUP,
-  thinking_group_id: uuidv4(),
-  content: [],
-});
-
-// Helper: find the group holding the call a tool_result belongs to. The call
-// id is `tool_call.id` and `tool_result.tool_call_id` — LangChain's two names
-// for the same thing.
-const findMatchingGroupId = (thinkingGroups, toolCallId) => {
-  const matchingGroup = thinkingGroups.findLast((group) =>
-    group.content.some(
-      (item) =>
-        item.type === CHART_MESSAGE_TYPE.TOOL_CALL && item.id === toolCallId,
-    ),
-  );
-  return matchingGroup?.thinking_group_id || null;
-};
-
-// Helper: Add message to thinking group (returns new group with updated content)
-const addToThinkingGroup = (group, message) => ({
-  ...group,
-  content: [...group.content, message],
-});
+/* Group work without letting invisible usage receipts end the thinking UI. */
+const THINKING_GROUP_MESSAGE_TYPES = new Set([
+  CHART_MESSAGE_TYPE.REASONING, CHART_MESSAGE_TYPE.TOOL_CALL,
+  CHART_MESSAGE_TYPE.TOOL_RESULT, CHART_MESSAGE_TYPE.CONTEXT,
+]);
 
 export const transformMessagesToThinkingGroup = (messages) => {
-  if (!Array.isArray(messages)) {
-    return [];
-  }
-
-  const initialState = {
-    result: [],
-    currentGroupId: null,
-    thinkingGroups: [],
-  };
-
-  const finalState = messages.reduce((state, message) => {
-    const msg = ensureMessageId(message);
-
-    // Non-thinking type: close current group and add message to result
-    if (!isThinkingType(msg.type)) {
-      return {
-        ...state,
-        result: [...state.result, msg],
-        currentGroupId: null,
-      };
+  if (!Array.isArray(messages)) return [];
+  const result = [];
+  const calls = new Map();
+  const contexts = new Map();
+  let current = null;
+  messages.forEach((message, index) => {
+    const msg = { ...message, id: message.id || `${message.type}-${index}` };
+    if (msg.type === CHART_MESSAGE_TYPE.USAGE) {
+      result.push(msg);
+      return;
     }
-
-    // A tool_result: backfill it into the group holding its call
-    if (msg.type === CHART_MESSAGE_TYPE.TOOL_RESULT && msg.tool_call_id) {
-      const matchingGroupId = findMatchingGroupId(
-        state.thinkingGroups,
-        msg.tool_call_id,
-      );
-      if (matchingGroupId) {
-        // Update the matching group's content using thinking_group_id
-        const updatedGroups = state.thinkingGroups.map((g) =>
-          g.thinking_group_id === matchingGroupId
-            ? addToThinkingGroup(g, msg)
-            : g,
-        );
-        // Also update in result array using thinking_group_id
-        const updatedResult = state.result.map((item) =>
-          item.thinking_group_id === matchingGroupId
-            ? addToThinkingGroup(item, msg)
-            : item,
-        );
-        return {
-          ...state,
-          result: updatedResult,
-          thinkingGroups: updatedGroups,
-        };
-      }
+    if ([CHART_MESSAGE_TYPE.TEXT, CHART_MESSAGE_TYPE.REASONING].includes(msg.type) &&
+        !String(msg.text ?? msg.reasoning ?? "").trim()) return;
+    if (!THINKING_GROUP_MESSAGE_TYPES.has(msg.type)) {
+      if (current) current.endedAt = msg.at;
+      current = null;
+      result.push(msg);
+      return;
     }
-
-    // Thinking type: add to current group or create new one
-    if (state.currentGroupId) {
-      // Add to existing group using thinking_group_id
-      const updatedResult = state.result.map((item) =>
-        item.thinking_group_id === state.currentGroupId
-          ? addToThinkingGroup(item, msg)
-          : item,
-      );
-      const updatedGroups = state.thinkingGroups.map((g) =>
-        g.thinking_group_id === state.currentGroupId
-          ? addToThinkingGroup(g, msg)
-          : g,
-      );
-      return {
-        ...state,
-        result: updatedResult,
-        currentGroupId: state.currentGroupId,
-        thinkingGroups: updatedGroups,
-      };
+    const matched = msg.type === CHART_MESSAGE_TYPE.TOOL_RESULT ? calls.get(msg.tool_call_id)
+      : msg.type === CHART_MESSAGE_TYPE.CONTEXT ? contexts.get(msg.id) : null;
+    if (matched) {
+      matched.content.push(msg);
+      return;
     }
-
-    // Create new thinking group
-    const newGroup = { ...createThinkingGroup(), content: [msg] };
-    return {
-      result: [...state.result, newGroup],
-      currentGroupId: newGroup.thinking_group_id,
-      thinkingGroups: [...state.thinkingGroups, newGroup],
-    };
-  }, initialState);
-
-  return finalState.result;
+    if (!current) {
+      current = { type: CHART_MESSAGE_TYPE.THINKING_GROUP, id: `work-${msg.id}`, content: [] };
+      result.push(current);
+    }
+    current.content.push(msg);
+    if (msg.type === CHART_MESSAGE_TYPE.TOOL_CALL) calls.set(msg.id, current);
+    if (msg.type === CHART_MESSAGE_TYPE.CONTEXT) contexts.set(msg.id, current);
+  });
+  return result;
 };
 
-/**
- * Marks the thinking group that is still working: the last item of a turn that
- * is streaming. Once anything follows it (the answer's text) it is done.
- */
 export const markActiveGroup = (grouped, streaming) => {
-  if (!streaming || !grouped.length) return grouped;
-  const last = grouped[grouped.length - 1];
-  if (last.type !== CHART_MESSAGE_TYPE.THINKING_GROUP) return grouped;
-  return [...grouped.slice(0, -1), { ...last, active: true }];
+  if (!streaming) return grouped;
+  const last = grouped.findLast((item) => item.type !== CHART_MESSAGE_TYPE.USAGE);
+  if (last?.type !== CHART_MESSAGE_TYPE.THINKING_GROUP) return grouped;
+  return grouped.map((item) => item === last ? { ...item, active: true } : item);
 };
 
 /* can send */

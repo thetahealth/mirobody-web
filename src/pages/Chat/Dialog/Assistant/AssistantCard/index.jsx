@@ -5,7 +5,6 @@ import RenderErrorBoundary from "../../Render/ErrorBoundary";
 import StatusHeader from "../StatusHeader";
 import { markActiveGroup, transformMessagesToThinkingGroup } from "../../../../../utils";
 import { useModelStore } from "../../../../../store/model";
-import { useTranslation } from "react-i18next";
 
 function AssistantCard({
   datasource,
@@ -22,32 +21,6 @@ function AssistantCard({
   const modelShowName = getModelShowName(datasource?.provider);
 
   const status = datasource?.status;
-  const { t } = useTranslation();
-
-  // if (messages.length === 0 && status !== "end") {
-  //   return (
-  //     <div className="flex-1">
-  //       <StatusHeader datasource={messages} />
-  //     </div>
-  //   );
-  // }
-
-  if (messages.length === 0 && status === "end") {
-    return (
-      <Card
-        datasource={datasource}
-        isShowFullpage={isShowFullpage}
-        fullpageDatasource={fullpageDatasource}
-        onToggleFullpage={onToggleFullpage}
-        modelShowName={modelShowName}
-      >
-        <div className={styles.content_wrapper}>
-          <div className={styles.empty_state}>{t("no_response")}</div>
-        </div>
-      </Card>
-    );
-  }
-
   const groupedMessages = markActiveGroup(transformMessagesToThinkingGroup(messages), status !== "end");
 
   return (
@@ -59,9 +32,9 @@ function AssistantCard({
       modelShowName={modelShowName}
     >
       <div className={styles.content_wrapper}>
-        <StatusHeader datasource={messages} />
-        {groupedMessages.map((message, index) => (
-          <RenderErrorBoundary key={index}>
+        <StatusHeader datasource={messages} status={status} completionReason={datasource?.completion_reason} />
+        {groupedMessages.map((message) => (
+          <RenderErrorBoundary key={message.id}>
             <ContentRender datasource={message} />
           </RenderErrorBoundary>
         ))}

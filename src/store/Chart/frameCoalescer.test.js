@@ -77,10 +77,9 @@ describe("createFrameCoalescer", () => {
   });
 
   it("an apply guarded by an abort flag drops the tail instead of bleeding into the next turn", () => {
-    // How index.js wires it: sse.js skips onclose on abort, so a timer armed
-    // just before the user pressed Stop still fires. applyStreamingFrames
-    // targets the session's LAST conversation — if a new question started in
-    // that window, the dead stream's tail would land in the NEW answer.
+    // A coalescer consumer can reject already-buffered frames after abort.
+    // The chat lifecycle additionally binds mutations to the original question
+    // and prevents later callbacks from enqueueing any more frames.
     const applied = [];
     const signal = { aborted: false };
     const { push } = createFrameCoalescer((frames) => {

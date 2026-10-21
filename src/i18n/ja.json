@@ -886,7 +886,7 @@
   "cite_private": "出典を開けるのは会話の持ち主だけです。",
   "cite_readings_n": "{{count}} 件の測定値",
   "process_thinking": "考え中",
-  "process_thought": "考えました",
+  "process_thought": "思考とツール",
   "process_thought_for_one": "{{count}} 秒間考えました",
   "process_thought_for_other": "{{count}} 秒間考えました",
   "process_seconds_one": "{{count}} 秒",
@@ -931,5 +931,13 @@
   "status_unavailable": "モデルに接続できませんでした",
   "status_stopped_early": "回答が途中で止まりました",
   "status_empty": "モデルから回答がありませんでした",
-  "status_error": "問題が発生しました。もう一度お試しください"
+  "status_error": "問題が発生しました。もう一度お試しください",
+  "process_preparing": "回答を準備しています",
+  "process_partial": "一部の結果",
+  "process_unfinished": "未完了",
+  "process_context_running": "以前の会話を要約しています",
+  "process_context_done": "会話の要約を作成しました",
+  "process_context_hint": "会話が長くなったため、要約を作成してから回答を続けます。",
+  "status_cancelled": "この回答の受信を停止しました",
+  "copy_answer_failed": "コピーできませんでした。回答を選択して手動でコピーしてください。"
 }

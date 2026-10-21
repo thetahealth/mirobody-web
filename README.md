@@ -35,6 +35,36 @@ npm run build          # production bundle into dist/
 npm run analyze        # same build + a bundle treemap in dist/stats.html
 ```
 
+## Chat progress and final answers
+
+The client displays preparation immediately, then streams the model's visible
+thinking and tool execution in the work panel. The first nonempty `reasoning`
+or `text` block bypasses the 60 ms batching window; subsequent tokens are batched.
+Preparation, heartbeats and context activity are not generated model tokens.
+Only `text` blocks feed the final-answer clipboard, including in compare mode.
+
+Tool results distinguish success, partial/truncated results and failure. Calls
+with no returned result remain unfinished when a stream closes. The work panel
+keeps the reader's expansion and scroll choices. Historical turns have no live
+spinner or invented elapsed time. All four shipped languages have the same states.
+
+Recent backends also send content-free summary activity:
+
+```json
+{"type":"context","phase":"summarization","id":"operation-id","status":"started"}
+```
+
+The matching status is `completed` or `failed`. Completion means the summary
+was generated and validated; committed context cutoffs remain in `usage.context`.
+Summary text is never displayed. Older backends continue to use the existing
+thinking/tool blocks without this additional progress step.
+
+Stop aborts the browser's HTTP stream and closes that local turn. Frames and
+cleanup are bound to a question ID, so callbacks from a stopped request cannot
+modify a newer question. The backend currently continues background generation
+after disconnect to save the answer; stopping reception does not cancel that
+server task. A later history refresh can therefore contain its completed answer.
+
 ## Ship a build
 
 The backend reads its UI directory from disk per request, so a synced build is

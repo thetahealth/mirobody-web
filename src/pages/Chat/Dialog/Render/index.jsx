@@ -50,7 +50,7 @@ const ContentRender = ({ datasource }) => {
   }
   // thinking group
   if (type === CHART_MESSAGE_TYPE.THINKING_GROUP) {
-    return <ThinkingGroup datasource={datasource.content} active={datasource.active} />;
+    return <ThinkingGroup datasource={datasource.content} active={datasource.active} endedAt={datasource.endedAt} />;
   }
   // the model's own reasoning
   if (type === CHART_MESSAGE_TYPE.REASONING) {

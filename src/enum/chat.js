@@ -23,6 +23,8 @@ export const CHART_MESSAGE_TYPE = {
   TOOL_CALL: "tool_call",
   TOOL_RESULT: "tool_result",
   USAGE: "usage",
+  // Actual context-summary generation lifecycle; never model reasoning text.
+  CONTEXT: "context",
   // the agent asked the user a question (ask_user) and the run is paused:
   // question + one-tap options; a tap sends an ordinary message that resumes it
   INTERRUPT: "interrupt",
