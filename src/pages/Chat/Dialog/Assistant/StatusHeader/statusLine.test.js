@@ -23,8 +23,23 @@ const call = () => ({ type: CHART_MESSAGE_TYPE.TOOL_CALL, id: "c1", name: "query
 const refused = () => ({ type: CHART_MESSAGE_TYPE.TOOL_RESULT, tool_call_id: "c1", status: TOOL_STATUS_ERROR });
 
 describe("before anything arrives", () => {
-  it("says it is thinking", () => {
-    expect(statusLineFor([])).toEqual({ kind: LINE_LOADING, key: "process_thinking" });
+  it("acknowledges preparation before a model token exists", () => {
+    expect(statusLineFor([])).toEqual({ kind: LINE_LOADING, key: "process_preparing" });
+  });
+});
+
+describe("transport completion and history", () => {
+  it("does not spin after cancellation or a missing end frame", () => {
+    expect(statusLineFor([], "end", "cancelled")).toEqual({ kind: LINE_DONE, key: "status_cancelled" });
+    expect(statusLineFor([thought()], "end", "disconnected").key).toBe("status_stopped_early");
+    expect(statusLineFor([thought()], "end").key).toBe("status_empty");
+    expect(statusLineFor([reply()], "end").key).toBe("");
+  });
+  it("keeps preparation visible after a notice or usage receipt", () => {
+    expect(statusLineFor([{ type: "notice", message: "Using local model" }, { type: "usage", context: {} }]).key).toBe("process_preparing");
+  });
+  it("does not mistake an ask-user pause for an empty answer", () => {
+    expect(statusLineFor([call(), { type: "interrupt", question: "Date?" }, end()], "end").key).toBe("");
   });
 });
 

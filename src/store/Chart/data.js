@@ -20,6 +20,19 @@ import {
 } from "../../utils/compareSession";
 import consola from "consola";
 
+// Late network callbacks must never mutate the newest question in a session.
+const findAssistant = (state, sessionId, provider, questionId) => {
+  if (!questionId) return undefined;
+  const turns = state.chartData[sessionId]?.conversations || [];
+  for (let index = turns.length - 1; index >= 0; index--) {
+    const assistant = turns[index].assistant_list?.find(
+      (item) => item.provider === provider && item.question_id === questionId,
+    );
+    if (assistant) return assistant;
+  }
+  return undefined;
+};
+
 /**
  * Append ONE streamed block to an assistant's messages, joining it to the
  * previous one when they are the same continuable type (`text`, `reasoning`).
@@ -181,9 +194,6 @@ export const useChartDataStore = create(
       const { vs_list } = useModelStore.getState();
       const { current_query_user_id } = useAccountStore.getState();
 
-      // Generate a conversation_id for backward compatibility with SSE
-      const conversation_id = uuidv4();
-
       set((state) => {
         if (!state.chartData[session_id]) {
           state.chartData[session_id] = {
@@ -221,58 +231,25 @@ export const useChartDataStore = create(
         currentChartData.is_streaming = false;
       });
 
-      return conversation_id;
     },
     /* apply a BATCH of coalesced streaming frames in ONE store update.
      * Every SSE frame used to be its own setState; each update re-rendered the
      * whole conversation tree, so a long answer cost O(n²) render work. The
      * SSE layer buffers ~60ms of frames and flushes them here together. */
-    applyStreamingFrames: (session_id, provider, frames) => {
-      if (!frames || frames.length === 0) return;
+    applyStreamingFrames: (session_id, provider, frames, questionId) => {
+      if (!frames?.length) return;
       set((state) => {
-        const currentChartData = state.chartData[session_id];
-        if (!currentChartData) return;
-
-        const conversations = currentChartData.conversations;
-        if (!conversations || conversations.length === 0) return;
-
-        const lastConversation = conversations[conversations.length - 1];
-        if (!lastConversation) return;
-
-        // `provider` is the pane key. It used to be (provider, agent),
-        // because two agents could serve the same provider; there is one
-        // agent since Mirobody 1.4.0, and `/api/models` returns bare provider
-        // names, so the second half of the key had nothing left to select.
-        const assistantItem = lastConversation.assistant_list?.find(
-          (item) => item.provider === provider,
-        );
-        if (!assistantItem) return;
-
-        for (const frame of frames) {
-          appendFrameToAssistant(assistantItem, frame);
-        }
+        const assistant = findAssistant(state, session_id, provider, questionId);
+        if (!assistant || assistant.status === "end") return;
+        for (const frame of frames) appendFrameToAssistant(assistant, frame);
       });
     },
-    /* append ONE block to a pane's answer, outside the coalesced batch */
-    pushBlockByProvider: (session_id, provider, block) => {
+    finishAssistantTurn: (session_id, provider, questionId, reason) => {
       set((state) => {
-        const currentChartData = state.chartData[session_id];
-        if (!currentChartData) return;
-
-        // get last conversation
-        const conversations = currentChartData.conversations;
-        if (!conversations || conversations.length === 0) return;
-
-        const lastConversation = conversations[conversations.length - 1];
-        if (!lastConversation) return;
-
-        // find assistant by provider
-        const assistantItem = lastConversation.assistant_list?.find(
-          (item) => item.provider === provider,
-        );
-        if (!assistantItem) return;
-
-        appendFrameToAssistant(assistantItem, block);
+        const assistant = findAssistant(state, session_id, provider, questionId);
+        if (!assistant) return;
+        assistant.status = "end";
+        assistant.completion_reason = reason;
       });
     },
     /* switch session */

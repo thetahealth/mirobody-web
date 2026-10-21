@@ -3,10 +3,11 @@
 // thinking took, and what is happening right now. Pure functions of the
 // streamed blocks, so they are tested without rendering.
 
-import { CHART_MESSAGE_TYPE, TOOL_STATUS_ERROR } from "../../../../../enum/chat";
+import { CHART_MESSAGE_TYPE, TOOL_STATUS_ERROR, TOOL_STATUS_PARTIAL } from "../../../../../enum/chat";
 
 export const STEP_THOUGHT = "thought";
 export const STEP_TOOL = "tool";
+export const STEP_CONTEXT = "context";
 
 // One entry per kind of work. `key` names the i18n pair
 // `process_<key>_running` / `process_<key>_done`; `icon` is resolved by the
@@ -17,6 +18,7 @@ const KINDS = {
   query_genetic_data: { key: "genetics", icon: "dna" },
   query_pharmacogenomics: { key: "pharmacogenomics", icon: "dna" },
   eval: { key: "compute", icon: "calculator" },
+  python_exec: { key: "compute", icon: "calculator" },
   search_medical_knowledge: { key: "knowledge", icon: "book" },
   read_medical_source: { key: "source", icon: "book" },
   read_file: { key: "read_file", icon: "file" },
@@ -114,6 +116,7 @@ export const toSteps = (blocks) => {
     }
   }
   const steps = [];
+  const contexts = new Map();
   for (const block of blocks || []) {
     if (block.type === CHART_MESSAGE_TYPE.REASONING) {
       const text = block.reasoning ?? block.content ?? "";
@@ -130,9 +133,21 @@ export const toSteps = (blocks) => {
         detail: result ? (result.content ?? "") : "",
         done: Boolean(result),
         failed: result?.status === TOOL_STATUS_ERROR,
+        partial: result?.status === TOOL_STATUS_PARTIAL || result?.truncated === true,
         at: block.at,
         end: result?.at,
       });
+    } else if (block.type === CHART_MESSAGE_TYPE.CONTEXT && block.phase === "summarization") {
+      const step = contexts.get(block.id) || {
+        type: STEP_CONTEXT, id: block.id, name: "", kind: { key: "context", icon: "file" }, at: block.at,
+      };
+      if (!contexts.has(block.id)) {
+        contexts.set(block.id, step);
+        steps.push(step);
+      }
+      step.done = block.status === "completed" || block.status === "failed";
+      step.failed = block.status === "failed";
+      if (step.done) step.end = block.at;
     }
   }
   return steps;
@@ -146,12 +161,11 @@ export const durationOf = (blocks, now) => {
   return Math.max(1, Math.round((last - Math.min(...times)) / 1000));
 };
 
-/** What the group is doing now: the last step, if it is still running. */
-export const currentStep = (steps) => {
-  const last = steps.at(-1);
-  if (!last) return null;
-  if (last.type === STEP_TOOL && last.done) return null;
-  return last;
-};
+/** A still-pending parallel call stays visible after a later one returns. */
+export const currentStep = (steps) => steps.findLast((step) => step.type !== STEP_THOUGHT && !step.done)
+  || (steps.at(-1)?.type === STEP_THOUGHT ? steps.at(-1) : null);
+
+export const stepState = (step, active) => step.failed ? "failed"
+  : step.partial ? "partial" : step.done ? "done" : active ? "running" : "unfinished";
 
 export const toolCount = (steps) => steps.filter((s) => s.type === STEP_TOOL).length;

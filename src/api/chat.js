@@ -19,9 +19,10 @@ export const chatHistoryBySessionId = ({ session_id }) => {
 
 // start chat SSE
 
-export const startChatSSE = ({ payload, onmessage, onerror, onclose }) => {
+export const startChatSSE = ({ payload, signal, onmessage, onerror, onclose }) => {
   return sseRequestInstance("/api/chat", {
     method: "POST",
+    signal,
     body: JSON.stringify(payload),
     headers: {
       "Content-Type": "application/json",

@@ -40,7 +40,7 @@
 .head_label {
   font-weight: 600;
   color: var(--color-text-primary);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .head_detail,
@@ -136,12 +136,8 @@
 .body_live {
   max-height: 260px;
   overflow-y: auto;
-  scrollbar-width: none;
-  mask-image: linear-gradient(to bottom, transparent 0, #000 28px);
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
 }
 
 @keyframes reveal {
@@ -203,13 +199,22 @@
 }
 
 .step_label {
-  flex-shrink: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 500;
   color: var(--color-text-primary);
 }
 
+.context_hint {
+  padding-left: 23px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
 .step_summary {
   min-width: 0;
+  flex-shrink: 0;
   max-width: 420px;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -886,7 +886,7 @@
   "cite_private": "只有对话的主人能打开来源。",
   "cite_readings_n": "共 {{count}} 条读数",
   "process_thinking": "思考中",
-  "process_thought": "已思考",
+  "process_thought": "思考与工具",
   "process_thought_for_one": "已思考 {{count}} 秒",
   "process_thought_for_other": "已思考 {{count}} 秒",
   "process_seconds_one": "{{count}} 秒",
@@ -931,5 +931,13 @@
   "status_unavailable": "连接不上模型",
   "status_stopped_early": "回答中途停止了",
   "status_empty": "模型没有给出回答",
-  "status_error": "出了点问题，请重试"
+  "status_error": "出了点问题，请重试",
+  "process_preparing": "正在准备回答",
+  "process_partial": "部分结果",
+  "process_unfinished": "未完成",
+  "process_context_running": "正在整理较早的对话",
+  "process_context_done": "上下文摘要已生成",
+  "process_context_hint": "对话较长，正在生成摘要，随后继续回答。",
+  "status_cancelled": "已停止接收本次回答",
+  "copy_answer_failed": "复制失败，请选中答案手动复制。"
 }

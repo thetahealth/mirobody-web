@@ -83,3 +83,13 @@
   word-break: break-word;
   overflow-wrap: break-word;
 }
+
+.copy_btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.copy_error {
+  font-size: 12px;
+  color: var(--color-danger-text);
+}

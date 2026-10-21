@@ -1,7 +1,7 @@
 import { CHART_MESSAGE_TYPE } from "../../../../../enum/chat";
-import { stripCitations } from "../../Render/Citations/markup";
+import { useAnswerCopy } from "../useAnswerCopy";
 import styles from "./index.module.scss";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import {
   IconArrowsMaximize,
   IconArrowsMinimize,
@@ -21,29 +21,7 @@ function AssistantCard({
 }) {
   const contentRef = useRef(null);
   const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  const copyTimerRef = useRef(null);
-  useEffect(() => () => clearTimeout(copyTimerRef.current), []);
-
-  // click copy to clipboard
-  const onClickCopy = (datasource) => {
-    const content = datasource?.messages
-      .filter((msg) => msg.type === CHART_MESSAGE_TYPE.TEXT)
-      .map((msg) => stripCitations(msg.text))
-      .filter(Boolean)
-      .join("\n");
-    navigator.clipboard.writeText(content);
-    setCopied(true);
-    clearTimeout(copyTimerRef.current);
-    copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
-  };
-
-  // Auto-scroll to bottom when content changes
-  // useEffect(() => {
-  //   if (contentRef.current) {
-  //     contentRef.current.scrollTop = contentRef.current.scrollHeight;
-  //   }
-  // }, [children, datasource?.content]);
+  const { copy, copied, copyFailed, canCopy } = useAnswerCopy(datasource?.messages);
 
   // The turn's token usage — one block, at the end of the run.
   const usage = datasource?.messages?.find(
@@ -82,7 +60,8 @@ function AssistantCard({
             type="button"
             className={styles.copy_btn}
             aria-label={copied ? t("copied") : t("copy")}
-            onClick={() => onClickCopy(datasource)}
+            onClick={copy}
+            disabled={!canCopy}
           >
             {copied ? (
               <IconCheck className={styles.copied_icon} size={16} stroke={2} />
@@ -104,6 +83,7 @@ function AssistantCard({
           </button>
         </div>
       </div>
+      {copyFailed ? <span role="status" className={styles.copy_error}>{t("copy_answer_failed")}</span> : null}
       <div className={styles.content} ref={contentRef}>
         {children}
       </div>

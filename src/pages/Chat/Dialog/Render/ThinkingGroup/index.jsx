@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   IconAlertTriangle,
@@ -19,7 +19,7 @@ import {
 } from "@tabler/icons-react";
 import Markdown from "../Markdown";
 import QueryDetail from "../QueryDetail";
-import { STEP_THOUGHT, currentStep, durationOf, latestHeading, toSteps, toolCount } from "./steps";
+import { STEP_THOUGHT, STEP_CONTEXT, currentStep, durationOf, latestHeading, stepState, toSteps, toolCount } from "./steps";
 import styles from "./index.module.scss";
 
 const ICONS = {
@@ -37,8 +37,8 @@ const ICONS = {
   tool: IconTool,
 };
 
-const stepLabel = (t, step, running) =>
-  t(`process_${step.kind.key}_${running ? "running" : "done"}`, { name: step.name });
+const stepLabel = (t, step) =>
+  t(`process_${step.kind.key}_${step.done && !step.failed ? "done" : "running"}`, { name: step.name });
 
 // A clock that ticks once a second while the group is working.
 function useNow(ticking) {
@@ -51,9 +51,12 @@ function useNow(ticking) {
   return now;
 }
 
-function ToolStep({ step, running }) {
+function ToolStep({ step, active }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const detailId = useId();
+  const state = stepState(step, active);
+  const running = state === "running";
   const Icon = ICONS[step.kind.icon] || IconTool;
   const canOpen = step.done && Boolean(step.detail);
   return (
@@ -63,17 +66,18 @@ function ToolStep({ step, running }) {
         className={styles.step_row}
         onClick={() => canOpen && setOpen((v) => !v)}
         aria-expanded={canOpen ? open : undefined}
+        aria-controls={canOpen ? detailId : undefined}
         disabled={!canOpen}
       >
         <Icon size={15} stroke={1.8} className={styles.step_icon} aria-hidden="true" />
         <span className={running ? `${styles.step_label} ${styles.shimmer}` : styles.step_label}>
-          {stepLabel(t, step, running)}
+          {stepLabel(t, step)}
         </span>
         {step.summary ? <span className={styles.step_summary}>{step.summary}</span> : null}
-        {step.failed ? (
+        {["failed", "partial", "unfinished"].includes(state) ? (
           <span className={styles.step_failed}>
             <IconAlertTriangle size={13} stroke={1.8} aria-hidden="true" />
-            {t("process_failed")}
+            {t(`process_${state}`)}
           </span>
         ) : null}
         {running ? <span className={styles.spinner} aria-hidden="true" /> : null}
@@ -86,7 +90,8 @@ function ToolStep({ step, running }) {
           />
         ) : null}
       </button>
-      {open ? <QueryDetail content={step.detail} /> : null}
+      {open ? <div id={detailId}><QueryDetail content={step.detail} /></div> : null}
+      {running && step.type === STEP_CONTEXT ? <span className={styles.context_hint}>{t("process_context_hint")}</span> : null}
     </div>
   );
 }
@@ -95,23 +100,25 @@ function ToolStep({ step, running }) {
 // streaming while the model thinks and calls tools, folded to one line ("Thought
 // for 12s · 3 steps") once the answer begins. A reader who opened or closed it
 // keeps their choice.
-const ThinkingGroup = ({ datasource, active = false }) => {
+const ThinkingGroup = ({ datasource, active = false, endedAt }) => {
   const { t } = useTranslation();
   const [userOpen, setUserOpen] = useState(null);
   const bodyRef = useRef(null);
+  const followRef = useRef(true);
+  const bodyId = useId();
   const now = useNow(active);
   const steps = toSteps(datasource);
   const open = userOpen ?? active;
 
   useEffect(() => {
     // Keep the newest line in view while the thinking streams.
-    if (active && open && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    if (active && open && followRef.current && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   });
 
   if (!steps.length) return null;
 
   const current = active ? currentStep(steps) : null;
-  const seconds = durationOf(datasource, active ? now : undefined);
+  const seconds = durationOf(datasource, active ? now : endedAt);
   const tools = toolCount(steps);
 
   let headline;
@@ -121,8 +128,8 @@ const ThinkingGroup = ({ datasource, active = false }) => {
     headline = (
       <>
         <span className={styles.pulse} aria-hidden="true" />
-        <span className={`${styles.head_label} ${styles.shimmer}`}>
-          {current && current.type !== STEP_THOUGHT ? stepLabel(t, current, true) : t("process_thinking")}
+        <span className={`${styles.head_label} ${styles.shimmer}`} role="status">
+          {current && current.type !== STEP_THOUGHT ? stepLabel(t, current) : t("process_thinking")}
         </span>
         {detail ? <span className={styles.head_detail}>{detail}</span> : null}
         {seconds ? <span className={styles.head_time}>{t("process_seconds", { count: seconds })}</span> : null}
@@ -146,6 +153,7 @@ const ThinkingGroup = ({ datasource, active = false }) => {
         className={styles.head}
         onClick={() => setUserOpen(!open)}
         aria-expanded={open}
+        aria-controls={bodyId}
       >
         {headline}
         <IconChevronDown
@@ -156,15 +164,20 @@ const ThinkingGroup = ({ datasource, active = false }) => {
         />
       </button>
       {open ? (
-        <div ref={bodyRef} className={active ? `${styles.body} ${styles.body_live}` : styles.body}>
+        <div id={bodyId} ref={bodyRef} tabIndex={0}
+          aria-label={t("process_thought")}
+          onScroll={(event) => {
+            const el = event.currentTarget;
+            followRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 32;
+          }}
+          className={active ? `${styles.body} ${styles.body_live}` : styles.body}>
           {steps.map((step, index) => {
-            const running = active && index === steps.length - 1 && !step.done;
             return step.type === STEP_THOUGHT ? (
               <div key={step.id || index} className={styles.thought}>
                 <Markdown content={step.text} />
               </div>
             ) : (
-              <ToolStep key={step.id || index} step={step} running={running} />
+              <ToolStep key={step.id || index} step={step} active={active} />
             );
           })}
         </div>
