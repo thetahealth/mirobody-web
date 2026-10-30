@@ -18,14 +18,26 @@ const isCatalogRow = (row) =>
 
 // `row_id` → `id`: the key `POST /health-indicators/reading` edits. The UI only
 // offers edit/delete when `id != null`, so looking for `id` hid both buttons.
+// `ref` and `flag` are what the report printed beside the value; the route
+// sent them and the drawer dropped them, so an out-of-range result looked
+// like any other.
 const toReading = (row) => ({
   id: row.row_id ?? null,
   indicator: row.indicator || "",
   value: row.value ?? "",
   unit: row.unit || "",
   time: row.time || "",
+  ref: row.ref || "",
+  flag: row.flag || "",
+  modality: row.modality || "",
   file_key: row.file_key || "",
+  file_name: row.file || "",
 });
+
+/** The i18n key for where a reading came from when it has no file to open:
+ *  a device sensed it, or the person entered it. */
+export const readingSourceKey = (reading) =>
+  /device/.test(reading.modality || "") ? "source_kind_device" : "source_kind_manual";
 
 const emptyRow = (row) => ({
   indicator: row.indicator || "",

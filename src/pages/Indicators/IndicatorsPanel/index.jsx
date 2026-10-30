@@ -14,7 +14,10 @@ import api from "../../../api";
 import { useDriveStore } from "../../../store/Drive";
 import { useAccountStore } from "../../../store/account";
 import { openProtectedFile } from "../../../utils/protectedFile";
-import { toTableRows, toReadingList, truncationOf, codeLabel } from "./rows";
+import { toTableRows, toReadingList, truncationOf, codeLabel, readingSourceKey } from "./rows";
+import { flagOf } from "../../Chat/Dialog/Render/Citations/sources";
+import useIsMobile from "../../../hooks/useIsMobile";
+import TrendChart from "./TrendChart";
 import styles from "./index.module.scss";
 
 /**
@@ -40,6 +43,7 @@ const IndicatorsPanel = ({
   refreshTrigger = 0,
 }) => {
   const { t } = useTranslation();
+  const mobile = useIsMobile();
   const current_drive_user_id = useDriveStore(
     (state) => state.current_drive_user_id,
   );
@@ -217,6 +221,15 @@ const IndicatorsPanel = ({
   const formatTime = (value) =>
     value ? dayjs(value).format("YYYY-MM-DD HH:mm") : "—";
   const formatDate = (value) => (value ? dayjs(value).format("YYYY-MM-DD") : "—");
+  // What the report printed beside the value: 偏高 / 偏低, in words, since
+  // colour alone does not say which way.
+  const flagChip = (flag) => {
+    const kind = flagOf(flag);
+    if (!kind) return null;
+    const label = kind === "high" ? t("cite_flag_high") : kind === "low" ? t("cite_flag_low") : kind;
+    return <span className={styles.flag}>{label}</span>;
+  };
+  const showRef = readings.some((reading) => reading.ref);
 
   const total = useMemo(
     () => rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0),
@@ -293,6 +306,32 @@ const IndicatorsPanel = ({
             </div>
           )}
         </div>
+      ) : mobile ? (
+        // A phone gets one card per indicator: the table's five columns
+        // overflowed 375px, leaving only the names on screen.
+        <ul className={styles.cards}>
+          {rows.map((row) => (
+            <li key={`${row.indicator}-${row.code || ""}`}>
+              <button type="button" className={styles.card} onClick={() => openDetail(row)}>
+                <span className={styles.cardName}>{row.indicator}</span>
+                <span className={styles.cardValue}>
+                  {row.latest_value !== "" ? (
+                    <>
+                      <span className={styles.value}>{row.latest_value}</span>
+                      {row.unit && <span className={styles.unit}>{row.unit}</span>}
+                    </>
+                  ) : (
+                    <span className={styles.muted}>—</span>
+                  )}
+                </span>
+                <span className={styles.cardMeta}>
+                  {formatDate(row.latest_time)}
+                  {row.count ? ` · ${t("cite_count", { count: row.count })}` : ""}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
       ) : (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -356,8 +395,9 @@ const IndicatorsPanel = ({
         open={!!selected}
         onClose={closeDetail}
         title={selected?.indicator}
-        width={480}
-        destroyOnClose
+        placement={mobile ? "bottom" : "right"}
+        size={mobile ? Math.round(window.innerHeight * 0.88) : 480}
+        destroyOnHidden
       >
         {selected && (
           <div className={styles.detail}>
@@ -370,6 +410,10 @@ const IndicatorsPanel = ({
                   <span className={styles.latestUnit}>
                     {readings[0].unit || selected.unit}
                   </span>
+                )}
+                {flagChip(readings[0].flag)}
+                {readings[0].ref && (
+                  <span className={styles.latestUnit}>{t("cite_ref_range", { range: readings[0].ref })}</span>
                 )}
               </div>
             )}
@@ -393,6 +437,14 @@ const IndicatorsPanel = ({
               )}
             </dl>
 
+            {!readingsLoading && (
+              <TrendChart
+                readings={readings}
+                unit={readings[0]?.unit || selected.unit}
+                total={Number(selected.count) || 0}
+              />
+            )}
+
             {readingsLoading ? (
               <div className={styles.center}>
                 <Spin />
@@ -404,6 +456,7 @@ const IndicatorsPanel = ({
                 <thead>
                   <tr>
                     <th>{t("indicator_value")}</th>
+                    {showRef && <th>{t("indicator_ref_range")}</th>}
                     <th>{t("indicator_measured_at")}</th>
                     <th>{t("source")}</th>
                     {isOwnRecord && <th />}
@@ -431,9 +484,11 @@ const IndicatorsPanel = ({
                                 {reading.unit || selected.unit}
                               </span>
                             )}
+                            {flagChip(reading.flag)}
                           </>
                         )}
                       </td>
+                      {showRef && <td className={styles.muted}>{reading.ref || "—"}</td>}
                       <td className={styles.muted}>
                         {formatTime(reading.time)}
                       </td>
@@ -455,7 +510,9 @@ const IndicatorsPanel = ({
                             <IconFileText size={14} /> {t("indicator_view_source")}
                           </button>
                         ) : (
-                          reading.file_name || reading.source || "—"
+                          // Was "—" for every device reading, while the
+                          // 明细 tab named the same row 设备.
+                          t(readingSourceKey(reading))
                         )}
                       </td>
                       {isOwnRecord && (

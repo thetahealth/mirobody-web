@@ -332,3 +332,99 @@
     }
   }
 }
+
+.flag {
+  margin-left: var(--space-2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+/* The drawer's chart: one indicator over time, its range as a band. */
+.trend {
+  width: 100%;
+  height: 200px;
+}
+
+/* A phone's catalogue: the five-column table overflowed 375px and left only
+   the names on screen. One card per indicator: name, latest value, when. */
+.cards {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li + li {
+    border-top: 1px solid var(--color-border-subtle, var(--color-border));
+  }
+}
+
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name value"
+    "meta meta";
+  gap: 2px var(--space-3);
+  width: 100%;
+  padding: var(--space-3) 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--color-text-primary);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+.cardName {
+  grid-area: name;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.cardValue {
+  grid-area: value;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.cardMeta {
+  grid-area: meta;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The toolbar stacks on a phone: a 340px search box beside its button was
+   wider than the screen and pushed the button off it. */
+@include phone {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+
+  .search {
+    input {
+      flex: 1;
+      width: auto;
+      min-width: 0;
+    }
+  }
+}
+
+.trendFigure {
+  margin: 0;
+
+  figcaption {
+    margin-top: var(--space-1);
+    font-size: 12px;
+  }
+}
