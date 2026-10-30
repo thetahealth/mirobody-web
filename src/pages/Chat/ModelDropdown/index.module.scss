@@ -6,6 +6,11 @@
   background-color: var(--color-bg-soft);
   height: 28px;
   display: flex;
+  /* The pill keeps its width: beside a long conversation title it was the
+     one squeezed, and "deepseek-flash" broke over two lines of a 28px box.
+     The title has an ellipsis; this has none to spare. */
+  flex-shrink: 0;
+  white-space: nowrap;
   align-items: center;
   padding: 0 12px;
   border: none;

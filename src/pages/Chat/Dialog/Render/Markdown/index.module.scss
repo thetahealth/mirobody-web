@@ -247,6 +247,10 @@
     }
   }
 
+  /* keep-all: Chinese breaks between any two characters, so a table squeezed
+     to a phone's width shrank its label column to one character per line
+     ("指/标", "体/重"). Lines now break at spaces and punctuation, and a wide
+     table scrolls instead. */
   th,
   td {
     padding: 4px 8px;
@@ -254,6 +258,8 @@
     line-height: 1.4;
     text-align: left;
     vertical-align: top;
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 
   th {

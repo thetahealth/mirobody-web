@@ -2,7 +2,15 @@
 // The second argument carries the container width, for responsive sizing
 // (readable both shrunk and expanded, in Latin text and CJK alike).
 // Returns null when it cannot render — the caller then draws nothing.
-const COLORS = ["#0e3880", "#0077b6", "#90be6d", "#f9844a", "#f94144", "#577590", "#9d4edd"];
+// Series colours, in this order and never cycled. The previous set opened
+// with #0e3880 and #0077b6, two blues a reader could not tell apart, so a
+// blood-pressure chart drew systolic and diastolic in what looked like one
+// colour; the dataviz palette check failed it on four of five counts. This
+// order passes all of them (lightness band, chroma, colour-blind and normal
+// separation of neighbours) on the chart's light surface.
+const COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6"];
+// One series has nothing to be told apart from: it keeps the brand ink.
+const SINGLE = "#0e3880";
 
 // The same font stack as body copy: Source Sans 3 for Latin plus a CJK
 // fallback, so canvas text does not come out looking pasted in.
@@ -123,19 +131,27 @@ export function buildEChartsOption(config, opts = {}) {
     case "area": {
       const { cats, series } = splitByGroup(rows, xKeyOf(rows));
       const multi = series.length > 1;
-      const sparse = cats.length <= 2; // one or two points: symbols must show, or nothing is visible
+      // Each reading is a point the person can hover, until there are too
+      // many to tell apart (a year of daily steps).
+      const pointed = cats.length <= 40;
       return {
         ...base,
+        color: multi ? COLORS : [SINGLE],
         tooltip: { trigger: "axis", confine: true },
         legend: multi ? topLegend(hasTitle) : undefined,
         grid: { left: 8, right: 24, top: gridTop(hasTitle, multi), bottom: 36, containLabel: true },
         xAxis: { type: "category", data: cats, boundaryGap: type !== "area", axisLabel: catLabelH(compact), ...hAxisName(axisXTitle) },
-        yAxis: { type: "value", axisLabel: valLabel(), splitLine: SPLIT_LINE, ...vAxisName(axisYTitle) },
+        // A line's axis fits its data: from zero, a year of weight between
+        // 69.2 and 70.6 kg was a flat line the answer then called a trend. An
+        // area is filled to its baseline, so it keeps zero.
+        yAxis: { type: "value", scale: type === "line", axisLabel: valLabel(), splitLine: SPLIT_LINE, ...vAxisName(axisYTitle) },
         series: series.map((s) => ({
           ...s,
           type: "line",
-          smooth: true,
-          showSymbol: sparse,
+          // Straight between readings: a spline draws values between two
+          // measurements that nobody measured, and overshoots past both.
+          smooth: false,
+          showSymbol: pointed,
           symbolSize: 6,
           lineStyle: { width: 2 },
           areaStyle: type === "area" ? { opacity: 0.12 } : undefined,
@@ -152,6 +168,7 @@ export function buildEChartsOption(config, opts = {}) {
       const radius = horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0];
       return {
         ...base,
+        color: multi ? COLORS : [SINGLE],
         tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, confine: true },
         legend: multi ? topLegend(hasTitle) : undefined,
         grid: { left: 8, right: 24, top: gridTop(hasTitle, multi), bottom: 36, containLabel: true },
@@ -191,6 +208,7 @@ export function buildEChartsOption(config, opts = {}) {
       const multi = groups.size > 1;
       return {
         ...base,
+        color: multi ? COLORS : [SINGLE],
         tooltip: { trigger: "item", confine: true },
         legend: multi ? topLegend(hasTitle) : undefined,
         grid: { left: 8, right: 24, top: gridTop(hasTitle, multi), bottom: 36, containLabel: true },
@@ -218,6 +236,7 @@ export function buildEChartsOption(config, opts = {}) {
       const multi = groups.size > 1;
       return {
         ...base,
+        color: multi ? COLORS : [SINGLE],
         tooltip: { confine: true },
         legend: multi ? bottomLegend() : undefined,
         radar: {
@@ -270,7 +289,7 @@ export function buildEChartsOption(config, opts = {}) {
         series: series.map((s, i) =>
           i === 0
             ? { ...s, type: "bar", yAxisIndex: 0, barMaxWidth: 32, itemStyle: { borderRadius: [4, 4, 0, 0] } }
-            : { ...s, type: "line", yAxisIndex: 1, smooth: true, showSymbol: false, lineStyle: { width: 2 } }
+            : { ...s, type: "line", yAxisIndex: 1, smooth: false, showSymbol: cats.length <= 40, lineStyle: { width: 2 } }
         ),
       };
     }
@@ -278,6 +297,7 @@ export function buildEChartsOption(config, opts = {}) {
       const vals = rows.map((r) => r.value);
       return {
         ...base,
+        color: [SINGLE],
         tooltip: { trigger: "axis", confine: true },
         grid: { left: 8, right: 24, top: gridTop(hasTitle, false), bottom: 36, containLabel: true },
         xAxis: { type: "category", data: vals.map((_, i) => i + 1), axisLabel: catLabelH(compact), ...hAxisName(axisXTitle) },
