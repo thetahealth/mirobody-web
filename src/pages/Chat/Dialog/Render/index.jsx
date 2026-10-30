@@ -36,7 +36,7 @@ const ContentRender = ({ datasource }) => {
   if (type === CHART_MESSAGE_TYPE.TEXT) {
     return (
       <div dir="auto" className={styles.markdown_wrapper}>
-        <Markdown content={content} />
+        <Markdown content={content} cites />
       </div>
     );
   }
