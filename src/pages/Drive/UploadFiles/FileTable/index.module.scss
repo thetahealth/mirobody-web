@@ -247,12 +247,15 @@ tbody tr:last-child {
   gap: 12px;
 }
 
+/* nowrap: a 2-character label ("查看", "删除") wrapped one character per line
+   in the column the table left it. */
 .viewButton,
 .deleteButton {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
   padding: 7px 0;
   height: 36px;
   border-radius: 8px;

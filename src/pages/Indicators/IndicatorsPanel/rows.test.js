@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toTableRows, toReadingList, truncationOf, codeLabel } from "./rows";
+import { toTableRows, toReadingList, truncationOf, codeLabel, readingSourceKey } from "./rows";
 
 // Fixtures copy the server's own row builders field for field (`_catalog_row` /
 // `_reading_row` in mirobody/pulse/query.py, wrapped in `render_rest`), so a
@@ -147,6 +147,28 @@ describe("toReadingList", () => {
   it("returns nothing for a catalog answer", () => {
     // What a no-match search falls back to.
     expect(toReadingList(catalogEnvelope)).toEqual([]);
+  });
+
+  it("keeps the range and flag the report printed, and where the reading came from", () => {
+    const [reading] = toReadingList({
+      rows: [
+        {
+          indicator: "Hemoglobin A1c/Hemoglobin.total in Blood",
+          value: "5.8",
+          unit: "%",
+          time: "2025-11-12 09:15:00",
+          ref: "4.0-5.6",
+          flag: "high",
+          modality: "lab-report",
+          file: "mom_lab_2025-11.md",
+          file_key: "demo/mom_lab_2025-11.md",
+          row_id: 2017,
+        },
+      ],
+    });
+    expect(reading).toMatchObject({ ref: "4.0-5.6", flag: "high", file_name: "mom_lab_2025-11.md" });
+    expect(readingSourceKey({ modality: "device-sensed" })).toBe("source_kind_device");
+    expect(readingSourceKey({ modality: "" })).toBe("source_kind_manual");
   });
 });
 

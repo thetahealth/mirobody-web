@@ -18,6 +18,12 @@
   display: flex;
   flex-direction: column;
   padding-left: 40px;
+
+  /* A reading indent on a desktop column; on a 375px phone it was a ninth of
+     the width taken from tables and charts. */
+  @include phone {
+    padding-left: 0;
+  }
 }
 .btn {
   cursor: pointer;

@@ -1,17 +1,34 @@
-// The citation markup an answer carries, turned into markdown links the
-// renderer draws as source chips. The format is mirobody's
+// The citation markup an answer carries. The format is mirobody's
 // `kernel/citations.py`: a claim in <statement>, its evidence in a closing
 // <cite>[r3][r9]</cite>. A cite is a row a tool showed in this conversation
 // (`r3`), a reference passage (`ref:source:id`) or lines of a document
 // (`/library/x.pdf#L12-L14`).
+//
+// Nothing here draws a number. Each run of adjacent cites becomes one GROUP,
+// and the markup becomes zero-width markdown links — `[](cite:<group>)` and
+// `[](statement:)` — that `anchors.js` reads off the parsed tree to find the
+// words the group stands behind. Links, because a marker has to survive the
+// markdown parser without changing it: `[` and `)` are punctuation, so
+// `**（加粗）**[](cite:0)` still closes its emphasis, which a private-use
+// character would not.
 
 export const CITE_SCHEME = "cite:";
+export const STATEMENT_SCHEME = "statement:";
 
-const STATEMENT_OPEN = "<statement>";
-const STATEMENT_CLOSE = "</statement>";
-const CITE_OPEN = "<cite>";
-const CITE_CLOSE = "</cite>";
-const TAGS = [STATEMENT_OPEN, STATEMENT_CLOSE, CITE_OPEN, CITE_CLOSE];
+// Models misspell the cite tag: measured 2026-10-30, DeepSeek closed a
+// statement with `<xcite>[r4]</cite>`. One or two stray letters before
+// "cite", spaces and case are read as the tag it meant, so the markup never
+// leaks into the answer; a cite-like tag with no ids (`<excite>`, a `<cite>`
+// around a title) has nothing to draw, so only its words are kept.
+// `statement` is matched as spelt: `<restatement>` is not one.
+const TAG = /<\s*(\/?)\s*(statement|[a-z]{0,2}cite)\s*>/giy;
+// A fenced block (a chart's JSON) is data, not markup.
+const FENCE = /```[\s\S]*?(?:```|$)/g;
+const TAG_START = /^<\/?([a-z]{0,11})$/i;
+// A cite's body is its ids; anything else ends it, so a missing `</cite>`
+// cannot swallow the rest of the answer.
+const CITE_BODY = /\s*((?:\[[^[\]\n]*\]\s*)*)/y;
+const CITE_ID = /\[([^[\]\n]+)\]/g;
 
 const ROW_ID = /^r[1-9]\d*$/;
 const REF_ID = /^ref:[a-z0-9_]+:[^\s\]]+$/;
@@ -31,70 +48,153 @@ export function linesOf(id) {
   return { path: m[1], start, end: m[3] ? Number(m[3]) : start };
 }
 
-// While an answer streams, its last characters can be half a tag ("<sta",
-// "<cite>[r1"). Those are held back until they complete, so the reader never
-// sees markup flash by.
-function pendingTail(text) {
-  const lt = text.lastIndexOf("<");
-  if (lt === -1) return text.length;
-  const tail = text.slice(lt);
-  if (tail.startsWith(CITE_OPEN) && !tail.includes(CITE_CLOSE)) return lt;
-  if (TAGS.some((tag) => tail.length < tag.length && tag.startsWith(tail))) return lt;
-  return text.length;
-}
-
-const escapeLabel = (s) => s.replace(/[[\]\\]/g, (c) => `\\${c}`);
-
-// The answer as markdown: statement tags dropped, each cite a link
-// `[n](cite:<id>)`. `n` numbers the distinct sources of this answer in the
-// order they first appear, the way a paper numbers its references.
-export function citationsToMarkdown(text) {
-  if (typeof text !== "string" || !text.includes("<")) return text || "";
-  const shown = text.slice(0, pendingTail(text));
-  const order = new Map();
-  let out = "";
+// The answer as a list of text and tags, tags already corrected.
+function tokenize(text) {
+  const out = [];
   let pos = 0;
-  while (pos < shown.length) {
-    const lt = shown.indexOf("<", pos);
-    if (lt === -1) {
-      out += shown.slice(pos);
-      break;
-    }
-    out += shown.slice(pos, lt);
-    if (shown.startsWith(STATEMENT_OPEN, lt)) {
-      pos = lt + STATEMENT_OPEN.length;
-    } else if (shown.startsWith(STATEMENT_CLOSE, lt)) {
-      pos = lt + STATEMENT_CLOSE.length;
-    } else if (shown.startsWith(CITE_OPEN, lt)) {
-      const close = shown.indexOf(CITE_CLOSE, lt);
-      const body = shown.slice(lt + CITE_OPEN.length, close === -1 ? shown.length : close);
-      const ids = [...body.matchAll(/\[([^[\]]+)\]/g)].map((m) => m[1].trim()).filter(Boolean);
-      out += ids
-        .map((id) => {
-          if (!order.has(id)) order.set(id, order.size + 1);
-          return `[${escapeLabel(String(order.get(id)))}](${CITE_SCHEME}${encodeURIComponent(id)})`;
-        })
-        .join("");
-      pos = close === -1 ? shown.length : close + CITE_CLOSE.length;
-    } else {
-      out += "<";
-      pos = lt + 1;
-    }
+  for (const fence of text.matchAll(FENCE)) {
+    out.push(...tokenizeProse(text.slice(pos, fence.index)));
+    out.push({ type: "text", value: fence[0] });
+    pos = fence.index + fence[0].length;
   }
+  out.push(...tokenizeProse(text.slice(pos)));
   return out;
 }
 
-// The text an answer reads as without its markup (copying, previews).
-export function stripCitations(text) {
-  if (typeof text !== "string") return "";
-  return text.replace(/<\/?statement>|<cite>[\s\S]*?<\/cite>/g, "");
+function tokenizeProse(text) {
+  const out = [];
+  let pos = 0;
+  let plain = "";
+  while (pos < text.length) {
+    const lt = text.indexOf("<", pos);
+    if (lt === -1) break;
+    TAG.lastIndex = lt;
+    const m = TAG.exec(text);
+    if (!m) {
+      plain += text.slice(pos, lt + 1);
+      pos = lt + 1;
+      continue;
+    }
+    plain += text.slice(pos, lt);
+    if (plain) out.push({ type: "text", value: plain });
+    plain = "";
+    const tag = m[2].toLowerCase() === "statement" ? "statement" : "cite";
+    const close = m[1] === "/";
+    pos = TAG.lastIndex;
+    if (tag === "cite" && !close) {
+      CITE_BODY.lastIndex = pos;
+      const body = CITE_BODY.exec(text);
+      const ids = [...body[1].matchAll(CITE_ID)].map((id) => id[1].trim()).filter(Boolean);
+      TAG.lastIndex = CITE_BODY.lastIndex;
+      const end = TAG.exec(text);
+      if (end && end[1] === "/" && end[2].toLowerCase().endsWith("cite")) pos = TAG.lastIndex;
+      else pos = CITE_BODY.lastIndex - (body[0].length - body[0].trimEnd().length);
+      out.push({ type: "cite", ids });
+    } else if (tag === "statement" && !close) {
+      out.push({ type: "statement" });
+    }
+    // A closing tag carries nothing: a statement ends where its cite does.
+  }
+  plain += text.slice(pos);
+  if (plain) out.push({ type: "text", value: plain });
+  return out;
 }
 
-export function citeIdFromHref(href) {
-  if (typeof href !== "string" || !href.startsWith(CITE_SCHEME)) return null;
-  try {
-    return decodeURIComponent(href.slice(CITE_SCHEME.length));
-  } catch {
-    return null;
+// Whether `tail` ("<", "<sta", "</ci", "<xci") can still grow into a tag.
+// Stray letters count only once a letter of the tag follows them, or "a < b"
+// at the end of an answer would be held back as the start of one.
+function isTagStart(tail) {
+  const m = TAG_START.exec(tail);
+  if (!m) return false;
+  const word = m[1].toLowerCase();
+  return ["statement", "cite"].some((tag) =>
+    [0, 1, 2].some((stray) => {
+      const rest = word.slice(stray);
+      return word.length >= stray && (stray === 0 || rest) && tag.startsWith(rest);
+    }),
+  );
+}
+
+// While an answer streams, its last characters can be half a tag ("<sta",
+// "<cite>[r1"). Those are held back until they complete, so the reader never
+// sees markup flash by. Only a cite still receiving its ids is held: one with
+// prose after its ids was left open by the model, and holding it back hid the
+// rest of a finished answer that its copied text still had. Inside a fence
+// that is still open (a chart arriving) nothing is markup.
+const OPEN_CITE_TAIL = /^<\s*[a-z]{0,2}cite\s*>(?:\s*\[[^[\]\n]*\]?)*\s*$/i;
+
+function pendingTail(text) {
+  if ((text.match(/```/g) || []).length % 2 === 1) return text.length;
+  const lt = text.lastIndexOf("<");
+  if (lt === -1) return text.length;
+  const tail = text.slice(lt);
+  if (isTagStart(tail) || OPEN_CITE_TAIL.test(tail)) return lt;
+  return text.length;
+}
+
+const ALNUM = /[A-Za-z0-9]/;
+const ENDS_CLAIM = /[\s。！？；，、：.!?;,:)）\]】」』”’]$/;
+
+// Statements written back to back with no punctuation between them read as
+// one run-on line once their numbered chips are gone: four guideline
+// statements in a 2026-10-31 DeepSeek answer became "…“好”胆固醇血胆固醇过高
+// 会…风险甘油三酯偏高…". A cite that ends one claim right before the next
+// statement opens gets a space after it.
+const runsOn = (text, next) => next?.type === "statement" && text && !ENDS_CLAIM.test(text);
+
+// The answer as markdown with zero-width markers, and the cite groups they
+// number. Adjacent cites (only spaces between) are one group: the claim
+// before them rests on all of them, and a reader opens them together.
+export function prepareCitations(text) {
+  if (typeof text !== "string" || !text.includes("<")) return { markdown: text || "", groups: [] };
+  const tokens = tokenize(text.slice(0, pendingTail(text)));
+  const groups = [];
+  let out = "";
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.type === "text") {
+      out += token.value;
+    } else if (token.type === "statement") {
+      out += `[](${STATEMENT_SCHEME})`;
+    } else {
+      const ids = new Set(token.ids);
+      while (
+        tokens[i + 1]?.type === "cite" ||
+        (tokens[i + 1]?.type === "text" && /^[ \t]*$/.test(tokens[i + 1].value) && tokens[i + 2]?.type === "cite")
+      ) {
+        i += tokens[i + 1].type === "cite" ? 1 : 2;
+        for (const id of tokens[i].ids) ids.add(id);
+      }
+      if (!ids.size) continue;
+      // The space a model leaves before a cite was room for a numbered chip.
+      // Kept only where two words would otherwise run together.
+      const before = out.replace(/[ \t]+$/, "");
+      const trimmed = before.length < out.length;
+      const next = tokens[i + 1]?.type === "text" ? tokens[i + 1].value[0] : "";
+      out = before + `[](${CITE_SCHEME}${groups.length})`;
+      if ((trimmed && ALNUM.test(before.slice(-1)) && next && ALNUM.test(next)) || runsOn(before, tokens[i + 1])) out += " ";
+      groups.push({ ids: [...ids] });
+    }
   }
+  return { markdown: out, groups };
+}
+
+// The text an answer reads as without its markup (copying, a shared page).
+export function stripCitations(text) {
+  if (typeof text !== "string") return "";
+  if (!text.includes("<")) return text;
+  const tokens = tokenize(text);
+  let out = "";
+  tokens.forEach((token, i) => {
+    if (token.type === "text") out += token.value;
+    else if (token.type === "cite" && runsOn(out, tokens[i + 1])) out += " ";
+  });
+  return out;
+}
+
+// The group a marker link stands for, or null for any other link.
+export function groupFromHref(href) {
+  if (typeof href !== "string" || !href.startsWith(CITE_SCHEME)) return null;
+  const n = Number(href.slice(CITE_SCHEME.length));
+  return Number.isInteger(n) && n >= 0 ? n : null;
 }

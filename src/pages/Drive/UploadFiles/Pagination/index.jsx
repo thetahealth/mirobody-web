@@ -67,7 +67,9 @@ const Pagination = () => {
     };
   }, [showDropdown]);
 
-  if (total === 0) {
+  // One page has nowhere to go: the pager and its "page 1 of 1" were the
+  // largest thing under a single uploaded file.
+  if (totalPages <= 1) {
     return null;
   }
 

@@ -1,65 +1,146 @@
-/* A cite in an answer: a small numbered chip after the claim, the way a paper
-   numbers its references. Clicking opens what it points at. */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  margin: 0 1px;
-  padding: 0 4px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1;
-  vertical-align: super;
-  color: var(--color-accent);
-  background: var(--color-bg-light);
-  border: 1px solid var(--color-border);
+/* A cited value: a light dotted underline, nothing else. The numbered chips
+   it replaces put 10 to 20 marks in an answer and up to 14 in one table, and
+   none of the numbers pointed at anything on screen (TH-2134). The value is
+   the thing a reader checks, so the mark sits on it. */
+.anchor {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  text-decoration-skip-ink: none;
+  border-radius: 3px;
   cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
+  transition: background-color var(--t-fast), text-decoration-color var(--t-fast);
 
-  &:hover,
+  &:hover {
+    text-decoration-color: var(--color-accent);
+  }
+
   &:focus-visible {
-    color: var(--color-text-on-accent);
-    background: var(--color-accent);
-    outline: none;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
   }
 }
 
-.chip_gone {
-  color: var(--color-text-muted);
-  text-decoration: line-through;
+/* A value with its unit is one thing: "69.2–70.6 kg" broke into three lines
+   in a narrow table cell. */
+.anchor_value {
+  white-space: nowrap;
 }
 
-.popover {
-  max-width: 320px;
+/* Every anchor of the open group, so "these are the numbers this source
+   backs" is visible at a glance; gone when it closes. */
+.anchor_on {
+  background-color: color-mix(in srgb, var(--color-accent) 13%, transparent);
+  text-decoration-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 13%, transparent);
+}
+
+/* Every source behind it was deleted: still openable, to say so. */
+.anchor_gone {
+  text-decoration-color: color-mix(in srgb, var(--color-text-muted) 55%, transparent);
+}
+
+.sources {
+  width: min(340px, calc(100vw - 48px));
+  max-height: min(420px, 60vh);
+  overflow-y: auto;
   font-size: 13px;
   line-height: 1.5;
   color: var(--color-text-primary);
 }
 
-.reading + .reading {
-  margin-top: 8px;
-  padding-top: 8px;
+/* The words the group was drawn on, so the sheet says what it is about. */
+.quote {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 3px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.section + .section {
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid var(--color-border);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-bottom: 4px;
 }
 
 .name {
   font-weight: 600;
 }
 
-.value {
-  font-variant-numeric: tabular-nums;
+.list,
+.members {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
+.reading + .reading {
+  margin-top: 6px;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+/* An aggregate's members: date and value in two aligned columns. */
+.members {
+  max-height: 220px;
+  overflow-y: auto;
+
+  li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 12px;
+    align-items: baseline;
+    padding: 2px 0;
+  }
+}
+
+/* Secondary, not muted: the date and the file are what a reader came to
+   check, and the muted ink (#9b9894) is 2.7:1 on the popover's white. */
 .muted {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .flag {
   color: var(--color-danger);
   font-weight: 600;
+}
+
+.more {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .file {
@@ -73,8 +154,9 @@
   font: inherit;
 }
 
-.members {
-  margin-top: 8px;
-  max-height: 240px;
-  overflow-y: auto;
+/* On a phone the sources rise from the bottom, full width. */
+.sheet .sources {
+  width: auto;
+  max-height: none;
+  font-size: 14px;
 }
