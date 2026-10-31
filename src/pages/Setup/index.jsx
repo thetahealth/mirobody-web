@@ -40,6 +40,7 @@ import {
   guessPlatform,
   isReady,
   keyChoice,
+  liveLookup,
   localChoice,
   localModels,
   modelDraft,
@@ -165,6 +166,7 @@ export default function Setup() {
   }, [load]);
 
   const local = setup?.local || {};
+  const lookup = liveLookup(found, local);
   const models = localModels(local);
   const waiting = Boolean(local.configured) && models.some((m) => !isReady(m.status));
   const fields = local.model_fields || {};
@@ -339,14 +341,14 @@ export default function Setup() {
     const candidates = local.candidates || [];
     const tiers = local.tiers || [];
     const selectedTier = tierFor(tiers, agentChoice, ocrChoice);
-    const pairOnServer = found && selectedTier ? tierOnServer(selectedTier, found.served) : "";
+    const pairOnServer = lookup && selectedTier ? tierOnServer(selectedTier, lookup.served) : "";
     // Step numbers shift by one when there are sizes to choose first.
     const step = tiers.length > 0 ? 1 : 0;
     // What runs: the pair chosen, with its state where one is known (the
     // lookup's answer, or the status of the models set up now).
-    const servedStatus = new Map((found?.served || []).map((m) => [m.id, m.status]));
+    const servedStatus = new Map((lookup?.served || []).map((m) => [m.id, m.status]));
     const statusOf = (model, role) =>
-      found
+      lookup
         ? servedStatus.get(model) || "missing"
         : local.configured && model === local.models?.[role]
           ? local.status?.[role] || "missing"
@@ -544,7 +546,7 @@ export default function Setup() {
                         key={tier.id}
                         tier={tier}
                         on={selectedTier?.id === tier.id}
-                        onServer={found ? tierOnServer(tier, found.served) : ""}
+                        onServer={lookup ? tierOnServer(tier, lookup.served) : ""}
                         onSelect={() => pickSize(tier)}
                         t={t}
                       />

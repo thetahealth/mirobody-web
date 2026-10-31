@@ -865,6 +865,7 @@
   "cite_manual": "Entered by hand",
   "cite_reported": "Reported in the journal",
   "cite_lines": "Lines {{start}}–{{end}}",
+  "cite_line": "Line {{start}}",
   "cite_open_source": "Open the source",
   "cite_loading": "Looking up the source…",
   "cite_gone": "This reading has been deleted.",

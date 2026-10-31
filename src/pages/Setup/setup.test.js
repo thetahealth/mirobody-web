@@ -31,6 +31,7 @@ import {
   tierFor,
   tierHardware,
   tierOnServer,
+  liveLookup,
 } from "./setup";
 
 // The parts of `window` the token helpers touch.
@@ -519,6 +520,39 @@ describe("figures", () => {
       "setup_tier_badge_best",
     ]);
     expect(tierHardware("huge")).toBe("");
+  });
+});
+
+describe("liveLookup", () => {
+  const found = {
+    url: "http://127.0.0.1:8080/v1",
+    served: [
+      { id: "minicpm5-2b", status: "unloaded" },
+      { id: "glm-ocr", status: "unloaded" },
+      { id: "qwen3.8-27b", status: "unloaded" },
+    ],
+  };
+  const saved = {
+    configured: true,
+    models: { agent: "minicpm5-2b", utils: "minicpm5-2b", ocr: "glm-ocr" },
+    status: { agent: "loaded", utils: "loaded", ocr: "loaded" },
+  };
+
+  it("takes the saved setup's polled status over the lookup made before the save", () => {
+    const live = liveLookup(found, saved);
+    expect(live.served.map((m) => m.status)).toEqual(["loaded", "loaded", "unloaded"]);
+    expect(tierOnServer({ agent: "minicpm5-2b", ocr: "glm-ocr" }, live.served)).toBe("loaded");
+    expect(live.url).toBe(found.url);
+  });
+
+  it("leaves the lookup alone before a save, and no lookup stays none", () => {
+    expect(liveLookup(found, { configured: false })).toBe(found);
+    expect(liveLookup(null, saved)).toBe(null);
+  });
+
+  it("keeps a status the poll does not have yet", () => {
+    const live = liveLookup(found, { ...saved, status: { ocr: "loading" } });
+    expect(live.served.map((m) => m.status)).toEqual(["unloaded", "loading", "unloaded"]);
   });
 });
 

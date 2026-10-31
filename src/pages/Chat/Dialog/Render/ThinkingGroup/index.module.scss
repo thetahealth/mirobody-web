@@ -37,10 +37,17 @@
   color: var(--color-accent);
 }
 
+// The label says what is happening; the detail beside it gives way first. A
+// label allowed to shrink broke at any character and stood one per line in a
+// Japanese answer (README walkthrough, 2026-10-31).
 .head_label {
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 600;
   color: var(--color-text-primary);
-  overflow-wrap: anywhere;
 }
 
 .head_detail,
@@ -198,9 +205,13 @@
   color: var(--color-text-secondary);
 }
 
+// Same rule as the head: the label keeps its line, the summary is cut.
 .step_label {
-  min-width: 0;
-  overflow-wrap: anywhere;
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 500;
   color: var(--color-text-primary);
 }
@@ -214,7 +225,6 @@
 
 .step_summary {
   min-width: 0;
-  flex-shrink: 0;
   max-width: 420px;
   overflow: hidden;
   text-overflow: ellipsis;

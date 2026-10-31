@@ -224,6 +224,29 @@ export function localModels(local) {
   return list;
 }
 
+/**
+ * The server lookup with the saved setup's statuses laid over it. The lookup
+ * is taken once, before the save; afterwards the page polls the saved setup
+ * while the server loads the models. Read alone, the lookup kept the badges,
+ * the size cards and the notice at "not loaded" beside the page's own "both
+ * models have loaded" (Japanese setup recording, 2026-10-31).
+ *
+ * @param {{served?: {id: string, status: string}[]} | null} found
+ * @param {{configured?: boolean, models?: object, status?: object}} local
+ */
+export function liveLookup(found, local) {
+  if (!found || !local?.configured) return found;
+  const live = new Map();
+  for (const role of ["agent", "utils", "ocr"]) {
+    const model = local.models?.[role];
+    if (model && local.status?.[role]) live.set(model, local.status[role]);
+  }
+  return {
+    ...found,
+    served: (found.served || []).map((m) => (live.has(m.id) ? { ...m, status: live.get(m.id) } : m)),
+  };
+}
+
 // llama.cpp's router says "loaded"; any other OpenAI-compatible server only
 // lists what it serves, which the API reports as "ready".
 export const isReady = (status) => status === "loaded" || status === "ready";
