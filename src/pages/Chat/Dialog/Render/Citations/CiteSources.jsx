@@ -171,7 +171,11 @@ export default function CiteSources({ ids, quote }) {
           return (
             <section key={section.id} className={styles.section}>
               <div className={styles.name}>{section.file}</div>
-              <div className={styles.muted}>{t("cite_lines", { start: section.start, end: section.end })}</div>
+              <div className={styles.muted}>
+                {section.end > section.start
+                  ? t("cite_lines", { start: section.start, end: section.end })
+                  : t("cite_line", { start: section.start })}
+              </div>
             </section>
           );
         return <Status key={section.id} status={section.status} />;
