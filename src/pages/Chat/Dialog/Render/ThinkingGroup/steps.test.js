@@ -20,6 +20,8 @@ const result = (id, fields = {}) => ({ type: CHART_MESSAGE_TYPE.TOOL_RESULT, too
 describe("each tool reads as the work it does", () => {
   it.each([
     ["query_health_indicators", {}, "health"],
+    ["code_exec", { code: "const xs = data.map((r) => r.value)" }, "compute"],
+    ["code_exec", { code: "import statistics\nprint(statistics.median(xs))" }, "compute"],
     ["eval", {}, "compute"],
     ["python_exec", { code: "print(7 / 3)" }, "compute"],
     ["eval", { code: "const r = await tools.queryHealthIndicators({keywords: ['LDL']})" }, "compute_data"],

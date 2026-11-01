@@ -17,6 +17,10 @@ const KINDS = {
   query_medications: { key: "medications", icon: "pill" },
   query_genetic_data: { key: "genetics", icon: "dna" },
   query_pharmacogenomics: { key: "pharmacogenomics", icon: "dna" },
+  // The calculator is `code_exec` from engine 1.5.10 on; without it here the
+  // step read "Called code_exec". Conversations stored before then name it
+  // `eval` or `python_exec`, and they still render from those names.
+  code_exec: { key: "compute", icon: "calculator" },
   eval: { key: "compute", icon: "calculator" },
   python_exec: { key: "compute", icon: "calculator" },
   search_medical_knowledge: { key: "knowledge", icon: "book" },
@@ -36,7 +40,8 @@ const KINDS = {
 // A knowledge search names its scope; each reads differently.
 const KNOWLEDGE_SCOPES = { literature: "literature", trials: "trials" };
 
-// `eval` can call the record tools itself (`tools.queryHealthIndicators(...)`).
+// `eval` could call the record tools itself (`tools.queryHealthIndicators(...)`).
+// `code_exec` cannot: it reads the rows already fetched as `data`.
 const FETCHES_IN_CODE = /\btools\.(?:query|search|read)\w*\s*\(/;
 
 export const kindOf = (name, args) => {
