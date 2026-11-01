@@ -452,124 +452,129 @@ const IndicatorsPanel = ({
             ) : readings.length === 0 ? (
               <Empty description={t("indicator_no_data")} />
             ) : (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>{t("indicator_value")}</th>
-                    {showRef && <th>{t("indicator_ref_range")}</th>}
-                    <th>{t("indicator_measured_at")}</th>
-                    <th>{t("source")}</th>
-                    {isOwnRecord && <th />}
-                  </tr>
-                </thead>
-                <tbody>
-                  {readings.map((reading, index) => (
-                    <tr key={`${reading.id ?? reading.time}-${index}`}>
-                      <td>
-                        {editingId === reading.id ? (
-                          <Input
-                            size="small"
-                            autoFocus
-                            value={editingValue}
-                            disabled={patching}
-                            onChange={(e) => setEditingValue(e.target.value)}
-                            onPressEnter={() => saveEdit(reading)}
-                            style={{ maxWidth: 120 }}
-                          />
-                        ) : (
-                          <>
-                            <span className={styles.value}>{reading.value}</span>
-                            {(reading.unit || selected.unit) && (
-                              <span className={styles.unit}>
-                                {reading.unit || selected.unit}
-                              </span>
-                            )}
-                            {flagChip(reading.flag)}
-                          </>
-                        )}
-                      </td>
-                      {showRef && <td className={styles.muted}>{reading.ref || "—"}</td>}
-                      <td className={styles.muted}>
-                        {formatTime(reading.time)}
-                      </td>
-                      <td className={styles.muted}>
-                        {/* Document-derived readings carry the source file's
-                            key — link straight to the original so the number
-                            can be checked against the report it came from.
+              // Scrolls on its own, as the list's table does: a document's
+              // readings add a range and a source column, 492px in a 327px drawer
+              // on a phone, and the whole drawer scrolled sideways with it.
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>{t("indicator_value")}</th>
+                      {showRef && <th>{t("indicator_ref_range")}</th>}
+                      <th>{t("indicator_measured_at")}</th>
+                      <th>{t("source")}</th>
+                      {isOwnRecord && <th />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {readings.map((reading, index) => (
+                      <tr key={`${reading.id ?? reading.time}-${index}`}>
+                        <td>
+                          {editingId === reading.id ? (
+                            <Input
+                              size="small"
+                              autoFocus
+                              value={editingValue}
+                              disabled={patching}
+                              onChange={(e) => setEditingValue(e.target.value)}
+                              onPressEnter={() => saveEdit(reading)}
+                              style={{ maxWidth: 120 }}
+                            />
+                          ) : (
+                            <>
+                              <span className={styles.value}>{reading.value}</span>
+                              {(reading.unit || selected.unit) && (
+                                <span className={styles.unit}>
+                                  {reading.unit || selected.unit}
+                                </span>
+                              )}
+                              {flagChip(reading.flag)}
+                            </>
+                          )}
+                        </td>
+                        {showRef && <td className={styles.muted}>{reading.ref || "—"}</td>}
+                        <td className={styles.muted}>
+                          {formatTime(reading.time)}
+                        </td>
+                        <td className={styles.muted}>
+                          {/* Document-derived readings carry the source file's
+                              key — link straight to the original so the number
+                              can be checked against the report it came from.
 
-                            A button, not an <a href>: /files/ requires a token
-                            now (it used to serve anyone's health reports to
-                            anyone), and a browser cannot put a header on a
-                            navigation. See utils/protectedFile. */}
-                        {reading.file_key ? (
-                          <button
-                            type="button"
-                            className={styles.sourceLink}
-                            onClick={() => handleViewSource(reading)}
-                          >
-                            <IconFileText size={14} /> {t("indicator_view_source")}
-                          </button>
-                        ) : (
-                          // Was "—" for every device reading, while the
-                          // 明细 tab named the same row 设备.
-                          t(readingSourceKey(reading))
-                        )}
-                      </td>
-                      {isOwnRecord && (
-                        <td className={styles.rowActions}>
-                          {reading.id != null &&
-                            (editingId === reading.id ? (
-                              <>
-                                <button
-                                  type="button"
-                                  disabled={patching}
-                                  onClick={() => saveEdit(reading)}
-                                  aria-label={t("save")}
-                                >
-                                  <IconCheck size={14} stroke={2} />
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={patching}
-                                  onClick={() => setEditingId(null)}
-                                  aria-label={t("cancel")}
-                                >
-                                  <IconX size={14} stroke={2} />
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingId(reading.id);
-                                    setEditingValue(reading.value ?? "");
-                                  }}
-                                  aria-label={t("indicator_edit_reading")}
-                                >
-                                  <IconPencil size={14} stroke={1.8} />
-                                </button>
-                                <Popconfirm
-                                  title={t("indicator_delete_reading_confirm")}
-                                  okText={t("yes")}
-                                  cancelText={t("cancel")}
-                                  onConfirm={() => deleteReading(reading)}
-                                >
+                              A button, not an <a href>: /files/ requires a token
+                              now (it used to serve anyone's health reports to
+                              anyone), and a browser cannot put a header on a
+                              navigation. See utils/protectedFile. */}
+                          {reading.file_key ? (
+                            <button
+                              type="button"
+                              className={styles.sourceLink}
+                              onClick={() => handleViewSource(reading)}
+                            >
+                              <IconFileText size={14} /> {t("indicator_view_source")}
+                            </button>
+                          ) : (
+                            // Was "—" for every device reading, while the
+                            // 明细 tab named the same row 设备.
+                            t(readingSourceKey(reading))
+                          )}
+                        </td>
+                        {isOwnRecord && (
+                          <td className={styles.rowActions}>
+                            {reading.id != null &&
+                              (editingId === reading.id ? (
+                                <>
                                   <button
                                     type="button"
-                                    aria-label={t("delete")}
+                                    disabled={patching}
+                                    onClick={() => saveEdit(reading)}
+                                    aria-label={t("save")}
                                   >
-                                    <IconTrash size={14} stroke={1.8} />
+                                    <IconCheck size={14} stroke={2} />
                                   </button>
-                                </Popconfirm>
-                              </>
-                            ))}
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                                  <button
+                                    type="button"
+                                    disabled={patching}
+                                    onClick={() => setEditingId(null)}
+                                    aria-label={t("cancel")}
+                                  >
+                                    <IconX size={14} stroke={2} />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingId(reading.id);
+                                      setEditingValue(reading.value ?? "");
+                                    }}
+                                    aria-label={t("indicator_edit_reading")}
+                                  >
+                                    <IconPencil size={14} stroke={1.8} />
+                                  </button>
+                                  <Popconfirm
+                                    title={t("indicator_delete_reading_confirm")}
+                                    okText={t("yes")}
+                                    cancelText={t("cancel")}
+                                    onConfirm={() => deleteReading(reading)}
+                                  >
+                                    <button
+                                      type="button"
+                                      aria-label={t("delete")}
+                                    >
+                                      <IconTrash size={14} stroke={1.8} />
+                                    </button>
+                                  </Popconfirm>
+                                </>
+                              ))}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}
