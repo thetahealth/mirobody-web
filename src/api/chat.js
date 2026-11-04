@@ -95,9 +95,13 @@ export const getModels = ({ signal }) => {
   });
 };
 
-// what the rows an answer cites stand for now: GET /api/citations
+// what the rows an answer cites stand for now: POST /api/citations.
+// The ids go as a JSON list, not `?rids=a,b`: a cite may hold a comma (a
+// `ref:doi:` id, a `/library/<file>#L…` line), and the comma GET cut it into
+// pieces that resolved to nothing. Needs a server with the POST (Mirobody #247).
 export const resolveCitations = ({ session_id, rids }) => {
-  return mcpRequestInstance.get("/api/citations", {
-    params: { session_id, rids: rids.join(",") },
+  return mcpRequestInstance.post("/api/citations", {
+    session_id,
+    rids,
   });
 };
