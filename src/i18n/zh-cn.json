@@ -431,6 +431,7 @@
   "sources_empty_body": "当前部署未配置设备数据源。在服务端配置提供方凭证后即可连接 Garmin、Oura、Whoop 等；在此之前可以通过上传文件导入数据。",
   "file_view_unavailable": "该文件暂无可用的预览链接。",
   "file_view_unauthorized": "登录状态已失效，请重新登录后再打开该文件。",
+  "file_view_not_file": "服务器返回的不是这个文件。如果 Mirobody 部署在反向代理之后，请检查代理是否把 /files/ 转发给了它。",
   "mcp_url_hint": "粘贴到这台电脑上的 MCP 客户端：Claude Code、Codex、Cursor、Gemini CLI 直接用这个链接，Claude Desktop 经 mcp-remote 桥接（各自的配置见 README）。ChatGPT 和 claude.ai 从云端连接，需要一个它们能访问到的 HTTPS 地址。链接就是你的个人凭证，请妥善保管。",
   "mcp_link_title": "MCP 链接",
   "mcp_link_generate": "生成链接",

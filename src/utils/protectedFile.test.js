@@ -1,7 +1,7 @@
 /**
- * `/files/` is authenticated now. These pin the two decisions in the helper
- * that are not obvious from reading it, and that a later refactor would
- * plausibly undo.
+ * `/files/` is authenticated now. These pin the decisions in the helper that
+ * are not obvious from reading it, and that a later refactor would plausibly
+ * undo.
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
@@ -18,15 +18,37 @@ const makeStorage = () => {
   };
 };
 
+const encode = (text) => new TextEncoder().encode(text);
+const PDF = encode("%PDF-1.7\n1 0 obj\n");
+const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+// What a reverse proxy without a `/files/` rule answers: the app's own page.
+const INDEX_HTML = encode('<!doctype html><html><body><div id="root"></div></body></html>');
+
+// A 200 as fetch resolves it. `slice()` so the buffer is exactly the bytes.
+const fileResponse = (bytes, contentType) => ({
+  ok: true,
+  status: 200,
+  headers: new Headers({ "Content-Type": contentType }),
+  arrayBuffer: async () => bytes.slice().buffer,
+});
+
+// What a fetch whose answer never comes does: nothing, until it is aborted.
+const untilAborted = (signal) =>
+  new Promise((_, reject) => {
+    if (signal.aborted) reject(signal.reason);
+    signal.addEventListener("abort", () => reject(signal.reason));
+  });
+
 describe("protectedFile", () => {
   let openProtectedFile;
   let resolveFileUrl;
+  let FILE_FETCH_TIMEOUT_MS;
 
   beforeEach(async () => {
     vi.stubGlobal("localStorage", makeStorage());
     vi.stubGlobal("sessionStorage", makeStorage());
     vi.resetModules();
-    ({ openProtectedFile, resolveFileUrl } = await import("./protectedFile.js"));
+    ({ openProtectedFile, resolveFileUrl, FILE_FETCH_TIMEOUT_MS } = await import("./protectedFile.js"));
   });
 
   afterEach(() => {
@@ -64,10 +86,7 @@ describe("protectedFile", () => {
       // The whole point. A token in the query string lands in browser history,
       // in Referer on sub-resources, and in every access log on the way.
       localStorage.setItem(ACCESS_TOKEN, "jwt-abc");
-      const fetchSpy = vi.fn(async () => ({
-        ok: true,
-        blob: async () => new Blob([new Uint8Array([1])]),
-      }));
+      const fetchSpy = vi.fn(async () => fileResponse(PDF, "application/pdf"));
       vi.stubGlobal("fetch", fetchSpy);
       vi.stubGlobal("window", { open: () => ({ location: "" }) });
       vi.stubGlobal("URL", { createObjectURL: () => "blob:x", revokeObjectURL: () => {} });
@@ -101,10 +120,9 @@ describe("protectedFile", () => {
       // the user's session. Only non-executing formats render inline.
       localStorage.setItem(ACCESS_TOKEN, "jwt-abc");
       const types = [];
-      vi.stubGlobal("fetch", async () => ({
-        ok: true,
-        blob: async () => ({ type: "image/svg+xml" }),
-      }));
+      vi.stubGlobal("fetch", async () =>
+        fileResponse(encode("<svg xmlns='http://www.w3.org/2000/svg'/>"), "image/svg+xml"),
+      );
       vi.stubGlobal("window", { open: () => ({ location: "" }) });
       vi.stubGlobal("URL", { createObjectURL: () => "blob:x", revokeObjectURL: () => {} });
       vi.stubGlobal("Blob", class {
@@ -119,7 +137,7 @@ describe("protectedFile", () => {
     it("renders a pdf inline", async () => {
       localStorage.setItem(ACCESS_TOKEN, "jwt-abc");
       const types = [];
-      vi.stubGlobal("fetch", async () => ({ ok: true, blob: async () => ({ type: "" }) }));
+      vi.stubGlobal("fetch", async () => fileResponse(PDF, "application/pdf"));
       vi.stubGlobal("window", { open: () => ({ location: "" }) });
       vi.stubGlobal("URL", { createObjectURL: () => "blob:x", revokeObjectURL: () => {} });
       vi.stubGlobal("Blob", class {
@@ -142,7 +160,7 @@ describe("protectedFile", () => {
       });
       vi.stubGlobal("fetch", async () => {
         order.push("fetch");
-        return { ok: true, blob: async () => ({ type: "" }) };
+        return fileResponse(PDF, "application/pdf");
       });
       vi.stubGlobal("URL", { createObjectURL: () => "blob:x", revokeObjectURL: () => {} });
       vi.stubGlobal("Blob", class { constructor() {} });
@@ -150,6 +168,84 @@ describe("protectedFile", () => {
 
       await openProtectedFile("uploads/a.pdf", "a.pdf");
       expect(order).toEqual(["open", "fetch"]);
+    });
+
+    // The tab is open before the request starts, so any way the request can go
+    // wrong without throwing ends with a blank tab and no toast.
+    describe("when the answer is not the file, or never comes", () => {
+      let tab;
+      let types;
+
+      beforeEach(() => {
+        vi.useFakeTimers();
+        localStorage.setItem(ACCESS_TOKEN, "jwt-abc");
+        tab = { location: "", close: vi.fn() };
+        types = [];
+        vi.stubGlobal("window", { open: () => tab });
+        vi.stubGlobal("URL", { createObjectURL: () => "blob:x", revokeObjectURL: () => {} });
+        vi.stubGlobal("Blob", class {
+          constructor(parts, opts) { types.push(opts?.type); }
+        });
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it.each([
+        ["the headers never come", (_, { signal }) => untilAborted(signal)],
+        // A timer cleared once the headers arrive would miss this one.
+        [
+          "the body stops after the headers",
+          async (_, { signal }) => ({
+            ok: true,
+            status: 200,
+            headers: new Headers({ "Content-Type": "application/pdf" }),
+            arrayBuffer: () => untilAborted(signal),
+          }),
+        ],
+      ])("gives up and closes the tab when %s", async (_, fetchImpl) => {
+        vi.stubGlobal("fetch", fetchImpl);
+
+        const pending = openProtectedFile("uploads/report.pdf", "report.pdf");
+        await vi.advanceTimersByTimeAsync(FILE_FETCH_TIMEOUT_MS - 1);
+        expect(tab.close).not.toHaveBeenCalled();
+
+        await vi.advanceTimersByTimeAsync(1);
+        expect(await pending).toBe("file_view_unavailable");
+        expect(tab.close).toHaveBeenCalled();
+      });
+
+      it.each([
+        ["report.pdf", "text/html; charset=utf-8"],
+        // The page says it is a PDF; its bytes say otherwise.
+        ["report.pdf", "application/pdf"],
+        ["scan.png", "text/html; charset=utf-8"],
+        ["labs.csv", "text/html; charset=utf-8"],
+      ])("refuses a 200 index.html for %s served as %s", async (name, contentType) => {
+        vi.stubGlobal("fetch", async () => fileResponse(INDEX_HTML, contentType));
+
+        expect(await openProtectedFile(`uploads/${name}`, name)).toBe("file_view_not_file");
+        expect(tab.close).toHaveBeenCalled();
+        expect(types).toEqual([]);
+      });
+
+      it.each([
+        ["report.pdf", "application/pdf", PDF],
+        // Viewers take a header anywhere in the first 1024 bytes; so does this.
+        ["scan.pdf", "application/pdf", new Uint8Array([...encode("\r\n\r\n"), ...PDF])],
+        ["scan.png", "image/png", PNG],
+        // A stored key whose extension differs from the name: still an image,
+        // and the browser sniffs which.
+        ["scan.png", "image/jpeg", PNG],
+        ["labs.csv", "text/csv", encode("date,value\n")],
+      ])("still opens %s served as %s", async (name, contentType, bytes) => {
+        vi.stubGlobal("fetch", async () => fileResponse(bytes, contentType));
+
+        expect(await openProtectedFile(`uploads/${name}`, name)).toBeNull();
+        expect(tab.close).not.toHaveBeenCalled();
+        expect(tab.location).toBe("blob:x");
+      });
     });
   });
 });
