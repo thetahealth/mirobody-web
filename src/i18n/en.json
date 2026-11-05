@@ -431,6 +431,7 @@
   "sources_empty_body": "This deployment has no device providers configured. Add provider credentials on the server to connect Garmin, Oura, Whoop and others; until then, upload files to get data in.",
   "file_view_unavailable": "File preview is not available for this file.",
   "file_view_unauthorized": "Sign in again to open this file.",
+  "file_view_not_file": "The server sent back something other than this file. If Mirobody runs behind a reverse proxy, check that the proxy forwards /files/ to it.",
   "mcp_url_hint": "Paste into an MCP client on this computer: Claude Code, Codex, Cursor and Gemini CLI take the link as it is, and Claude Desktop through the mcp-remote bridge (the README has each setup). ChatGPT and claude.ai connect from the cloud, so they need an HTTPS address they can reach. The link is your personal credential — keep it secret.",
   "mcp_link_title": "MCP link",
   "mcp_link_generate": "Create link",

@@ -23,10 +23,34 @@
  * would execute its script on our origin with the user's session — turning an
  * upload into stored XSS. Only formats that cannot execute are rendered
  * inline; everything else is handed over as a download.
+ *
+ * **Why a 200 is checked.** Because the type comes from the file name and not
+ * from the response, a 200 that is not the file still opened: a reverse proxy
+ * that answers `/files/` with the app's own index.html, or with a login page,
+ * showed an empty PDF viewer and no error. The body is checked against what
+ * the file should be before a tab is pointed at it.
+ *
+ * **Why there is a timeout.** The tab is open before the request starts, so a
+ * request that never finishes left it on about:blank for good, with no toast.
  */
 
 import { ACCESS_TOKEN } from "../enum/storage";
 import { getApiBaseUrl } from "./index";
+
+/**
+ * The longest a file may take, headers and body together. The upload limit is
+ * 20 MB (`MAX_FILE_SIZE`), which needs about 2.8 Mbit/s to arrive in a minute,
+ * and a minute is nginx's default `proxy_read_timeout`: behind a proxy, a
+ * request with no answer by then is not going to get one.
+ */
+export const FILE_FETCH_TIMEOUT_MS = 60_000;
+
+/**
+ * Viewers accept a PDF whose header is anywhere in its first 1024 bytes (PDF
+ * 1.7 reference, Appendix H, note 13), so a check at offset 0 would refuse
+ * files that open fine.
+ */
+const PDF_HEADER_WINDOW = 1024;
 
 /** Types safe to render in place. Deliberately excludes svg and xml. */
 const INLINE_TYPES = {
@@ -48,6 +72,25 @@ const extensionOf = (name = "") => {
   const clean = String(name).split("?")[0].split("#")[0];
   const dot = clean.lastIndexOf(".");
   return dot === -1 ? "" : clean.slice(dot + 1).toLowerCase();
+};
+
+/**
+ * Whether a 200 body is the file asked for, or a page standing in for it.
+ *
+ * A PDF is checked by its bytes. An image by the declared type, which the
+ * backend derives from the stored key's extension; any `image/` is accepted
+ * because the browser sniffs the format, and the forced blob type, not this
+ * check, is what keeps an svg from running. Anything else only has to not be
+ * HTML, so a `.csv` does not open as the app's own markup or a `.docx` does
+ * not download as a login page.
+ */
+const isTheFile = (ext, contentType, bytes) => {
+  if (ext === "pdf") {
+    const head = String.fromCharCode(...bytes.subarray(0, PDF_HEADER_WINDOW));
+    return head.includes("%PDF-");
+  }
+  if (INLINE_TYPES[ext]?.startsWith("image/")) return contentType.startsWith("image/");
+  return ext === "html" || ext === "htm" || !contentType.startsWith("text/html");
 };
 
 /**
@@ -77,10 +120,13 @@ export const openProtectedFile = async (keyOrUrl, fileName = "") => {
   if (!token) return "file_view_unauthorized";
 
   const tab = window.open("", "_blank");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FILE_FETCH_TIMEOUT_MS);
 
   try {
     const response = await fetch(resolveFileUrl(keyOrUrl), {
       headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -92,10 +138,18 @@ export const openProtectedFile = async (keyOrUrl, fileName = "") => {
         : "file_view_unavailable";
     }
 
-    const raw = await response.blob();
+    // Still under the signal: a body that stalls after the headers leaves the
+    // tab as blank as headers that never come.
+    const bytes = new Uint8Array(await response.arrayBuffer());
     const ext = extensionOf(fileName || keyOrUrl);
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    if (!isTheFile(ext, contentType, bytes)) {
+      if (tab) tab.close();
+      return "file_view_not_file";
+    }
+
     const safeType = INLINE_TYPES[ext] || "application/octet-stream";
-    const url = URL.createObjectURL(new Blob([raw], { type: safeType }));
+    const url = URL.createObjectURL(new Blob([bytes], { type: safeType }));
 
     if (tab) {
       tab.location = url;
@@ -113,7 +167,10 @@ export const openProtectedFile = async (keyOrUrl, fileName = "") => {
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
     return null;
   } catch {
+    // A timeout lands here too: the abort rejects the pending fetch or read.
     if (tab) tab.close();
     return "file_view_unavailable";
+  } finally {
+    clearTimeout(timer);
   }
 };

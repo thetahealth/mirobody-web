@@ -431,6 +431,7 @@
   "sources_empty_body": "此部署尚未設定裝置提供者。請在伺服器端新增提供者憑證，即可連線 Garmin、Oura、Whoop 等裝置；在那之前，可以先上傳檔案匯入資料。",
   "file_view_unavailable": "此檔案無法預覽。",
   "file_view_unauthorized": "請重新登入以開啟此檔案。",
+  "file_view_not_file": "伺服器回傳的不是這個檔案。若 Mirobody 部署在反向代理之後，請確認代理有將 /files/ 轉送給它。",
   "mcp_url_hint": "貼到這台電腦上的 MCP 客戶端：Claude Code、Codex、Cursor、Gemini CLI 直接使用這個連結，Claude Desktop 經 mcp-remote 橋接（各自的設定見 README）。ChatGPT 和 claude.ai 從雲端連線，需要一個它們能存取的 HTTPS 位址。連結就是你的個人憑證，請妥善保管。",
   "mcp_link_title": "MCP 連結",
   "mcp_link_generate": "產生連結",

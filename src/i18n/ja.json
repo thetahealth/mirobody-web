@@ -431,6 +431,7 @@
   "sources_empty_body": "この環境にはデバイスのプロバイダーが設定されていません。Garmin、Oura、Whoopなどと連携するには、サーバー側でプロバイダーの認証情報を設定してください。それまでは、ファイルをアップロードしてデータを取り込めます。",
   "file_view_unavailable": "このファイルはプレビューできません。",
   "file_view_unauthorized": "このファイルを開くには、再度ログインしてください。",
+  "file_view_not_file": "サーバーがこのファイルではないものを返しました。Mirobody をリバースプロキシの背後で動かしている場合は、/files/ が転送されているか確認してください。",
   "mcp_url_hint": "このパソコンの MCP クライアントに貼り付けます。Claude Code、Codex、Cursor、Gemini CLI はこのリンクをそのまま、Claude Desktop は mcp-remote を経由して使います（それぞれの設定は README に）。ChatGPT と claude.ai はクラウドから接続するため、届く HTTPS アドレスが必要です。リンクは個人の認証情報なので、他人に教えないでください。",
   "mcp_link_title": "MCP リンク",
   "mcp_link_generate": "リンクを作成",
