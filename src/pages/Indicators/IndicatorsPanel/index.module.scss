@@ -141,8 +141,22 @@
   }
 }
 
+/* A name wraps, anywhere, so it never sets its column's width: a long LOINC
+   display or one unbreakable token ("Cholesterol.in.LDL/Cholesterol.in.HDL…")
+   pushed 最新值 and 记录数 out of a 1024px window (issue #17).
+   `white-space` too: RecordsList.module.scss styles bare `th, td` with
+   `nowrap`, and a CSS module scopes only class selectors, so that rule
+   reaches this table and kept every name, spaces or not, on one line.
+   The floor is for a narrow window, where the code and date columns, which
+   stay on one line, take the room first: without it the name got 48px at
+   800px, a few letters a line. Below it the table scrolls in .tableWrap.
+   Not `table-layout: fixed`: it overflows the code cell instead — 12% of a
+   704px table is 84px, and "SNOMED CT 271649006" needs 151. */
 .name {
+  min-width: 11em;
   font-weight: 500;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* The value is the point of the row: full contrast, tabular figures so decimal
@@ -214,6 +228,13 @@
       background-color: var(--color-bg-soft);
     }
   }
+}
+
+/* The drawer's heading is the same name. antd lays it out as a flex item that
+   is at least as wide as its longest unbreakable run, so the token above made
+   it 663px in a 480px drawer and cut it off at the edge. */
+.drawerTitle {
+  overflow-wrap: anywhere;
 }
 
 .detail {

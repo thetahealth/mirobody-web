@@ -395,6 +395,7 @@ const IndicatorsPanel = ({
         open={!!selected}
         onClose={closeDetail}
         title={selected?.indicator}
+        classNames={{ title: styles.drawerTitle }}
         placement={mobile ? "bottom" : "right"}
         size={mobile ? Math.round(window.innerHeight * 0.88) : 480}
         destroyOnHidden
