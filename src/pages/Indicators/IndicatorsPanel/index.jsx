@@ -21,6 +21,7 @@ import {
   codeLabel,
   readingSourceKey,
   displayName,
+  facetsOf,
   readingsKey,
 } from "./rows";
 import { flagOf } from "../../Chat/Dialog/Render/Citations/sources";
@@ -444,24 +445,33 @@ const IndicatorsPanel = ({
               </div>
             )}
 
+            {/* What the test is, one line per axis, in place of LOINC's long
+                name: `血红蛋白 [质量/体积]，全血` is a key for systems, not a
+                sentence. The code and that long name close the list, so the
+                plain name can always be checked and looked up (#231). */}
+            {(facetsOf(selected).length > 0 || selected.code) && (
+              <dl className={styles.facts}>
+                {facetsOf(selected).map(([key, text]) => (
+                  <div key={key}>
+                    <dt>{t(key)}</dt>
+                    <dd>{text}</dd>
+                  </div>
+                ))}
+                {selected.code && (
+                  <div>
+                    <dt>{t("indicator_code")}</dt>
+                    <dd>
+                      {codeLabel(selected)}
+                      {selected.label && selected.label !== selected.indicator && (
+                        <div className={styles.longName}>{selected.indicator}</div>
+                      )}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
+
             <dl className={styles.meta}>
-              {/* A translated name never stands alone: LOINC's own name and the
-                  code stay beside it, so the test can be checked and looked up. */}
-              {selected.label && (
-                <div>
-                  <dt>{t("indicator_standard_name")}</dt>
-                  <dd>
-                    {selected.label_long || selected.label}
-                    <div className={styles.muted}>{selected.indicator}</div>
-                  </dd>
-                </div>
-              )}
-              {selected.code && (
-                <div>
-                  <dt>{t("indicator_code")}</dt>
-                  <dd>{codeLabel(selected)}</dd>
-                </div>
-              )}
               <div>
                 <dt>{t("indicator_records")}</dt>
                 <dd>{selected.count || readings.length}</dd>
