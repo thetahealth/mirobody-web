@@ -1,4 +1,5 @@
-import { getLanguage, getApiBaseUrl } from "../utils";
+import { getApiBaseUrl } from "../utils";
+import { requestLanguage } from "../utils/i18n.js";
 import { ACCESS_TOKEN } from "../enum/storage";
 import { SSE_ERROR_TYPE } from "../enum/error";
 import { consola } from "consola";
@@ -85,7 +86,7 @@ export const sseRequestInstance = async (apiPath, options) => {
   // Declare variables in function scope so they're accessible in catch block
   const headers = {
     Authorization: `Bearer ${localStorage.getItem(ACCESS_TOKEN)}`,
-    "X-Language": getLanguage(),
+    "X-Language": requestLanguage(),
     "X-Timezone": Intl.DateTimeFormat().resolvedOptions().timeZone,
     ...options.headers,
   };
