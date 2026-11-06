@@ -418,6 +418,7 @@
   "indicator_records": "记录数",
   "indicator_last_seen": "最近记录",
   "indicator_code": "编码",
+  "indicator_standard_name": "标准名称",
   "indicator_measured_at": "测量时间",
   "indicator_no_data": "暂无指标数据。上传报告或连接数据源后即可查看。",
   "indicator_no_match": "没有匹配的指标。",

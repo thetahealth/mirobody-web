@@ -418,6 +418,7 @@
   "indicator_records": "件数",
   "indicator_last_seen": "最終記録",
   "indicator_code": "コード",
+  "indicator_standard_name": "標準名",
   "indicator_measured_at": "測定日時",
   "indicator_no_data": "指標データはまだありません。レポートをアップロードするか、データソースを連携して始めましょう。",
   "indicator_no_match": "検索条件に一致する指標が見つかりませんでした。",

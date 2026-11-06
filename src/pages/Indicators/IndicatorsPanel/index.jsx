@@ -14,7 +14,15 @@ import api from "../../../api";
 import { useDriveStore } from "../../../store/Drive";
 import { useAccountStore } from "../../../store/account";
 import { openProtectedFile } from "../../../utils/protectedFile";
-import { toTableRows, toReadingList, truncationOf, codeLabel, readingSourceKey } from "./rows";
+import {
+  toTableRows,
+  toReadingList,
+  truncationOf,
+  codeLabel,
+  readingSourceKey,
+  displayName,
+  readingsKey,
+} from "./rows";
 import { flagOf } from "../../Chat/Dialog/Render/Citations/sources";
 import useIsMobile from "../../../hooks/useIsMobile";
 import TrendChart from "./TrendChart";
@@ -143,7 +151,7 @@ const IndicatorsPanel = ({
     setReadings([]);
     try {
       const res = await api.getIndicatorReadings({
-        indicator: row.indicator,
+        indicator: readingsKey(row),
         target_user_id: current_drive_user_id,
       });
       setReadings(toReadingList(res));
@@ -167,7 +175,7 @@ const IndicatorsPanel = ({
     if (!selected) return;
     try {
       const res = await api.getIndicatorReadings({
-        indicator: selected.indicator,
+        indicator: readingsKey(selected),
         target_user_id: current_drive_user_id,
       });
       setReadings(toReadingList(res));
@@ -311,9 +319,11 @@ const IndicatorsPanel = ({
         // overflowed 375px, leaving only the names on screen.
         <ul className={styles.cards}>
           {rows.map((row) => (
-            <li key={`${row.indicator}-${row.code || ""}`}>
+            <li key={row.series || `${row.indicator}-${row.code || ""}`}>
               <button type="button" className={styles.card} onClick={() => openDetail(row)}>
-                <span className={styles.cardName}>{row.indicator}</span>
+                <span className={styles.cardName} title={row.label ? row.indicator : undefined}>
+                  {displayName(row)}
+                </span>
                 <span className={styles.cardValue}>
                   {row.latest_value !== "" ? (
                     <>
@@ -357,14 +367,16 @@ const IndicatorsPanel = ({
             <tbody>
               {rows.map((row) => (
                   <tr
-                    key={`${row.indicator}-${row.code || ""}`}
+                    key={row.series || `${row.indicator}-${row.code || ""}`}
                     onClick={() => openDetail(row)}
                     tabIndex={0}
                     onKeyDown={(event) => {
                       if (event.key === "Enter") openDetail(row);
                     }}
                   >
-                    <td className={styles.name}>{row.indicator}</td>
+                    <td className={styles.name} title={row.label ? row.indicator : undefined}>
+                      {displayName(row)}
+                    </td>
                     <td>
                       {row.latest_value !== "" ? (
                         <>
@@ -394,7 +406,7 @@ const IndicatorsPanel = ({
       <Drawer
         open={!!selected}
         onClose={closeDetail}
-        title={selected?.indicator}
+        title={displayName(selected)}
         classNames={{ title: styles.drawerTitle }}
         placement={mobile ? "bottom" : "right"}
         size={mobile ? Math.round(window.innerHeight * 0.88) : 480}
@@ -420,6 +432,17 @@ const IndicatorsPanel = ({
             )}
 
             <dl className={styles.meta}>
+              {/* A translated name never stands alone: LOINC's own name and the
+                  code stay beside it, so the test can be checked and looked up. */}
+              {selected.label && (
+                <div>
+                  <dt>{t("indicator_standard_name")}</dt>
+                  <dd>
+                    {selected.label_long || selected.label}
+                    <div className={styles.muted}>{selected.indicator}</div>
+                  </dd>
+                </div>
+              )}
               {selected.code && (
                 <div>
                   <dt>{t("indicator_code")}</dt>

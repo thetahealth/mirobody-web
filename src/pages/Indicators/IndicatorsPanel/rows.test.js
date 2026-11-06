@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { toTableRows, toReadingList, truncationOf, codeLabel, readingSourceKey } from "./rows";
+import {
+  toTableRows,
+  toReadingList,
+  truncationOf,
+  codeLabel,
+  readingSourceKey,
+  displayName,
+  readingsKey,
+} from "./rows";
 
 // Fixtures copy the server's own row builders field for field (`_catalog_row` /
 // `_reading_row` in mirobody/pulse/query.py, wrapped in `render_rest`), so a
@@ -214,5 +222,45 @@ describe("codeLabel", () => {
   });
   it("is empty for a row without a code", () => {
     expect(codeLabel({ system: "http://loinc.org", code: "" })).toBe("");
+  });
+});
+
+// A Chinese request (#231): the server adds `label` / `label_long` beside the
+// English `indicator`, which stays what the drawer selects by.
+describe("translated names", () => {
+  const ldl = {
+    indicator: "Cholesterol in LDL [Moles/volume] in Serum or Plasma",
+    label: "低密度脂蛋白胆固醇",
+    label_long: "低密度脂蛋白胆固醇 [物质的量/体积]，血清/血浆",
+    series: "loinc:cholesterol.in ldl|Ser/Plas|Pt|Qn|QCnc",
+    system: "http://loinc.org",
+    code: "22748-8",
+  };
+
+  it("carries the label into a catalog row and shows it", () => {
+    const [row] = toTableRows({ rows: [{ ...ldl, count: 2, latest_value: "2.85", last_date: "2026-07-23" }] });
+    expect(row.label).toBe("低密度脂蛋白胆固醇");
+    expect(row.label_long).toBe("低密度脂蛋白胆固醇 [物质的量/体积]，血清/血浆");
+    expect(displayName(row)).toBe("低密度脂蛋白胆固醇");
+  });
+
+  it("falls back to the English name when the server sent no label", () => {
+    expect(displayName({ indicator: "Hemoglobin [Mass/volume] in Blood" })).toBe("Hemoglobin [Mass/volume] in Blood");
+  });
+
+  it("asks for a coded row by its code, and an uncoded one by its printed name", () => {
+    expect(readingsKey(ldl)).toBe("22748-8");
+    expect(readingsKey({ indicator: "某自定义指标", code: "" })).toBe("某自定义指标");
+  });
+
+  it("keeps two series apart even when they share a translated name", () => {
+    const glucose = (series, code, value) => ({
+      indicator: `Glucose ${code}`, label: "葡萄糖", series, system: "http://loinc.org", code,
+      time: "2026-07-23 08:00:00", value, unit: "mmol/L", row_id: Number(value), total: 1,
+    });
+    const rows = toTableRows({
+      rows: [glucose("loinc:glucose|Ser/Plas|Pt|Qn|QCnc", "14749-6", "5"), glucose("loinc:glucose|Bld|Pt|Qn|QCnc", "15074-8", "6")],
+    });
+    expect(rows.map((r) => r.code)).toEqual(["14749-6", "15074-8"]);
   });
 });

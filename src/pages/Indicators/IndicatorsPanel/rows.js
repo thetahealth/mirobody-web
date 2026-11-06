@@ -39,8 +39,13 @@ const toReading = (row) => ({
 export const readingSourceKey = (reading) =>
   /device/.test(reading.modality || "") ? "source_kind_device" : "source_kind_manual";
 
+// `indicator` is the English (LOINC) name; `label` / `label_long` are the same
+// test's name in the request's language, sent only when one exists (#231).
 const emptyRow = (row) => ({
   indicator: row.indicator || "",
+  label: row.label || "",
+  label_long: row.label_long || "",
+  series: row.series || "",
   system: row.system || "",
   code: row.code || "",
   unit: row.unit || "",
@@ -59,16 +64,18 @@ const fromCatalog = (rows) =>
     latest_time: row.last_date || "",
   }));
 
-// Reading rows → one row per indicator, keeping their readings so the drawer
+// Reading rows → one row per series, keeping their readings so the drawer
 // needs no second request. `count` is the row's `total` (the server's count over
-// the whole series), not the array length, which `limit` caps.
+// the whole series), not the array length, which `limit` caps. Grouped by
+// `series`, not by name: two series can share a translated name (serum and
+// whole-blood glucose are both 葡萄糖), and one series spans sibling codes.
 const fromReadings = (rows) => {
-  const byName = new Map();
+  const bySeries = new Map();
   for (const row of rows) {
-    const name = row.indicator;
-    if (!name) continue;
-    if (!byName.has(name)) byName.set(name, emptyRow(row));
-    const entry = byName.get(name);
+    if (!row.indicator) continue;
+    const key = row.series || row.indicator;
+    if (!bySeries.has(key)) bySeries.set(key, emptyRow(row));
+    const entry = bySeries.get(key);
     if (!entry.unit && row.unit) entry.unit = row.unit;
     if (!entry.code && row.code) {
       entry.code = row.code;
@@ -82,7 +89,7 @@ const fromReadings = (rows) => {
       entry.latest_value = row.value ?? "";
     }
   }
-  return [...byName.values()];
+  return [...bySeries.values()];
 };
 
 /** Table rows from either grain. */
@@ -124,3 +131,11 @@ export const codeLabel = (row) => {
   const system = SYSTEM_NAMES[row.system] ?? row.system ?? "";
   return `${system} ${row.code}`.trim();
 };
+
+/** The name a row is shown under: the reader's language when the server sent one. */
+export const displayName = (row) => row?.label || row?.indicator || "";
+
+/** What the drawer asks the server for. A code names its whole series (the
+ *  server expands it to every sibling code); the English name is only a
+ *  fallback for an uncoded row, which has no code to send. */
+export const readingsKey = (row) => row?.code || row?.indicator || "";
