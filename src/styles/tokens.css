@@ -10,6 +10,10 @@
    name first, then the plain name + system fallbacks (incl. CJK).
    ──────────────────────────────────────────────────────────────────────── */
 :root {
+  /* Form controls, scrollbars and the canvas follow this, not the OS: without
+     it a browser in dark mode drew native controls dark on a cream page. */
+  color-scheme: light;
+
   /* brand — navy (matches Theta Smart iOS ThemeTokens.swift v4.1) */
   --color-accent: #0e3880; /* active — primary CTA */
   --color-accent-hover: #0d1e3a; /* navy — deeper brand */
@@ -25,6 +29,10 @@
      white block in the middle of a warm cream column. Same value antd is
      handed as colorBgElevated (see theme.js), so the two agree. */
   --color-bg-elevated: #fbfaf7;
+  /* The pure-white cards, dialogs and menus the design still draws (chat
+     column, modals, dropdowns). They were `#fff` in forty places, which a dark
+     page cannot override; this is that white, and the card colour at night. */
+  --color-surface-white: #ffffff;
 
   /* borders */
   --color-border: #e8e4dc; /* line */
@@ -37,6 +45,8 @@
   --color-text-secondary: #5c5a57; /* ink-soft */
   --color-text-muted: #9b9894; /* ink-faint */
   --color-text-on-accent: #efece5; /* line-soft on primary */
+  /* a button drawn in ink, hovered: one step further from the page */
+  --color-ink-hover: #000000;
 
   /* semantic status */
   --color-success: #2f4a3a; /* forest */
@@ -96,11 +106,23 @@
   --t-fast: 0.18s ease;
 
   /* elevation — flat system: prefer borders; reserve shadows for overlays
-     (dropdowns / sheets / modals). In dark mode these are dropped entirely. */
+     (dropdowns / sheets / modals). Dark mode deepens them: a 6–14% black
+     shadow does not show on a near-black page, and an overlay with no border
+     then had no edge at all. */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.09);
   --shadow-lg: 0 4px 18px rgba(0, 0, 0, 0.11);
   --shadow-xl: 0 8px 28px rgba(0, 0, 0, 0.14);
+
+  /* what sits behind a modal, and the scrollbar thumb: both were black at a
+     fixed alpha, which disappears on a dark page. */
+  --color-overlay: rgba(255, 255, 255, 0.3);
+  /* Shadows the dialogs and menus used before the elevation scale existed;
+     named so dark mode can deepen them with the rest. */
+  --shadow-modal: 0 0 48px 0 rgba(0, 0, 0, 0.12);
+  --shadow-dropdown: 0 0 20px 0 rgba(0, 0, 0, 0.2);
+  --color-scrollbar: rgba(0, 0, 0, 0.2);
+  --color-scrollbar-hover: rgba(0, 0, 0, 0.3);
 
   /* spacing — a 4px scale. It was specified long before anything used it, so
      every screen invented its own padding and they disagreed; these exist so
@@ -130,4 +152,79 @@
      classic print measure, but consistent with the charts beside it. */
   --layout-prose: 100ch;
   --control-h: 52px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Dark palette — follows the operating system. The light palette above is
+   the Theta one; this is its night side: the same warm hue, inverted in
+   lightness, so cream-on-ink pages read as one product in both modes.
+
+   Every value was checked for contrast against the page (#141311), the card
+   (#1c1b19) and the lifted row (#252320): body ink 12.8:1 or better, soft ink
+   7.2:1, faint ink 4.3:1, and every status text on its own container 7.9:1 or
+   better.
+
+   The accent flips like Material's dark scheme: a light tone of the brand
+   navy, with navy ink on it. Navy itself is 1.6:1 on this page, so a link or
+   an active tab drawn in it vanished.
+   ──────────────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --color-accent: #9db8ec;
+    --color-accent-hover: #bcd0f4;
+    --color-navy: #0d1e3a;
+
+    --color-bg: #141311;
+    --color-bg-light: #1c1b19;
+    --color-surface: #1c1b19;
+    --color-bg-elevated: #252320;
+    --color-surface-white: #1c1b19;
+
+    --color-border: #34312d;
+    --color-border-soft: #2a2825;
+    --color-border-strong: #6f6b65;
+    --color-border-ink: #ece8e1;
+
+    --color-text-primary: #ece8e1;
+    --color-text-secondary: #b4afa7;
+    --color-text-muted: #8a857e;
+    --color-text-on-accent: #0d1e3a;
+    --color-ink-hover: #ffffff;
+
+    --color-success: #8fbf9f;
+    --color-warning: #e0a36a;
+    --color-danger: #ec8a7f;
+    --color-info: #8fb3da;
+
+    --color-bg-soft: #24221f;
+    --color-success-bg: #1f2b23;
+    --color-success-text: #a9d2b5;
+    --color-warning-bg: #33261a;
+    --color-warning-text: #ecc08f;
+    --color-danger-bg: #3a1f1c;
+    --color-danger-text: #f1aaa2;
+    --color-info-bg: #1c2836;
+    --color-info-text: #a9c6e6;
+
+    --color-gold: #c4a272;
+    --color-gold-bg: #2e271d;
+    --color-gold-text: #dcc296;
+
+    --color-focus-ring: rgba(157, 184, 236, 0.3);
+
+    --color-action-fg: #0d1e3a;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 4px 18px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 8px 28px rgba(0, 0, 0, 0.55);
+
+    --color-overlay: rgba(0, 0, 0, 0.55);
+    --shadow-modal: 0 0 48px 0 rgba(0, 0, 0, 0.6);
+    --shadow-dropdown: 0 0 20px 0 rgba(0, 0, 0, 0.6);
+    --color-scrollbar: rgba(255, 255, 255, 0.2);
+    --color-scrollbar-hover: rgba(255, 255, 255, 0.32);
+  }
 }

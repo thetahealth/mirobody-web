@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as echarts from "echarts";
 import { useTranslation } from "react-i18next";
 import { trendOption, trendPoints } from "./trend";
+import usePrefersDark from "../../../hooks/usePrefersDark";
 import styles from "./index.module.scss";
 
 /** One indicator's readings over time, with its report's range as a band.
@@ -10,6 +11,7 @@ import styles from "./index.module.scss";
  *  a chart of half a year must not pass for the whole one. */
 export default function TrendChart({ readings, unit, total = 0 }) {
   const { t } = useTranslation();
+  const dark = usePrefersDark();
   const ref = useRef(null);
   const points = useMemo(() => trendPoints(readings), [readings]);
   const enough = points.length >= 2;
@@ -21,6 +23,7 @@ export default function TrendChart({ readings, unit, total = 0 }) {
     chart.setOption(
       trendOption(points, {
         unit,
+        dark,
         labels: {
           range: t("indicator_ref_range"),
           ref: t("indicator_ref_short"),
@@ -35,7 +38,7 @@ export default function TrendChart({ readings, unit, total = 0 }) {
       observer.disconnect();
       chart.dispose();
     };
-  }, [enough, points, unit, t]);
+  }, [enough, points, unit, t, dark]);
 
   if (!enough) return null;
   return (

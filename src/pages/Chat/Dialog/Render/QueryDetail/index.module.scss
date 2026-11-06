@@ -2,7 +2,7 @@
   width: 20px;
   height: 20px;
   margin-bottom: 6px;
-  background-color: rgba(230, 230, 230, 1);
+  background-color: var(--color-bg-soft);
   border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
@@ -10,9 +10,9 @@
   justify-content: center;
   vertical-align: middle;
   &:hover {
-    background-color: rgba(200, 200, 200, 1);
+    background-color: var(--color-border);
     transform: scale(1.1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
   }
 }
 
@@ -43,12 +43,12 @@
     }
 
     tr {
-      background-color: #ffffff;
-      border-top: 1px solid hsla(210, 18%, 87%, 1);
+      background-color: var(--color-surface-white);
+      border-top: 1px solid var(--color-border);
     }
 
     tr:nth-child(2n) {
-      background-color: #f6f8fa;
+      background-color: var(--color-bg-soft);
     }
   }
 }

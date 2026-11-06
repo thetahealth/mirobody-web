@@ -1,8 +1,8 @@
 import styles from "./AuthShell.module.scss";
-import brandIcon from "../../../assets/mirobody-icon.svg";
-// Dark-ink wordmark (#303030) — the one visible on the light cream canvas.
-// (The source file is named "light.svg" = "for light backgrounds".)
-import wordmark from "../../../assets/logo-wordmark-light.svg";
+// Inline, not <img>: their ink is currentColor, so the mark is dark on the
+// cream page and light on the dark one. An <img> cannot inherit a colour.
+import BrandIcon from "../../../assets/mirobody-icon.svg?react";
+import Wordmark from "../../../assets/logo-wordmark.svg?react";
 
 /**
  * Auth page chrome — flat warm-cream canvas + centered column with the official
@@ -33,8 +33,8 @@ export default function AuthShell({
 }) {
   const brandMark = (
     <span className={styles.brandLock}>
-      <img src={brandIcon} alt="" className={styles.brandIcon} />
-      <img src={wordmark} alt={title} className={styles.brandWordmark} />
+      <BrandIcon className={styles.brandIcon} aria-hidden="true" />
+      <Wordmark className={styles.brandWordmark} role="img" aria-label={title} />
       {brandPill && <span className={styles.brandPill}>{brandPill}</span>}
     </span>
   );

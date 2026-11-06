@@ -28,6 +28,7 @@ import utc from "dayjs/plugin/utc";
 import { enableMapSet } from "immer";
 import { adoptSharedSession } from "./utils/auth.js";
 import { antdTheme } from "./theme.js";
+import usePrefersDark from "./hooks/usePrefersDark.js";
 
 // Adopt a shared cross-subdomain session (mb_at cookie) BEFORE the router/guards
 // run, so arriving from / returning from the cdm API platform is seamless both
@@ -60,6 +61,8 @@ export default function App() {
   const [api, contextHolder] = notification.useNotification();
   const [messageApi, messageContextHolder] = message.useMessage();
   const { i18n } = useTranslation();
+  const dark = usePrefersDark();
+  const theme = useMemo(() => antdTheme(dark), [dark]);
 
   const _notificationApi = useMemo(() => api, [api]);
   const _messageApi = useMemo(() => messageApi, [messageApi]);
@@ -69,7 +72,7 @@ export default function App() {
   }, [i18n.language]);
 
   return (
-    <ConfigProvider locale={locale} theme={antdTheme}>
+    <ConfigProvider locale={locale} theme={theme}>
       <NotificationContext.Provider
         value={{ notificationApi: _notificationApi, messageApi: _messageApi }}
       >

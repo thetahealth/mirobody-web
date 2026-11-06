@@ -6,10 +6,10 @@
   justify-content: space-between;
   gap: 10px 16px;
   padding: 10px 14px;
-  border: 1px solid var(--color-warning, #f59e0b);
+  border: 1px solid var(--color-warning);
   border-left-width: 4px;
   border-radius: 8px;
-  background: var(--color-warning-soft, #fffbeb);
+  background: var(--color-warning-bg);
 }
 .text { flex: 1 1 320px; font-size: 14px; line-height: 1.5; color: var(--color-text-primary); }
 .hint { color: var(--color-text-secondary); }
@@ -21,6 +21,6 @@
   border-radius: 6px;
   font-size: 14px;
   color: var(--color-text-primary);
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
 }
 .undo { padding: 0 4px; }

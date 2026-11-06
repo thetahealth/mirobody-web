@@ -46,7 +46,7 @@ function FileItem({
           </div>
         </div>
         {isUploading && (
-          <div className="text-sm text-gray-500">{datasource.progress}%</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">{datasource.progress}%</div>
         )}
         {isError && (
           <div className="text-sm text-red-500">{t("upload_failed")}</div>

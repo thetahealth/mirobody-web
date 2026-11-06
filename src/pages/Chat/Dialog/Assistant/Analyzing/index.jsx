@@ -12,7 +12,7 @@ const Analyzing = () => {
           <div className={styles.bounce3}></div>
         </div>
       </div>
-      <div className="text-[14px] text-[#000] font-[500] ml-2">
+      <div className="text-[14px] text-[var(--color-text-primary)] font-[500] ml-2">
         {t("analyzing")}
       </div>
     </div>

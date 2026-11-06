@@ -15,12 +15,18 @@
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scrollbar-color: var(--color-scrollbar) transparent;
 }
 
+/* The page paints its own canvas and ink. It painted neither, so wherever a
+   screen left its background transparent the host showed through: a browser
+   or embedded view in dark mode put near-black behind the cream design's
+   near-black text. */
 html, body {
   padding: 0;
   margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 /* Tabler icons render an <svg>, and Tailwind's preflight makes every svg
@@ -72,24 +78,24 @@ input, textarea {
 }
   
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-scrollbar);
   border-radius: 2px;
 }
   
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-scrollbar-hover);
 }
 ::-webkit-scrollbar:horizontal {
   height: 6px;
 }
 
 ::-webkit-scrollbar-thumb:horizontal {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+  background: var(--color-scrollbar);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:horizontal:hover {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+  background: var(--color-scrollbar-hover);
 }
 
 ::-webkit-scrollbar-thumb {

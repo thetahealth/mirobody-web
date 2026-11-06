@@ -28,9 +28,9 @@ import {
 import api from "../../api";
 import { ACCESS_TOKEN } from "../../enum/storage";
 import { useSystemStore } from "../../store/system";
-import brandIcon from "../../assets/mirobody-icon.svg";
-// Dark-ink wordmark, the one visible on the light canvas (as in AuthShell).
-import wordmark from "../../assets/logo-wordmark-light.svg";
+// Inline, so the mark takes the page's ink in either colour scheme (as in AuthShell).
+import BrandIcon from "../../assets/mirobody-icon.svg?react";
+import Wordmark from "../../assets/logo-wordmark.svg?react";
 import LanguageSwitch from "../Login/components/LanguageSwitch";
 import { loginReturningTo } from "../Login/returnPath";
 import {
@@ -836,8 +836,8 @@ export default function Setup() {
     <div className={styles.page}>
       <header className={styles.topbar}>
         <span className={styles.brand}>
-          <img src={brandIcon} alt="" />
-          <img src={wordmark} alt="Mirobody" className={styles.wordmark} />
+          <BrandIcon aria-hidden="true" />
+          <Wordmark className={styles.wordmark} role="img" aria-label="Mirobody" />
         </span>
         <LanguageSwitch />
       </header>

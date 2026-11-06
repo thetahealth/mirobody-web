@@ -33,7 +33,7 @@ function AssistantDialog({
       <div className={styles.single_wrapper}>
         <StatusHeader datasource={messages} status={status} completionReason={datasource[0]?.completion_reason} />
         <div className={styles.single_content}>
-          <div className="bg-[#fff] rounded-[16px_16px_16px_2px] text-[18px] font-[400] flex flex-col gap-[12px]">
+          <div className="bg-[var(--color-surface-white)] rounded-[16px_16px_16px_2px] text-[18px] font-[400] flex flex-col gap-[12px]">
             {groupedMessages.map((message) => (
               <RenderErrorBoundary key={message.id}>
                 <ContentRender datasource={message} />

@@ -10,14 +10,14 @@
   flex: 1;
   display: flex;
   width: 100vw;
-  background-color: #fff;
+  background-color: var(--color-surface-white);
   overflow: hidden;
 }
 .content_wrapper {
   flex: 1;
   min-width: 0;
   height: 100%;
-  background-color: #fff;
+  background-color: var(--color-surface-white);
   position: relative;
   overflow-x: auto;
   overflow-y: hidden;
@@ -62,7 +62,7 @@
   flex-direction: column;
   flex: 1;
   height: 100%;
-  background-color: #fff;
+  background-color: var(--color-surface-white);
   padding: 16px;
   position: absolute;
   top: 0;

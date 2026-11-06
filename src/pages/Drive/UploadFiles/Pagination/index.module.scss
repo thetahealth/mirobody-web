@@ -29,8 +29,8 @@
   font-family: var(--font-sans);
   font-weight: 400;
   font-size: 14px;
-  color: #1B1B1B;
-  background: white;
+  color: var(--color-text-primary);
+  background: var(--color-surface-white);
   transition: background 0.2s;
 }
 
@@ -63,7 +63,7 @@
 
 .pageButtonActive {
   background: var(--color-accent);
-  color: #FFFFFF;
+  color: var(--color-action-fg);
 }
 
 .pageButtonEllipsis {
@@ -87,7 +87,7 @@
   font-family: var(--font-sans);
   font-weight: 400;
   font-size: 14px;
-  color: #000000;
+  color: var(--color-text-primary);
 }
 
 .dropdownContainer {
@@ -102,17 +102,17 @@
   height: 30px;
   border: 1px solid var(--color-border);
   border-radius: 5px;
-  background: white;
+  background: var(--color-surface-white);
   cursor: pointer;
   font-family: var(--font-sans);
   font-weight: 400;
   font-size: 14px;
-  color: #000000;
+  color: var(--color-text-primary);
   transition: background 0.2s;
 }
 
 .dropdown:hover {
-  background: #F9FAFB;
+  background: var(--color-bg-soft);
 }
 
 .dropdownMenu {
@@ -122,10 +122,10 @@
   min-width: 60px;
   max-height: 200px;
   overflow-y: auto;
-  background: white;
+  background: var(--color-surface-white);
   border: 1px solid var(--color-border);
   border-radius: 5px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-md);
   z-index: 10;
 }
 
@@ -134,7 +134,7 @@
   font-family: var(--font-sans);
   font-weight: 400;
   font-size: 14px;
-  color: #000000;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: background 0.2s;
 }

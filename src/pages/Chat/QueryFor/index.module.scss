@@ -43,10 +43,10 @@
     position: absolute;
     top: -10px;
     left: 13px;
-    color: rgba(60, 60, 67, 0.60);
+    color: var(--color-text-secondary);
     font-size: 14px;
     font-weight: 500;
-    background-color: #fff;
+    background-color: var(--color-surface-white);
     padding: 0 4px;
   }
   .query_dropdown {
@@ -75,9 +75,9 @@
     right: 0;
     left: auto;
   }
-  background-color: #fff;
+  background-color: var(--color-surface-white);
   border-radius: 12px;
-  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.20);
+  box-shadow: var(--shadow-dropdown);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -117,7 +117,7 @@
     }
     .item_avatar {
       background-color: var(--color-accent);
-      color: #fff;
+      color: var(--color-action-fg);
     }
   }
   .item_avatar {

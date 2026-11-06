@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as echarts from "echarts";
 import { buildEChartsOption } from "./buildOption";
+import usePrefersDark from "../../../../../hooks/usePrefersDark";
+import { chartPalette } from "../../../../../utils/chartPalette";
 import { parseChartSource } from "./parseSource";
 import { IconDownload } from "@tabler/icons-react";
 import styles from "./index.module.scss";
@@ -35,6 +37,12 @@ export default function VisChart({ source, complete = false }) {
   const configRef = useRef(null);
   const bucketRef = useRef(null);
   const [ready, setReady] = useState(false);
+  // Read by the resize observer, which is set up once and outlives a switch.
+  const dark = usePrefersDark();
+  const darkRef = useRef(dark);
+  useEffect(() => {
+    darkRef.current = dark;
+  }, [dark]);
 
   // What the block holds; mended only once it is finished.
   const parsed = useMemo(() => parseChartSource(source, { repair: complete }), [source, complete]);
@@ -47,7 +55,7 @@ export default function VisChart({ source, complete = false }) {
     const el = elRef.current;
     if (!parsed || !el) return; // still streaming: the JSON is not complete yet
     const width = el.clientWidth || 0;
-    const option = buildEChartsOption(parsed.config, { width });
+    const option = buildEChartsOption(parsed.config, { width, dark });
     if (!option) return;
 
     configRef.current = parsed.config;
@@ -55,7 +63,7 @@ export default function VisChart({ source, complete = false }) {
     if (!chartRef.current) chartRef.current = echarts.init(el);
     chartRef.current.setOption(option, true);
     setReady(true);
-  }, [parsed]);
+  }, [parsed, dark]);
 
   // Follow the container: watch the chart's own size (expand/collapse, stacking,
   // the sidebar, window zoom all land here).
@@ -73,7 +81,7 @@ export default function VisChart({ source, complete = false }) {
         const nextBucket = bucketOf(width);
         if (nextBucket !== bucketRef.current && configRef.current) {
           bucketRef.current = nextBucket;
-          const option = buildEChartsOption(configRef.current, { width });
+          const option = buildEChartsOption(configRef.current, { width, dark: darkRef.current });
           if (option) chart.setOption(option, true);
         }
         chart.resize();
@@ -95,12 +103,13 @@ export default function VisChart({ source, complete = false }) {
     []
   );
 
-  // Export the current chart as a PNG (2x, white background); the title
-  // becomes the filename.
+  // Export the current chart as a PNG (2x, on the card colour it was drawn
+  // for: light ink on a white file was unreadable); the title becomes the
+  // filename.
   const handleDownload = () => {
     const chart = chartRef.current;
     if (!chart) return;
-    const url = chart.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: "#fff" });
+    const url = chart.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: chartPalette(dark).surface });
     const a = document.createElement("a");
     a.href = url;
     a.download = safeName(configRef.current?.title);

@@ -81,7 +81,7 @@
   width: 100%;
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  background-color: #fff;
+  background-color: var(--color-surface-white);
   overflow: hidden;
   padding: 0 8px;
 }
@@ -94,7 +94,7 @@
   z-index: 1;
   width: 100%;
   border: 1px solid var(--color-border);
-  background-color: #fff;
+  background-color: var(--color-surface-white);
   border-radius: 12px;
   padding: 12px;
   gap: 4px;

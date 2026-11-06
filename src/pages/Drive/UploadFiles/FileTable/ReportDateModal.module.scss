@@ -1,9 +1,9 @@
 .card {
   width: min(460px, 92vw);
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-xl);
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
@@ -28,6 +28,6 @@
   border-radius: 6px;
   font-size: 14px;
   color: var(--color-text-primary);
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
 }
 .footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
