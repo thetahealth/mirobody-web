@@ -504,7 +504,7 @@ const SettingModal = ({ isOpen, onClose }) => {
                   border: "1px solid",
                   borderColor: api_error ? "var(--color-danger)" : "var(--color-border)",
                 }}
-                className="flex-1 border border-gray-300 rounded p-2 text-[14px]"
+                className="flex-1 border border-[var(--color-border)] rounded p-2 text-[14px]"
                 type="text"
                 placeholder={t("api_config_placeholder")}
                 value={_api_base_url}

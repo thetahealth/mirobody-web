@@ -2,9 +2,9 @@
   display: flex;
   flex-direction: column;
   border-radius: 20px;
-  box-shadow: 0 0 48px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-modal);
   padding: 24px;
-  background-color: #fff;
+  background-color: var(--color-surface-white);
   gap: 24px;
   user-select: none;
 }
@@ -60,7 +60,7 @@
     background-color: var(--color-accent);
     font-size: 16px;
     font-weight: 500;
-    color: #fff;
+    color: var(--color-action-fg);
     cursor: pointer;
   }
 }

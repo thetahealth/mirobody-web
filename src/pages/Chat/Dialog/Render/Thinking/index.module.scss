@@ -15,11 +15,11 @@
       height: auto;
     }
     tr {
-      background-color: #ffffff;
-      border-top: 1px solid hsla(210,18%,87%,1);
+      background-color: var(--color-surface-white);
+      border-top: 1px solid var(--color-border);
     }
     tr:nth-child(2n) {
-      background-color: #f6f8fa;
+      background-color: var(--color-bg-soft);
     }
   }
 }

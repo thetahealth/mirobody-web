@@ -21,7 +21,7 @@ const TYPE_MAP = {
   [FILE_TYPE.IMAGE]: "Image",
 };
 
-function FileType({ type, fontColor = "rgba(0, 0, 0, 0.60)" }) {
+function FileType({ type, fontColor = "var(--color-text-secondary)" }) {
   const Icon = ICON_MAP[type];
 
   return (

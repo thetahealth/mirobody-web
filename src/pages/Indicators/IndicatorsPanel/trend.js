@@ -9,6 +9,7 @@
  */
 
 import { flagOf } from "../../Chat/Dialog/Render/Citations/sources";
+import { chartPalette, tooltipColours } from "../../../utils/chartPalette";
 
 const NUMBER = /^[-+−]?\d+(?:\.\d+)?$/;
 const toNumber = (text) => {
@@ -52,13 +53,8 @@ export function latestRange(points) {
   return null;
 }
 
-const INK = "#0e3880";
-const FAINT = "rgba(14, 56, 128, 0.3)";
-const OUT = "#c0392b";
-const BAND = "rgba(47, 107, 63, 0.09)";
 const FONT =
   '"Source Sans 3","PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif';
-const LABEL = { color: "#5c5a57", fontSize: 11, fontFamily: FONT };
 
 // Any flag the report printed counts: "偏高", "HH" and "↑" as much as "H".
 const isOut = (point, range) => {
@@ -85,22 +81,25 @@ export function movingAverage(points, window = WINDOW) {
 }
 
 /** The ECharts option for `points`; `labels` names the band, a tooltip's
- *  range and, for a dense series, its two lines, in the page's language. */
-export function trendOption(points, { unit = "", labels = {} } = {}) {
+ *  range and, for a dense series, its two lines, in the page's language.
+ *  `dark` draws it for the dark page. */
+export function trendOption(points, { unit = "", labels = {}, dark = false } = {}) {
+  const c = chartPalette(dark);
+  const LABEL = { color: c.inkSoft, fontSize: 11, fontFamily: FONT };
   const range = latestRange(points);
   const dense = points.length > DENSE;
   const data = points.map((p) => ({
     value: [p.time.replace(" ", "T"), p.value],
     ref: p.ref,
-    itemStyle: isOut(p, parseRange(p.ref) || range) ? { color: OUT, borderColor: OUT } : undefined,
+    itemStyle: isOut(p, parseRange(p.ref) || range) ? { color: c.out, borderColor: c.out } : undefined,
   }));
   const band =
     range && range.low != null && range.high != null
-      ? { silent: true, itemStyle: { color: BAND }, label: { show: true, position: "insideTopRight", ...LABEL, color: "#2f6b3f", formatter: labels.range || "" }, data: [[{ yAxis: range.low }, { yAxis: range.high }]] }
+      ? { silent: true, itemStyle: { color: c.band }, label: { show: true, position: "insideTopRight", ...LABEL, color: c.inRange, formatter: labels.range || "" }, data: [[{ yAxis: range.low }, { yAxis: range.high }]] }
       : undefined;
   const bound =
     range && (range.low == null || range.high == null)
-      ? { silent: true, symbol: "none", lineStyle: { color: "#2f6b3f", type: "dashed", width: 1 }, label: { ...LABEL, color: "#2f6b3f", formatter: labels.range || "" }, data: [{ yAxis: range.low ?? range.high }] }
+      ? { silent: true, symbol: "none", lineStyle: { color: c.inRange, type: "dashed", width: 1 }, label: { ...LABEL, color: c.inRange, formatter: labels.range || "" }, data: [{ yAxis: range.low ?? range.high }] }
       : undefined;
   return {
     textStyle: { fontFamily: FONT },
@@ -109,6 +108,7 @@ export function trendOption(points, { unit = "", labels = {} } = {}) {
     tooltip: {
       trigger: "axis",
       confine: true,
+      ...tooltipColours(c),
       formatter: (items) => {
         const item = items[0];
         const [time, value] = item.value;
@@ -122,7 +122,7 @@ export function trendOption(points, { unit = "", labels = {} } = {}) {
       type: "value",
       scale: true,
       axisLabel: LABEL,
-      splitLine: { lineStyle: { color: "#e8e4dc" } },
+      splitLine: { lineStyle: { color: c.line } },
       // The band is drawn whole even when every reading sits inside it.
       min: range?.low != null ? (v) => Math.min(v.min, range.low) : undefined,
       max: range?.high != null ? (v) => Math.max(v.max, range.high) : undefined,
@@ -135,8 +135,8 @@ export function trendOption(points, { unit = "", labels = {} } = {}) {
         smooth: false,
         showSymbol: !dense,
         symbolSize: 6,
-        lineStyle: dense ? { width: 1, color: FAINT } : { width: 2, color: INK },
-        itemStyle: { color: dense ? FAINT : INK },
+        lineStyle: dense ? { width: 1, color: c.singleFaint } : { width: 2, color: c.single },
+        itemStyle: { color: dense ? c.singleFaint : c.single },
         markArea: band,
         markLine: bound,
       },
@@ -148,8 +148,8 @@ export function trendOption(points, { unit = "", labels = {} } = {}) {
               data: movingAverage(points).map((value, i) => [data[i].value[0], value]),
               smooth: false,
               showSymbol: false,
-              lineStyle: { width: 2, color: INK },
-              itemStyle: { color: INK },
+              lineStyle: { width: 2, color: c.single },
+              itemStyle: { color: c.single },
             },
           ]
         : []),

@@ -36,7 +36,7 @@ function RouteError() {
       <div style={{ fontSize: "20px", fontWeight: 600 }}>
         Something went wrong / 页面出错了
       </div>
-      <div style={{ fontSize: "13px", color: "#888", maxWidth: "560px", overflowWrap: "anywhere" }}>
+      <div style={{ fontSize: "13px", color: "var(--color-text-muted)", maxWidth: "560px", overflowWrap: "anywhere" }}>
         {detail}
       </div>
       <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
@@ -46,8 +46,8 @@ function RouteError() {
           style={{
             padding: "8px 20px",
             borderRadius: "8px",
-            border: "1px solid #d9d9d9",
-            background: "#fff",
+            border: "1px solid var(--color-border)",
+            background: "var(--color-surface-white)",
             cursor: "pointer",
           }}
         >
@@ -59,8 +59,8 @@ function RouteError() {
           style={{
             padding: "8px 20px",
             borderRadius: "8px",
-            border: "1px solid #d9d9d9",
-            background: "#fff",
+            border: "1px solid var(--color-border)",
+            background: "var(--color-surface-white)",
             color: "inherit",
             textDecoration: "none",
           }}

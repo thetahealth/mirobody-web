@@ -39,7 +39,7 @@ const UserFileList = ({ datasource }) => {
             key={item.file_key}
             datasource={item}
             is_show_delete={false}
-            className="w-[240px] h-[68px] rounded-[12px] p-[0_16px] border border-[var(--color-accent)] bg-[#fff] cursor-pointer"
+            className="w-[240px] h-[68px] rounded-[12px] p-[0_16px] border border-[var(--color-accent)] bg-[var(--color-surface-white)] cursor-pointer"
             onClick={() => handleClickPreview(item)}
           />
         );

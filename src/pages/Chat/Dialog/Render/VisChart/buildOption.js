@@ -2,15 +2,8 @@
 // The second argument carries the container width, for responsive sizing
 // (readable both shrunk and expanded, in Latin text and CJK alike).
 // Returns null when it cannot render — the caller then draws nothing.
-// Series colours, in this order and never cycled. The previous set opened
-// with #0e3880 and #0077b6, two blues a reader could not tell apart, so a
-// blood-pressure chart drew systolic and diastolic in what looked like one
-// colour; the dataviz palette check failed it on four of five counts. This
-// order passes all of them (lightness band, chroma, colour-blind and normal
-// separation of neighbours) on the chart's light surface.
-const COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6"];
-// One series has nothing to be told apart from: it keeps the brand ink.
-const SINGLE = "#0e3880";
+// `opts.dark` draws it for the dark page (utils/chartPalette).
+import { chartPalette, tooltipColours } from "../../../../../utils/chartPalette";
 
 // The same font stack as body copy: Source Sans 3 for Latin plus a CJK
 // fallback, so canvas text does not come out looking pasted in.
@@ -19,14 +12,14 @@ const FONT =
 
 // Secondary text (axis names, ticks, legend) is uniformly greyed down and
 // smaller, leaving the title and the data as the things you notice.
-const AXIS_NAME = { color: "#9b9894", fontSize: 11, fontFamily: FONT };
-const AXIS_LABEL = { color: "#5c5a57", fontSize: 11, fontFamily: FONT };
-const LEGEND_TEXT = { color: "#5c5a57", fontFamily: FONT };
-const SPLIT_LINE = { lineStyle: { color: "#e8e4dc" } };
+const axisName = (p) => ({ color: p.inkFaint, fontSize: 11, fontFamily: FONT });
+const axisLabel = (p) => ({ color: p.inkSoft, fontSize: 11, fontFamily: FONT });
+const legendText = (p) => ({ color: p.inkSoft, fontFamily: FONT });
+const splitLine = (p) => ({ lineStyle: { color: p.line } });
 
 // Title: page font, moderate weight, breathing room above; truncated when
 // over-long so it cannot overflow the canvas.
-function titleOf(title, width, compact) {
+function titleOf(p, title, width, compact) {
   if (!title) return undefined;
   return {
     text: title,
@@ -35,7 +28,7 @@ function titleOf(title, width, compact) {
     textStyle: {
       fontSize: compact ? 14 : 15,
       fontWeight: 600,
-      color: "#1a1a1a",
+      color: p.ink,
       fontFamily: FONT,
       overflow: "truncate",
       ellipsis: "…",
@@ -45,11 +38,11 @@ function titleOf(title, width, compact) {
 }
 
 // Legend sits under the title with a gap, so the two do not crowd.
-function topLegend(hasTitle) {
-  return { top: hasTitle ? 34 : 8, type: "scroll", textStyle: LEGEND_TEXT, itemWidth: 14, itemHeight: 10, itemGap: 14 };
+function topLegend(p, hasTitle) {
+  return { top: hasTitle ? 34 : 8, type: "scroll", textStyle: legendText(p), itemWidth: 14, itemHeight: 10, itemGap: 14 };
 }
-function bottomLegend() {
-  return { bottom: 0, type: "scroll", textStyle: LEGEND_TEXT, itemWidth: 14, itemHeight: 10, itemGap: 14 };
+function bottomLegend(p) {
+  return { bottom: 0, type: "scroll", textStyle: legendText(p), itemWidth: 14, itemHeight: 10, itemGap: 14 };
 }
 
 // Top padding: largest when there is both a title and a legend, so neither
@@ -63,27 +56,27 @@ function gridTop(hasTitle, hasLegend) {
 
 // Horizontal axis name goes at the middle of the axis rather than its end,
 // where the canvas edge would clip it.
-function hAxisName(name) {
-  return name ? { name, nameLocation: "middle", nameGap: 30, nameTextStyle: AXIS_NAME } : {};
+function hAxisName(p, name) {
+  return name ? { name, nameLocation: "middle", nameGap: 30, nameTextStyle: axisName(p) } : {};
 }
 // Vertical axis name stays at the end, just toned down.
-function vAxisName(name) {
-  return name ? { name, nameTextStyle: AXIS_NAME } : {};
+function vAxisName(p, name) {
+  return name ? { name, nameTextStyle: axisName(p) } : {};
 }
 
 // Category labels laid out horizontally (the X axis of column, line and
 // scatter charts): auto de-overlap plus truncation, for CJK and Latin.
-function catLabelH(compact) {
-  return { ...AXIS_LABEL, hideOverlap: true, overflow: "truncate", width: compact ? 64 : 96, ellipsis: "…" };
+function catLabelH(p, compact) {
+  return { ...axisLabel(p), hideOverlap: true, overflow: "truncate", width: compact ? 64 : 96, ellipsis: "…" };
 }
 // Category labels laid out vertically (the Y axis of a bar chart): stacked
 // vertically they rarely overlap, so only truncate the long ones.
-function catLabelV(compact) {
-  return { ...AXIS_LABEL, overflow: "truncate", width: compact ? 72 : 120, ellipsis: "…" };
+function catLabelV(p, compact) {
+  return { ...axisLabel(p), overflow: "truncate", width: compact ? 72 : 120, ellipsis: "…" };
 }
 // Value-axis labels
-function valLabel() {
-  return { ...AXIS_LABEL, hideOverlap: true };
+function valLabel(p) {
+  return { ...axisLabel(p), hideOverlap: true };
 }
 
 // Split a long table into one series per group; returns { cats, series:[{name,data}] }
@@ -116,15 +109,22 @@ function xKeyOf(rows) {
 }
 
 export function buildEChartsOption(config, opts = {}) {
+  const p = chartPalette(opts.dark);
+  const option = build(config, opts, p);
+  if (option?.tooltip) option.tooltip = { ...option.tooltip, ...tooltipColours(p) };
+  return option;
+}
+
+function build(config, opts, p) {
   if (!config || typeof config !== "object" || !config.type) return null;
   const { type, title, axisXTitle, axisYTitle } = config;
   const rows = Array.isArray(config.data) ? config.data : [];
   const width = opts.width || 0;
   const compact = width > 0 && width < 480;
 
-  const titleOpt = titleOf(title, width, compact);
+  const titleOpt = titleOf(p, title, width, compact);
   const hasTitle = !!titleOpt;
-  const base = { color: COLORS, textStyle: { fontFamily: FONT }, title: titleOpt };
+  const base = { color: p.series, textStyle: { fontFamily: FONT }, title: titleOpt };
 
   switch (type) {
     case "line":
@@ -136,15 +136,15 @@ export function buildEChartsOption(config, opts = {}) {
       const pointed = cats.length <= 40;
       return {
         ...base,
-        color: multi ? COLORS : [SINGLE],
+        color: multi ? p.series : [p.single],
         tooltip: { trigger: "axis", confine: true },
-        legend: multi ? topLegend(hasTitle) : undefined,
+        legend: multi ? topLegend(p, hasTitle) : undefined,
         grid: { left: 8, right: 24, top: gridTop(hasTitle, multi), bottom: 36, containLabel: true },
-        xAxis: { type: "category", data: cats, boundaryGap: type !== "area", axisLabel: catLabelH(compact), ...hAxisName(axisXTitle) },
+        xAxis: { type: "category", data: cats, boundaryGap: type !== "area", axisLabel: catLabelH(p, compact), ...hAxisName(p, axisXTitle) },
         // A line's axis fits its data: from zero, a year of weight between
         // 69.2 and 70.6 kg was a flat line the answer then called a trend. An
         // area is filled to its baseline, so it keeps zero.
-        yAxis: { type: "value", scale: type === "line", axisLabel: valLabel(), splitLine: SPLIT_LINE, ...vAxisName(axisYTitle) },
+        yAxis: { type: "value", scale: type === "line", axisLabel: valLabel(p), splitLine: splitLine(p), ...vAxisName(p, axisYTitle) },
         series: series.map((s) => ({
           ...s,
           type: "line",
@@ -163,17 +163,17 @@ export function buildEChartsOption(config, opts = {}) {
       const { cats, series } = splitByGroup(rows, xKeyOf(rows));
       const multi = series.length > 1;
       const horizontal = type === "bar";
-      const catAxis = { type: "category", data: cats, axisLabel: horizontal ? catLabelV(compact) : catLabelH(compact) };
-      const valAxis = { type: "value", axisLabel: valLabel(), splitLine: SPLIT_LINE };
+      const catAxis = { type: "category", data: cats, axisLabel: horizontal ? catLabelV(p, compact) : catLabelH(p, compact) };
+      const valAxis = { type: "value", axisLabel: valLabel(p), splitLine: splitLine(p) };
       const radius = horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0];
       return {
         ...base,
-        color: multi ? COLORS : [SINGLE],
+        color: multi ? p.series : [p.single],
         tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, confine: true },
-        legend: multi ? topLegend(hasTitle) : undefined,
+        legend: multi ? topLegend(p, hasTitle) : undefined,
         grid: { left: 8, right: 24, top: gridTop(hasTitle, multi), bottom: 36, containLabel: true },
-        xAxis: horizontal ? { ...valAxis, ...hAxisName(axisXTitle) } : { ...catAxis, ...hAxisName(axisXTitle) },
-        yAxis: horizontal ? { ...catAxis, ...vAxisName(axisYTitle) } : { ...valAxis, ...vAxisName(axisYTitle) },
+        xAxis: horizontal ? { ...valAxis, ...hAxisName(p, axisXTitle) } : { ...catAxis, ...hAxisName(p, axisXTitle) },
+        yAxis: horizontal ? { ...catAxis, ...vAxisName(p, axisYTitle) } : { ...valAxis, ...vAxisName(p, axisYTitle) },
         series: series.map((s) => ({ ...s, type: "bar", barMaxWidth: 32, itemStyle: { borderRadius: radius } })),
       };
     }
@@ -181,7 +181,7 @@ export function buildEChartsOption(config, opts = {}) {
       return {
         ...base,
         tooltip: { trigger: "item", confine: true },
-        legend: bottomLegend(),
+        legend: bottomLegend(p),
         series: [
           {
             type: "pie",
@@ -189,8 +189,8 @@ export function buildEChartsOption(config, opts = {}) {
             center: ["50%", hasTitle ? "52%" : "46%"],
             avoidLabelOverlap: true,
             minShowLabelAngle: 6,
-            itemStyle: { borderColor: "#fff", borderWidth: 2 },
-            label: { show: !compact, color: "#5c5a57", fontFamily: FONT },
+            itemStyle: { borderColor: p.surface, borderWidth: 2 },
+            label: { show: !compact, color: p.inkSoft, fontFamily: FONT },
             labelLayout: { hideOverlap: true },
             labelLine: { show: !compact },
             data: rows.map((r) => ({ name: r.category, value: r.value })),
@@ -208,12 +208,12 @@ export function buildEChartsOption(config, opts = {}) {
       const multi = groups.size > 1;
       return {
         ...base,
-        color: multi ? COLORS : [SINGLE],
+        color: multi ? p.series : [p.single],
         tooltip: { trigger: "item", confine: true },
-        legend: multi ? topLegend(hasTitle) : undefined,
+        legend: multi ? topLegend(p, hasTitle) : undefined,
         grid: { left: 8, right: 24, top: gridTop(hasTitle, multi), bottom: 36, containLabel: true },
-        xAxis: { type: "value", axisLabel: valLabel(), splitLine: SPLIT_LINE, ...hAxisName(axisXTitle) },
-        yAxis: { type: "value", axisLabel: valLabel(), splitLine: SPLIT_LINE, ...vAxisName(axisYTitle) },
+        xAxis: { type: "value", axisLabel: valLabel(p), splitLine: splitLine(p), ...hAxisName(p, axisXTitle) },
+        yAxis: { type: "value", axisLabel: valLabel(p), splitLine: splitLine(p), ...vAxisName(p, axisYTitle) },
         series: [...groups.entries()].map(([name, pts]) => ({ name, type: "scatter", symbolSize: 10, data: pts })),
       };
     }
@@ -236,16 +236,16 @@ export function buildEChartsOption(config, opts = {}) {
       const multi = groups.size > 1;
       return {
         ...base,
-        color: multi ? COLORS : [SINGLE],
+        color: multi ? p.series : [p.single],
         tooltip: { confine: true },
-        legend: multi ? bottomLegend() : undefined,
+        legend: multi ? bottomLegend(p) : undefined,
         radar: {
           indicator: names.map((n) => ({ name: n, max })),
           center: ["50%", hasTitle ? "54%" : "50%"],
           radius: compact ? "56%" : "62%",
-          axisName: { color: "#5c5a57", fontFamily: FONT, fontSize: 11 },
-          splitLine: { lineStyle: { color: "#e8e4dc" } },
-          splitArea: { areaStyle: { color: ["#fff", "#f1efe8"] } },
+          axisName: { color: p.inkSoft, fontFamily: FONT, fontSize: 11 },
+          splitLine: splitLine(p),
+          splitArea: { areaStyle: { color: [p.surface, p.surfaceAlt] } },
         },
         series: [
           {
@@ -261,14 +261,14 @@ export function buildEChartsOption(config, opts = {}) {
       return {
         ...base,
         tooltip: { trigger: "item", confine: true },
-        legend: bottomLegend(),
+        legend: bottomLegend(p),
         series: [
           {
             type: "funnel",
             top: hasTitle ? 48 : 24,
             bottom: 32,
             minSize: "20%",
-            label: { color: "#fff", fontFamily: FONT },
+            label: { color: p.onSeries, fontFamily: FONT },
             data: rows.map((r) => ({ name: r.category, value: r.value })),
           },
         ],
@@ -279,12 +279,12 @@ export function buildEChartsOption(config, opts = {}) {
       return {
         ...base,
         tooltip: { trigger: "axis", confine: true },
-        legend: topLegend(hasTitle),
+        legend: topLegend(p, hasTitle),
         grid: { left: 8, right: 16, top: gridTop(hasTitle, true), bottom: 36, containLabel: true },
-        xAxis: { type: "category", data: cats, axisLabel: catLabelH(compact), ...hAxisName(axisXTitle) },
+        xAxis: { type: "category", data: cats, axisLabel: catLabelH(p, compact), ...hAxisName(p, axisXTitle) },
         yAxis: [
-          { type: "value", axisLabel: valLabel(), splitLine: SPLIT_LINE },
-          { type: "value", axisLabel: valLabel(), splitLine: { show: false } },
+          { type: "value", axisLabel: valLabel(p), splitLine: splitLine(p) },
+          { type: "value", axisLabel: valLabel(p), splitLine: { show: false } },
         ],
         series: series.map((s, i) =>
           i === 0
@@ -297,11 +297,11 @@ export function buildEChartsOption(config, opts = {}) {
       const vals = rows.map((r) => r.value);
       return {
         ...base,
-        color: [SINGLE],
+        color: [p.single],
         tooltip: { trigger: "axis", confine: true },
         grid: { left: 8, right: 24, top: gridTop(hasTitle, false), bottom: 36, containLabel: true },
-        xAxis: { type: "category", data: vals.map((_, i) => i + 1), axisLabel: catLabelH(compact), ...hAxisName(axisXTitle) },
-        yAxis: { type: "value", axisLabel: valLabel(), splitLine: SPLIT_LINE, ...vAxisName(axisYTitle) },
+        xAxis: { type: "category", data: vals.map((_, i) => i + 1), axisLabel: catLabelH(p, compact), ...hAxisName(p, axisXTitle) },
+        yAxis: { type: "value", axisLabel: valLabel(p), splitLine: splitLine(p), ...vAxisName(p, axisYTitle) },
         series: [{ type: "bar", data: vals, barCategoryGap: "0%", itemStyle: { borderRadius: [3, 3, 0, 0] } }],
       };
     }

@@ -16,7 +16,7 @@ const SessionReauthOverlay = () => {
         zIndex: 9998,
         backdropFilter: "blur(4px)",
         WebkitBackdropFilter: "blur(4px)",
-        background: "rgba(255, 255, 255, 0.6)",
+        background: "color-mix(in srgb, var(--color-bg) 60%, transparent)",
         pointerEvents: "all",
         display: "flex",
         flexDirection: "column",

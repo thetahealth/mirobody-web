@@ -133,7 +133,7 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
             Cancel
           </div>
           <div
-            className={`flex items-center justify-center px-[20px] py-[7px] text-[16px] font-[500] text-[#fff] rounded-[8px] ${
+            className={`flex items-center justify-center px-[20px] py-[7px] text-[16px] font-[500] text-[var(--color-action-fg)] rounded-[8px] ${
               loading
                 ? "bg-[var(--color-accent)]/60 cursor-not-allowed"
                 : "bg-[var(--color-accent)] cursor-pointer"

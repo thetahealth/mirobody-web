@@ -61,15 +61,15 @@ const ProviderList = ({ highlightTrigger, connectedWearablesRef }) => {
           {t("mobile_apps")}
         </div>
         <div className="flex items-center gap-[16px]">
-          <div className="w-[332px] h-[60px] bg-gray-100 rounded-[12px] border border-[var(--color-border)] animate-pulse flex items-center p-[16px]">
-            <div className="w-[28px] h-[28px] rounded-full bg-gray-200 mr-[12px]"></div>
-            <div className="flex-1 h-[16px] bg-gray-200 rounded"></div>
-            <div className="w-[120px] h-[28px] bg-gray-200 rounded-[8px] ml-[12px]"></div>
+          <div className="w-[332px] h-[60px] bg-[var(--color-bg-soft)] rounded-[12px] border border-[var(--color-border)] animate-pulse flex items-center p-[16px]">
+            <div className="w-[28px] h-[28px] rounded-full bg-[var(--color-border)] mr-[12px]"></div>
+            <div className="flex-1 h-[16px] bg-[var(--color-border)] rounded"></div>
+            <div className="w-[120px] h-[28px] bg-[var(--color-border)] rounded-[8px] ml-[12px]"></div>
           </div>
-          <div className="w-[332px] h-[60px] bg-gray-100 rounded-[12px] border border-[var(--color-border)] animate-pulse flex items-center p-[16px]">
-            <div className="w-[28px] h-[28px] rounded-full bg-gray-200 mr-[12px]"></div>
-            <div className="flex-1 h-[16px] bg-gray-200 rounded"></div>
-            <div className="w-[120px] h-[28px] bg-gray-200 rounded-[8px] ml-[12px]"></div>
+          <div className="w-[332px] h-[60px] bg-[var(--color-bg-soft)] rounded-[12px] border border-[var(--color-border)] animate-pulse flex items-center p-[16px]">
+            <div className="w-[28px] h-[28px] rounded-full bg-[var(--color-border)] mr-[12px]"></div>
+            <div className="flex-1 h-[16px] bg-[var(--color-border)] rounded"></div>
+            <div className="w-[120px] h-[28px] bg-[var(--color-border)] rounded-[8px] ml-[12px]"></div>
           </div>
         </div>
         <div className="text-[var(--color-text-primary)] text-[16px] font-[500] mb-[16px]">
@@ -79,11 +79,11 @@ const ProviderList = ({ highlightTrigger, connectedWearablesRef }) => {
           {[1, 2, 3, 4, 5, 6].map((item) => (
             <div
               key={item}
-              className="w-[332px] h-[60px] bg-gray-100 rounded-[12px] border border-[var(--color-border)] animate-pulse flex items-center p-[16px]"
+              className="w-[332px] h-[60px] bg-[var(--color-bg-soft)] rounded-[12px] border border-[var(--color-border)] animate-pulse flex items-center p-[16px]"
             >
-              <div className="w-[28px] h-[28px] rounded-full bg-gray-200 mr-[12px]"></div>
-              <div className="flex-1 h-[16px] bg-gray-200 rounded"></div>
-              <div className="w-[120px] h-[28px] bg-gray-200 rounded-[8px] ml-[12px]"></div>
+              <div className="w-[28px] h-[28px] rounded-full bg-[var(--color-border)] mr-[12px]"></div>
+              <div className="flex-1 h-[16px] bg-[var(--color-border)] rounded"></div>
+              <div className="w-[120px] h-[28px] bg-[var(--color-border)] rounded-[8px] ml-[12px]"></div>
             </div>
           ))}
         </div>
@@ -129,7 +129,7 @@ const ProviderList = ({ highlightTrigger, connectedWearablesRef }) => {
         )}
         {connected_wearables.length > 0 && (
           <div
-            className={`text-[var(--color-text-secondary)] text-[14px] mb-[10px] bg-[#FFFF] rounded-[12px] ${
+            className={`text-[var(--color-text-secondary)] text-[14px] mb-[10px] bg-[var(--color-surface-white)] rounded-[12px] ${
               isHighlighted ? styles.highlight_blink : ""
             }`}
           >

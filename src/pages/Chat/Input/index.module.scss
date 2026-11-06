@@ -109,7 +109,7 @@
       font-weight: 400;
       background-color: rgba(44, 44, 44, 1);
       border-radius: 4px;
-      box-shadow: 0 0 48px 0 rgba(0, 0, 0, 0.12);
+      box-shadow: var(--shadow-modal);
 
       @include phone {
         width: max-content;

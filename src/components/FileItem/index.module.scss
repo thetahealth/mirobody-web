@@ -45,7 +45,7 @@
     border: none;
     border-radius: 50%;
     background: var(--color-text-muted);
-    color: #fff;
+    color: var(--color-surface-white);
     cursor: pointer;
 
     &:hover {
@@ -54,7 +54,7 @@
   }
 
   .file_name {
-    color: #000;
+    color: var(--color-text-primary);
     font-size: 16px;
     font-weight: 500;
     overflow: hidden;
@@ -111,7 +111,7 @@
     align-items: center;
     gap: 4px;
     font-size: 13px;
-    color: rgba(0, 0, 0, 0.60);
+    color: var(--color-text-secondary);
     font-weight: 400;
   }
 }

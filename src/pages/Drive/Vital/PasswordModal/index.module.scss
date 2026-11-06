@@ -3,8 +3,8 @@
   max-width: calc(100vw - 32px);
   display: flex;
   flex-direction: column;
-  background-color: #fff;
-  box-shadow: 0 0 48px 0 rgba(0, 0, 0, 0.12);
+  background-color: var(--color-surface-white);
+  box-shadow: var(--shadow-modal);
   border-radius: 20px;
   padding: 24px;
 }
