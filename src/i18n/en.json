@@ -418,6 +418,7 @@
   "indicator_records": "Records",
   "indicator_last_seen": "Last recorded",
   "indicator_code": "Code",
+  "indicator_standard_name": "Standard name",
   "indicator_measured_at": "Measured",
   "indicator_no_data": "No indicator data yet. Upload a report or connect a source to get started.",
   "indicator_no_match": "No indicator matched that search.",
