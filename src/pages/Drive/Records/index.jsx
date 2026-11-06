@@ -28,7 +28,10 @@ const RANGES = [30, 90, 365];
 // empty-state guide is keyed off the record's size, and one entry is enough
 // to end it.
 const Records = ({ onChange }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // An entry's `label` is in the language of the request that fetched it; a
+  // language switch fetches again, as the indicator list does.
+  const language = i18n.language;
   const [days, setDays] = useState([]);
   const [range, setRange] = useState(30);
   const [loading, setLoading] = useState(true);
@@ -81,7 +84,7 @@ const Records = ({ onChange }) => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load(controller.signal);
     return () => controller.abort();
-  }, [load]);
+  }, [load, language]);
 
   const onRetract = async (entry) => {
     try {

@@ -16,6 +16,8 @@ import {
   reasonKey,
   sentenceUnsupported,
   skipKey,
+  standardName,
+  standardTitle,
   submitBlocker,
   valueOf,
 } from "./entries.js";
@@ -37,7 +39,7 @@ const Written = ({ entry, t }) => (
     ) : entry.coded ? (
       <>
         <span className={styles.arrow}>→</span>
-        <span className={styles.outcomeName}>{entry.display}</span>
+        <span className={styles.outcomeName} title={standardTitle(entry) || undefined}>{standardName(entry)}</span>
         <code className={styles.outcomeCode}>{entry.code}</code>
       </>
     ) : (

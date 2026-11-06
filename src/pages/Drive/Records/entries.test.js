@@ -18,6 +18,7 @@ import {
   isMedication,
   isNote,
   standardName,
+  standardTitle,
   submitBlocker,
   timeOf,
   valueOf,
@@ -79,11 +80,27 @@ describe("standardName", () => {
     expect(standardName({ coded: true, display: "Headache" })).toBe("Headache");
   });
 
+  it("is the reader's-language label when the server sent one, with the display as its tooltip", () => {
+    // A Chinese page read `收缩压 150 mmHg → Systolic blood pressure`.
+    const systolic = { coded: true, label: "收缩压", display: "Systolic blood pressure", code: "8480-6" };
+    expect(standardName(systolic)).toBe("收缩压");
+    expect(standardTitle(systolic)).toBe("Systolic blood pressure");
+  });
+
+  it("is the display, with no tooltip, when there is no label", () => {
+    // An ICPC-3 complaint in any language, an English vital sign.
+    const headache = { coded: true, display: "Headache", code: "NS01" };
+    expect(standardName(headache)).toBe("Headache");
+    expect(standardTitle(headache)).toBe("");
+  });
+
   it("is empty for an abstention, and does NOT fall back to the person's words", () => {
     // The row shows both names. Falling back here would turn "we could not
     // place this" into a row that looks coded.
     expect(standardName({ coded: false, display: "", text: "打嗝" })).toBe("");
     expect(standardName({ coded: false, display: "Headache" })).toBe("");
+    expect(standardName({ coded: false, label: "收缩压", display: "" })).toBe("");
+    expect(standardTitle({ coded: false, label: "收缩压", display: "Systolic blood pressure" })).toBe("");
   });
 });
 

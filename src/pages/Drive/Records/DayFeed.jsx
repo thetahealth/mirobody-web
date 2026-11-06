@@ -10,6 +10,7 @@ import {
   kindKey,
   reasonKey,
   standardName,
+  standardTitle,
   timeOf,
   valueOf,
   weekdayOf,
@@ -21,7 +22,8 @@ import styles from "./DayFeed.module.scss";
  * The log, by day.
  *
  * Both names on every row, always: `text` is what the person wrote and
- * `display` is what ICPC-3 calls it. An entry the vocabulary could not place
+ * `standardName` is what the classification calls it, in the reader's language
+ * when the server has a name in it. An entry the vocabulary could not place
  * keeps its words and says so rather than dropping out of the list — the
  * uncoded half is the half that most needs a person's eye, and a feed that
  * hides it looks like perfect coverage.
@@ -87,7 +89,7 @@ const DayFeed = ({ days, today, onRetract }) => {
                         {t(entry.status === "active" ? "journal_med_on_list" : `medications_status_${entry.status}`, entry.status)}
                       </Link>
                     ) : isNote(entry) ? null : name ? (
-                      <span className={styles.coded} title={entry.series_id || ""}>
+                      <span className={styles.coded} title={standardTitle(entry) || entry.series_id || ""}>
                         {name}
                         <code className={styles.code}>{entry.code}</code>
                       </span>
