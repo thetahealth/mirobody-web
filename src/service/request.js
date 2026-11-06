@@ -1,5 +1,6 @@
 import axios from "axios";
-import { getLanguage, getApiBaseUrl } from "../utils";
+import { getApiBaseUrl } from "../utils";
+import { requestLanguage } from "../utils/i18n.js";
 import { ACCESS_TOKEN } from "../enum/storage";
 import { consola } from "consola";
 import { clearAuthenticationData } from "../utils/auth";
@@ -209,7 +210,7 @@ const mcpRequestInstance = axios.create({
 });
 
 mcpRequestInstance.interceptors.request.use((config) => {
-  config.headers["X-Language"] = getLanguage();
+  config.headers["X-Language"] = requestLanguage();
   config.headers["X-Timezone"] =
     Intl.DateTimeFormat().resolvedOptions().timeZone;
   const access_token = localStorage.getItem(ACCESS_TOKEN);

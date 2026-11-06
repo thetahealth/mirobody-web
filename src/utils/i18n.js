@@ -69,4 +69,17 @@ const initializeI18n = () => {
   i18n.on("languageChanged", syncDocumentLang);
 };
 
-export { initializeI18n };
+/* The language a request asks the server for: the one the page is drawn in.
+ *
+ * `getLanguage()` reads `?lang=` from the CURRENT url on every call. The UI
+ * reads it once, at start. A page opened as `/login?lang=en` kept its English
+ * chrome after the first in-app navigation dropped the query, but every later
+ * request fell through to localStorage (empty unless the reader had picked a
+ * language) and then to the browser's language: in a Chinese browser the
+ * indicator list, the drawer and the agent were asked for Chinese under an
+ * English page. Both language switches call `i18n.changeLanguage`, so the
+ * rendered language is the one source; `getLanguage()` only covers a request
+ * sent before `initializeI18n` ran. */
+const requestLanguage = () => i18n.resolvedLanguage || i18n.language || getLanguage();
+
+export { initializeI18n, requestLanguage };
