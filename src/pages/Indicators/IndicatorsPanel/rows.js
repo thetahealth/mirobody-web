@@ -39,12 +39,13 @@ const toReading = (row) => ({
 export const readingSourceKey = (reading) =>
   /device/.test(reading.modality || "") ? "source_kind_device" : "source_kind_manual";
 
-// `indicator` is the English (LOINC) name; `label` / `label_long` are the same
-// test's name in the request's language, sent only when one exists (#231).
+// `indicator` is LOINC's long name, what the drawer selects by; `label` is the
+// name a person reads, in the request's language, and `facets` what the code
+// measures, axis by axis (#231). The server sends each only when it has one.
 const emptyRow = (row) => ({
   indicator: row.indicator || "",
   label: row.label || "",
-  label_long: row.label_long || "",
+  facets: row.facets && typeof row.facets === "object" ? row.facets : {},
   series: row.series || "",
   system: row.system || "",
   code: row.code || "",
@@ -131,6 +132,18 @@ export const codeLabel = (row) => {
   const system = SYSTEM_NAMES[row.system] ?? row.system ?? "";
   return `${system} ${row.code}`.trim();
 };
+
+/** The axes a drawer lists, in its order, with the i18n key of each one's title. */
+export const FACET_AXES = [
+  ["specimen", "indicator_facet_specimen"],
+  ["property", "indicator_facet_property"],
+  ["timing", "indicator_facet_timing"],
+  ["method", "indicator_facet_method"],
+];
+
+/** `[[titleKey, text]]` for the facets a row has, in `FACET_AXES` order. */
+export const facetsOf = (row) =>
+  FACET_AXES.filter(([axis]) => row?.facets?.[axis]).map(([axis, key]) => [key, row.facets[axis]]);
 
 /** The name a row is shown under: the reader's language when the server sent one. */
 export const displayName = (row) => row?.label || row?.indicator || "";

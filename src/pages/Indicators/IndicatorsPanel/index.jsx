@@ -21,6 +21,7 @@ import {
   codeLabel,
   readingSourceKey,
   displayName,
+  facetsOf,
   readingsKey,
 } from "./rows";
 import { flagOf } from "../../Chat/Dialog/Render/Citations/sources";
@@ -50,7 +51,13 @@ const IndicatorsPanel = ({
   // "no indicators" list until a full page reload.
   refreshTrigger = 0,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // Rows carry the server's name for each test in the language of the request
+  // that fetched them (`label`, sent only for Chinese). Switching the language in
+  // Settings changed the chrome and every later request's X-Language, but this
+  // list kept the rows it had, so an English page went on showing Chinese names
+  // until a reload. The language is a dependency of the load below for that.
+  const language = i18n.language;
   const mobile = useIsMobile();
   const current_drive_user_id = useDriveStore(
     (state) => state.current_drive_user_id,
@@ -128,7 +135,14 @@ const IndicatorsPanel = ({
   useEffect(() => {
     load(submitted);
     return () => abortRef.current?.abort();
-  }, [load, submitted, refreshTrigger]);
+  }, [load, submitted, refreshTrigger, language]);
+
+  // An open drawer holds the row it was opened with, title and standard name in
+  // the old language; a language switch closes it rather than show both.
+  useEffect(() => {
+    setSelected(null);
+    setReadings([]);
+  }, [language]);
 
   const onSubmit = (event) => {
     event.preventDefault();
@@ -431,24 +445,33 @@ const IndicatorsPanel = ({
               </div>
             )}
 
+            {/* What the test is, one line per axis, in place of LOINC's long
+                name: `血红蛋白 [质量/体积]，全血` is a key for systems, not a
+                sentence. The code and that long name close the list, so the
+                plain name can always be checked and looked up (#231). */}
+            {(facetsOf(selected).length > 0 || selected.code) && (
+              <dl className={styles.facts}>
+                {facetsOf(selected).map(([key, text]) => (
+                  <div key={key}>
+                    <dt>{t(key)}</dt>
+                    <dd>{text}</dd>
+                  </div>
+                ))}
+                {selected.code && (
+                  <div>
+                    <dt>{t("indicator_code")}</dt>
+                    <dd>
+                      {codeLabel(selected)}
+                      {selected.label && selected.label !== selected.indicator && (
+                        <div className={styles.longName}>{selected.indicator}</div>
+                      )}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
+
             <dl className={styles.meta}>
-              {/* A translated name never stands alone: LOINC's own name and the
-                  code stay beside it, so the test can be checked and looked up. */}
-              {selected.label && (
-                <div>
-                  <dt>{t("indicator_standard_name")}</dt>
-                  <dd>
-                    {selected.label_long || selected.label}
-                    <div className={styles.muted}>{selected.indicator}</div>
-                  </dd>
-                </div>
-              )}
-              {selected.code && (
-                <div>
-                  <dt>{t("indicator_code")}</dt>
-                  <dd>{codeLabel(selected)}</dd>
-                </div>
-              )}
               <div>
                 <dt>{t("indicator_records")}</dt>
                 <dd>{selected.count || readings.length}</dd>

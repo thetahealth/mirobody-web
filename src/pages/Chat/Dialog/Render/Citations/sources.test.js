@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { allGone, flagOf, sectionsOf, spanOf, when } from "./sources";
+import { allGone, flagOf, readingName, sectionsOf, spanOf, when } from "./sources";
 
 const glucose = (rid, value, time) => ({
   rid,
@@ -86,5 +86,26 @@ describe("cite sources", () => {
     expect(spanOf({ period: "2025-09-01", from: "2025-09-01", to: "2025-09-30" })).toBe("2025-09-01 – 2025-09-30");
     expect(spanOf({ from: "2025-09-15", to: "2026-09-14" })).toBe("2025-09-15 – 2026-09-14");
     expect(spanOf({ first_day: "2026-10-30", last_day: "2026-10-30" })).toBe("2026-10-30");
+  });
+});
+
+// #231: the server sends `label` (the name in the reader's language) beside
+// LOINC's English `indicator` when the request is Chinese.
+describe("names in the reader's language", () => {
+  it("names a device reading by its label", () => {
+    expect(readingName({ source_kind: "device", name: "bpSystolic", indicator: "Systolic blood pressure", label: "收缩压" }))
+      .toBe("收缩压");
+  });
+  it("keeps a report reading under the wording printed on the report", () => {
+    expect(readingName({ source_kind: "file", name: "Systolic Blood Pressure", label: "收缩压" }))
+      .toBe("Systolic Blood Pressure");
+  });
+  it("carries an aggregate's label onto the one reading it stands for", () => {
+    const resolved = {
+      r1: { status: "ok", kind: "aggregate", total: 1, indicator: "Systolic blood pressure", label: "收缩压",
+            readings: [{ source_kind: "device", name: "bpSystolic", value: "118", indicator: "Systolic blood pressure" }] },
+    };
+    const [section] = sectionsOf(["r1"], resolved);
+    expect(section.name).toBe("收缩压");
   });
 });

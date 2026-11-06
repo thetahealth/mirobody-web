@@ -17,7 +17,10 @@ const PAGE_SIZE = 50;
  * starts at the first page whenever either changes.
  */
 const RecordsList = ({ userId, createdSince = null, onClearSince, canExport = false }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // The rows' `label` is in the language of the request that fetched them; a
+  // language switch fetches again, as the indicator list does.
+  const language = i18n.language;
   const [page, setPage] = useState({ rows: [], total: 0, loading: true });
   const [offset, setOffset] = useState(0);
   const [exporting, setExporting] = useState(false);
@@ -32,7 +35,7 @@ const RecordsList = ({ userId, createdSince = null, onClearSince, canExport = fa
         if (!controller.signal.aborted) setPage({ rows: [], total: 0, loading: false });
       });
     return () => controller.abort();
-  }, [offset, userId, createdSince]);
+  }, [offset, userId, createdSince, language]);
 
   const exportAll = async () => {
     setExporting(true);
@@ -89,7 +92,7 @@ const RecordsList = ({ userId, createdSince = null, onClearSince, canExport = fa
           <tbody>
             {rows.map((row) => (
               <tr key={row.row_id}>
-                <td>{row.indicator || row.name}</td>
+                <td title={row.label ? row.indicator : undefined}>{row.label || row.indicator || row.name}</td>
                 <td>{row.value || row.text || "—"}{row.value && row.unit ? ` ${row.unit}` : ""}</td>
                 <td>{row.date}</td>
                 <td>{sourceLabelKey(row.source_kind) ? t(sourceLabelKey(row.source_kind)) : row.source_kind}</td>

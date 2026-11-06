@@ -6,6 +6,7 @@ import {
   codeLabel,
   readingSourceKey,
   displayName,
+  facetsOf,
   readingsKey,
 } from "./rows";
 
@@ -225,13 +226,13 @@ describe("codeLabel", () => {
   });
 });
 
-// A Chinese request (#231): the server adds `label` / `label_long` beside the
-// English `indicator`, which stays what the drawer selects by.
+// #231: the server adds `label` and `facets` beside LOINC's long name,
+// `indicator`, which stays what the drawer selects by.
 describe("translated names", () => {
   const ldl = {
     indicator: "Cholesterol in LDL [Moles/volume] in Serum or Plasma",
     label: "低密度脂蛋白胆固醇",
-    label_long: "低密度脂蛋白胆固醇 [物质的量/体积]，血清/血浆",
+    facets: { specimen: "血清/血浆", property: "物质的量浓度" },
     series: "loinc:cholesterol.in ldl|Ser/Plas|Pt|Qn|QCnc",
     system: "http://loinc.org",
     code: "22748-8",
@@ -240,8 +241,17 @@ describe("translated names", () => {
   it("carries the label into a catalog row and shows it", () => {
     const [row] = toTableRows({ rows: [{ ...ldl, count: 2, latest_value: "2.85", last_date: "2026-07-23" }] });
     expect(row.label).toBe("低密度脂蛋白胆固醇");
-    expect(row.label_long).toBe("低密度脂蛋白胆固醇 [物质的量/体积]，血清/血浆");
     expect(displayName(row)).toBe("低密度脂蛋白胆固醇");
+  });
+
+  it("lists the facets a row has, in a fixed order, and nothing for one without", () => {
+    const [row] = toTableRows({ rows: [{ ...ldl, facets: { property: "物质的量浓度", method: "", specimen: "血清/血浆" }, count: 1 }] });
+    expect(facetsOf(row)).toEqual([
+      ["indicator_facet_specimen", "血清/血浆"],
+      ["indicator_facet_property", "物质的量浓度"],
+    ]);
+    const [bare] = toTableRows({ rows: [{ indicator: "某自定义指标", count: 1 }] });
+    expect(facetsOf(bare)).toEqual([]);
   });
 
   it("falls back to the English name when the server sent no label", () => {

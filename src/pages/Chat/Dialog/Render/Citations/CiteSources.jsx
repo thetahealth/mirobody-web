@@ -106,7 +106,7 @@ function Aggregate({ row }) {
   return (
     <section className={styles.section}>
       <header className={styles.head}>
-        <span className={styles.name}>{row.indicator}</span>
+        <span className={styles.name}>{row.label || row.indicator}</span>
         <span className={styles.muted}>
           {span ? `${span} · ` : ""}
           {t("cite_readings_n", { count: total })}
