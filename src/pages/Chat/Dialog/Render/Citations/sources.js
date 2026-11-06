@@ -21,10 +21,13 @@ export function allGone(ids, resolved) {
 }
 
 // A reading's name: a device row's `name` is the vendor's field
-// ("bodyMasss"), so its indicator reads better; a report's own wording is
-// what the person can find on the page.
+// ("bodyMasss"), so its standard name reads better, in the reader's language
+// when the server sent one (`label`, #231); a report's own wording is what the
+// person can find on the page, so it stays first.
 export const readingName = (row) =>
-  (row.source_kind === "device" ? row.indicator || row.name : row.name || row.indicator) || "";
+  (row.source_kind === "device"
+    ? row.label || row.indicator || row.name
+    : row.name || row.label || row.indicator) || "";
 
 /**
  * Sections for a group's ids: `{type: "readings", name, items}`,
@@ -62,7 +65,10 @@ export function sectionsOf(ids, resolved = {}) {
       const readings = row.readings || [];
       // A day's bucket holding one reading is that reading.
       if ((row.total ?? readings.length) === 1 && readings.length === 1) {
-        addReading({ ...readings[0], indicator: row.indicator || readings[0].indicator }, id);
+        addReading(
+          { ...readings[0], indicator: row.indicator || readings[0].indicator, label: row.label || readings[0].label },
+          id,
+        );
       } else {
         sections.push({ type: "aggregate", id, row });
       }

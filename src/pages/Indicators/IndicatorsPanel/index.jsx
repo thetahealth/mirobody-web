@@ -50,7 +50,13 @@ const IndicatorsPanel = ({
   // "no indicators" list until a full page reload.
   refreshTrigger = 0,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // Rows carry the server's name for each test in the language of the request
+  // that fetched them (`label`, sent only for Chinese). Switching the language in
+  // Settings changed the chrome and every later request's X-Language, but this
+  // list kept the rows it had, so an English page went on showing Chinese names
+  // until a reload. The language is a dependency of the load below for that.
+  const language = i18n.language;
   const mobile = useIsMobile();
   const current_drive_user_id = useDriveStore(
     (state) => state.current_drive_user_id,
@@ -128,7 +134,14 @@ const IndicatorsPanel = ({
   useEffect(() => {
     load(submitted);
     return () => abortRef.current?.abort();
-  }, [load, submitted, refreshTrigger]);
+  }, [load, submitted, refreshTrigger, language]);
+
+  // An open drawer holds the row it was opened with, title and standard name in
+  // the old language; a language switch closes it rather than show both.
+  useEffect(() => {
+    setSelected(null);
+    setReadings([]);
+  }, [language]);
 
   const onSubmit = (event) => {
     event.preventDefault();
