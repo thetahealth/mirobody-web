@@ -124,17 +124,37 @@
   font-weight: 500;
 }
 
-// One personal MCP link: what it reads or who made it, when it ends, and
-// the actions on it.
+// One record's personal MCP link, or one link to your record: whose it is or
+// who made it, when it ends, and the actions on it. A URL made while Settings
+// is open sits inside the item, under the row it reads.
+.mcpLinkItem {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
 .mcpLinkRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0;
   font-size: 14px;
   color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border);
+}
+
+// A long name wraps; the actions keep their width so 撤销 never folds.
+.mcpLinkWho {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mcpLinkName {
+  font-weight: 500;
+}
+
+.mcpLinkActions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .mcpLinkMeta {
