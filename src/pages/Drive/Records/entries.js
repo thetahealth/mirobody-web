@@ -48,13 +48,24 @@ export const readDays = (data) => {
 };
 
 /**
- * What the classification calls this entry, or "" when it could not say.
+ * What the classification calls this entry, in the reader's language, or ""
+ * when it could not say.
+ *
+ * `label` is the name the server gives a LOINC-coded entry in the language the
+ * request asked in, the one the indicator list shows (thetahealth/mirobody#231):
+ * a Chinese page read `收缩压 → Systolic blood pressure` before it. `display` is
+ * the classification's own name, and is what shows when there is no `label`:
+ * an English vital sign (LOINC gives it no plainer name) and every ICPC-3
+ * complaint, which has no Chinese title we may use.
  *
  * Deliberately not "the display name, falling back to what the person wrote":
  * the list shows BOTH names, and a fallback would quietly turn an abstention
  * into a coded-looking row.
  */
-export const standardName = (entry) => (entry && entry.coded ? entry.display || "" : "");
+export const standardName = (entry) => (entry && entry.coded ? entry.label || entry.display || "" : "");
+
+/** The classification's own name, for a tooltip, when `standardName` showed a `label` instead. */
+export const standardTitle = (entry) => (entry && entry.coded && entry.label ? entry.display || "" : "");
 
 /** `{total, coded}` over a day list — the one number the header states. */
 export const countEntries = (days) => {
