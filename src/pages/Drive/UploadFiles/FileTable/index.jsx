@@ -52,7 +52,10 @@ const FileTable = () => {
     return file_list.filter((item) => !uploading_files.has(item.id));
   }, [file_list, uploading_files]);
 
-  const renderStatus = (status) => {
+  // A failed row says why: the server stores the reason on the row (`error`),
+  // and the page showed only 处理失败, so an upload that waited on a local model
+  // still downloading read like any other failure (thetahealth/mirobody#275).
+  const renderStatus = (status, reason = "") => {
     switch (status) {
       case "uploading":
         return (
@@ -80,6 +83,11 @@ const FileTable = () => {
         return (
           <div className={styles.failedContainer}>
             <span className={styles.failedText}>{t("failed_to_process")}</span>
+            {reason ? (
+              <span className={styles.failedReason} title={reason}>
+                {reason}
+              </span>
+            ) : null}
           </div>
         );
       default:
@@ -213,7 +221,7 @@ const FileTable = () => {
           {item.file_type ? item.file_type.toUpperCase() : "-"}
         </td>
         <td className={styles.tdSize}>{item.show_file_size}</td>
-        <td className={styles.tdStatus}>{renderStatus(item.upload_status)}</td>
+        <td className={styles.tdStatus}>{renderStatus(item.upload_status, item.error)}</td>
         <td className={styles.tdActions}>{renderActions(item)}</td>
       </tr>
     );
@@ -238,7 +246,7 @@ const FileTable = () => {
         <span>{dayjs(item.upload_time).format("YYYY-MM-DD HH:mm")}</span>
       </div>
       <div className={styles.cardFooter}>
-        {renderStatus(item.upload_status)}
+        {renderStatus(item.upload_status, item.error)}
         {renderActions(item)}
       </div>
     </div>
