@@ -220,6 +220,20 @@ tbody tr:last-child {
   color: var(--color-danger);
 }
 
+// The server's reason, which can run to a sentence: two lines here, the
+// whole of it on hover.
+.failedReason {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 320px;
+  overflow-wrap: anywhere;
+}
+
 .retryButton {
   display: inline-flex;
   justify-content: center;
