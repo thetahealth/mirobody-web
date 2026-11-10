@@ -518,6 +518,8 @@ const IndicatorsPanel = ({
                       <tr key={`${reading.id ?? reading.time}-${index}`}>
                         <td>
                           {editingId === reading.id ? (
+                            // A correction is to what the report printed, in
+                            // its unit: the value shown may be converted.
                             <Input
                               size="small"
                               autoFocus
@@ -525,7 +527,8 @@ const IndicatorsPanel = ({
                               disabled={patching}
                               onChange={(e) => setEditingValue(e.target.value)}
                               onPressEnter={() => saveEdit(reading)}
-                              style={{ maxWidth: 120 }}
+                              suffix={(reading.printed?.unit ?? reading.unit) || undefined}
+                              style={{ maxWidth: 140 }}
                             />
                           ) : (
                             <>
@@ -565,6 +568,14 @@ const IndicatorsPanel = ({
                             // 明细 tab named the same row 设备.
                             t(readingSourceKey(reading))
                           )}
+                          {/* The source column is where what the report printed
+                              shows: the value column is in the series' unit. */}
+                          {reading.converted && reading.printed ? (
+                            <div>
+                              {t("indicator_printed")}
+                              {reading.printed.value} {reading.printed.unit}
+                            </div>
+                          ) : null}
                         </td>
                         {isOwnRecord && (
                           <td className={styles.rowActions}>
@@ -594,7 +605,7 @@ const IndicatorsPanel = ({
                                     type="button"
                                     onClick={() => {
                                       setEditingId(reading.id);
-                                      setEditingValue(reading.value ?? "");
+                                      setEditingValue(reading.printed?.value ?? reading.value ?? "");
                                     }}
                                     aria-label={t("indicator_edit_reading")}
                                   >

@@ -463,6 +463,8 @@
   "indicator_trend_readings": "測定値",
   "indicator_trend_average": "7 回平均",
   "indicator_trend_partial": "全 {{total}} 件中、最新の {{shown}} 件を表示",
+  "indicator_printed": "報告値 ",
+  "indicator_trend_unconverted": "ほかに {{count}} 件は単位を {{unit}} に換算できないため、グラフに含めていません",
   "indicator_edit_reading": "値を編集",
   "indicator_delete_reading_confirm": "この記録を削除しますか？",
   "indicator_reading_saved": "記録を更新しました",

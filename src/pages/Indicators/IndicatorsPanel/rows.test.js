@@ -153,6 +153,21 @@ describe("toReadingList", () => {
     });
   });
 
+  it("keeps the series' value and, apart, what the report printed (#271)", () => {
+    const [converted, bare] = toReadingList({
+      rows: [
+        { indicator: "Cholesterol", value: "5.48", unit: "mmol/L", ref: "<5.17", time: "2025-03-10 00:00:00",
+          row_id: 1, converted: true, printed: { value: "212", unit: "mg/dL", ref: "<200", code: "2093-3" } },
+        { indicator: "Cholesterol", value: "5", unit: "", time: "2025-01-10 00:00:00", row_id: 2 },
+      ],
+    });
+    expect(converted).toMatchObject({
+      value: "5.48", unit: "mmol/L", ref: "<5.17", converted: true, unit_differs: false,
+      printed: { value: "212", unit: "mg/dL", ref: "<200" },
+    });
+    expect(bare).toMatchObject({ printed: null, converted: false, unit_differs: false });
+  });
+
   it("returns nothing for a catalog answer", () => {
     // What a no-match search falls back to.
     expect(toReadingList(catalogEnvelope)).toEqual([]);
