@@ -463,6 +463,8 @@
   "indicator_trend_readings": "读数",
   "indicator_trend_average": "7 次平均",
   "indicator_trend_partial": "图中为最近 {{shown}} 次读数，共 {{total}} 次",
+  "indicator_printed": "报告原值 ",
+  "indicator_trend_unconverted": "另有 {{count}} 次读数的单位无法换算为 {{unit}}，未画入图中",
   "indicator_edit_reading": "修改数值",
   "indicator_delete_reading_confirm": "删除这条记录？",
   "indicator_reading_saved": "已更新",

@@ -93,7 +93,9 @@ const RecordsList = ({ userId, createdSince = null, onClearSince, canExport = fa
             {rows.map((row) => (
               <tr key={row.row_id}>
                 <td title={row.label ? row.indicator : undefined}>{row.label || row.indicator || row.name}</td>
-                <td>{row.value || row.text || "—"}{row.value && row.unit ? ` ${row.unit}` : ""}</td>
+                <td title={row.converted && row.printed ? `${t("indicator_printed")}${row.printed.value} ${row.printed.unit}` : undefined}>
+                  {row.value || row.text || "—"}{row.value && row.unit ? ` ${row.unit}` : ""}
+                </td>
                 <td>{row.date}</td>
                 <td>{sourceLabelKey(row.source_kind) ? t(sourceLabelKey(row.source_kind)) : row.source_kind}</td>
               </tr>

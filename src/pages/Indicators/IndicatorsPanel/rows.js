@@ -21,11 +21,25 @@ const isCatalogRow = (row) =>
 // `ref` and `flag` are what the report printed beside the value; the route
 // sent them and the drawer dropped them, so an out-of-range result looked
 // like any other.
+//
+// `value`, `unit` and `ref` are in the series' one unit: the server converts a
+// reading printed in another (212 mg/dL arrives as 5.48 mmol/L and `converted`,
+// thetahealth/mirobody#271). `printed` is what the report said, for the
+// source column and for an edit, which corrects the reading as printed. One
+// the server could not convert keeps its own unit and is `unit_differs`.
+const toPrinted = (printed) =>
+  printed && typeof printed === "object"
+    ? { value: printed.value ?? "", unit: printed.unit || "", ref: printed.ref || "" }
+    : null;
+
 const toReading = (row) => ({
   id: row.row_id ?? null,
   indicator: row.indicator || "",
   value: row.value ?? "",
   unit: row.unit || "",
+  printed: toPrinted(row.printed),
+  converted: !!row.converted,
+  unit_differs: !!row.unit_differs,
   time: row.time || "",
   ref: row.ref || "",
   flag: row.flag || "",

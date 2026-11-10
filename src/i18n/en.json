@@ -463,6 +463,8 @@
   "indicator_trend_readings": "Readings",
   "indicator_trend_average": "7-reading average",
   "indicator_trend_partial": "The latest {{shown}} of {{total}} readings",
+  "indicator_printed": "As printed: ",
+  "indicator_trend_unconverted": "{{count}} more readings are not drawn: their unit does not convert to {{unit}}",
   "indicator_edit_reading": "Edit value",
   "indicator_delete_reading_confirm": "Delete this reading?",
   "indicator_reading_saved": "Reading updated",

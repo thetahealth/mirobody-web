@@ -35,12 +35,33 @@ export function parseRange(ref) {
   return /[<≤＜]/.test(one[1]) ? { high: bound } : { low: bound };
 }
 
-/** The numeric readings, oldest first; a text result ("阴性") is left out. */
-export function trendPoints(readings = []) {
-  return readings
-    .map((r) => ({ time: r.time, value: toNumber(r.value), flag: r.flag || "", ref: r.ref || "" }))
-    .filter((p) => p.time && p.value != null)
-    .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+/**
+ * The numeric readings, oldest first, the unit they are in, and how many were
+ * left out because their unit does not convert to the series' (`left`). A
+ * text result ("阴性") is left out uncounted. `unit` is the drawer's, for a
+ * series whose readings name none.
+ *
+ * The server answers every reading of a series in one unit and converts the
+ * ones printed in another: 212 mg/dL arrives as 5.48 mmol/L, its range with it,
+ * and `printed` says what the report said. The chart used to plot what each
+ * report printed and drew a fall from 212 to 4.9 (thetahealth/mirobody#271).
+ * A reading the server could not convert (`unit_differs`: albumin in g/L
+ * and umol/L) is not drawn on an axis it is not in.
+ */
+export function trendSeries(readings = [], unit = "") {
+  const points = [];
+  let left = 0;
+  for (const r of readings) {
+    const value = toNumber(r.value);
+    if (!r.time || value == null) continue;
+    if (r.unit_differs) {
+      left += 1;
+      continue;
+    }
+    points.push({ time: r.time, value, flag: r.flag || "", ref: r.ref || "", printed: r.converted ? r.printed : null });
+  }
+  points.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+  return { points, unit: readings.find((r) => !r.unit_differs && r.unit)?.unit || unit, left };
 }
 
 /** The range the band shows: the newest reading's, since ranges change
@@ -55,6 +76,11 @@ export function latestRange(points) {
 
 const FONT =
   '"Source Sans 3","PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif';
+
+// ECharts sets a tooltip string as HTML, and a unit or a range is text read
+// off an uploaded document, of a record a care circle may share.
+const escapeHtml = (text) =>
+  String(text ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
 // Any flag the report printed counts: "偏高", "HH" and "↑" as much as "H".
 const isOut = (point, range) => {
@@ -81,8 +107,8 @@ export function movingAverage(points, window = WINDOW) {
 }
 
 /** The ECharts option for `points`; `labels` names the band, a tooltip's
- *  range and, for a dense series, its two lines, in the page's language.
- *  `dark` draws it for the dark page. */
+ *  range and printed value and, for a dense series, its two lines, in the
+ *  page's language. `dark` draws it for the dark page. */
 export function trendOption(points, { unit = "", labels = {}, dark = false } = {}) {
   const c = chartPalette(dark);
   const LABEL = { color: c.inkSoft, fontSize: 11, fontFamily: FONT };
@@ -91,6 +117,7 @@ export function trendOption(points, { unit = "", labels = {}, dark = false } = {
   const data = points.map((p) => ({
     value: [p.time.replace(" ", "T"), p.value],
     ref: p.ref,
+    printed: p.printed,
     itemStyle: isOut(p, parseRange(p.ref) || range) ? { color: c.out, borderColor: c.out } : undefined,
   }));
   const band =
@@ -112,9 +139,16 @@ export function trendOption(points, { unit = "", labels = {}, dark = false } = {
       formatter: (items) => {
         const item = items[0];
         const [time, value] = item.value;
-        const ref = item.data.ref ? ` · ${labels.ref || ""}${item.data.ref}` : "";
-        const mean = items[1] ? `<br/>${items[1].seriesName} ${items[1].value[1]} ${unit}` : "";
-        return `${String(time).replace("T", " ").replace(/ 00:00(:00)?$/, "").slice(0, 16)}<br/><b>${value}</b> ${unit}${ref}${mean}`;
+        const shownUnit = escapeHtml(unit);
+        const ref = item.data.ref ? ` · ${escapeHtml(labels.ref)}${escapeHtml(item.data.ref)}` : "";
+        // What a converted reading's report printed, so the number can be
+        // matched to the document it came from.
+        const { printed } = item.data;
+        const source = printed
+          ? `<br/>${escapeHtml(labels.printed)}${escapeHtml(printed.value)} ${escapeHtml(printed.unit)}`
+          : "";
+        const mean = items[1] ? `<br/>${escapeHtml(items[1].seriesName)} ${items[1].value[1]} ${shownUnit}` : "";
+        return `${String(time).replace("T", " ").replace(/ 00:00(:00)?$/, "").slice(0, 16)}<br/><b>${value}</b> ${shownUnit}${ref}${source}${mean}`;
       },
     },
     xAxis: { type: "time", axisLabel: { ...LABEL, hideOverlap: true }, splitLine: { show: false } },

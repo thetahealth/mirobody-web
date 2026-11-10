@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as echarts from "echarts";
 import { useTranslation } from "react-i18next";
-import { trendOption, trendPoints } from "./trend";
+import { trendOption, trendSeries } from "./trend";
 import usePrefersDark from "../../../hooks/usePrefersDark";
 import styles from "./index.module.scss";
 
 /** One indicator's readings over time, with its report's range as a band.
  *  Nothing for fewer than two numeric readings: one point is not a trend.
  *  `total` is how many the record holds: the route sends the newest 200, and
- *  a chart of half a year must not pass for the whole one. */
+ *  a chart of half a year must not pass for the whole one. The server sends
+ *  every reading in the series' one unit; `unit` is the drawer's, for a
+ *  series whose readings name none (`trendSeries`). */
 export default function TrendChart({ readings, unit, total = 0 }) {
   const { t } = useTranslation();
   const dark = usePrefersDark();
   const ref = useRef(null);
-  const points = useMemo(() => trendPoints(readings), [readings]);
+  const series = useMemo(() => trendSeries(readings, unit), [readings, unit]);
+  const { points } = series;
   const enough = points.length >= 2;
 
   useEffect(() => {
@@ -22,11 +25,12 @@ export default function TrendChart({ readings, unit, total = 0 }) {
     const chart = echarts.init(el);
     chart.setOption(
       trendOption(points, {
-        unit,
+        unit: series.unit,
         dark,
         labels: {
           range: t("indicator_ref_range"),
           ref: t("indicator_ref_short"),
+          printed: t("indicator_printed"),
           readings: t("indicator_trend_readings"),
           average: t("indicator_trend_average"),
         },
@@ -38,7 +42,7 @@ export default function TrendChart({ readings, unit, total = 0 }) {
       observer.disconnect();
       chart.dispose();
     };
-  }, [enough, points, unit, t, dark]);
+  }, [enough, points, series.unit, t, dark]);
 
   if (!enough) return null;
   return (
@@ -52,6 +56,11 @@ export default function TrendChart({ readings, unit, total = 0 }) {
       {total > readings.length ? (
         <figcaption className={styles.muted}>
           {t("indicator_trend_partial", { shown: readings.length, total })}
+        </figcaption>
+      ) : null}
+      {series.left > 0 ? (
+        <figcaption className={styles.muted}>
+          {t("indicator_trend_unconverted", { count: series.left, unit: series.unit })}
         </figcaption>
       ) : null}
     </figure>
