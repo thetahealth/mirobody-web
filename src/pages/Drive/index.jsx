@@ -74,7 +74,7 @@ const DrivePage = () => {
   const distribution_user_id = useDistributionStore(
     (state) => state.distribution_user_id,
   );
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const connectedCount = providers_list.filter(
     (item) => item.status === VITAL_STATUS.CONNECTED,
@@ -138,10 +138,14 @@ const DrivePage = () => {
 
   // Fetch on mount, not only when a drive user id happens to be in state: both
   // endpoints scope themselves by the bearer token, and gating on the id meant
-  // that on a fresh login the counters silently stayed at zero.
+  // that on a fresh login the counters silently stayed at zero. And again on a
+  // language switch: a failed file's reason comes in the language of the
+  // request that fetched the list, and stayed in the old one
+  // (thetahealth/mirobody#275), as the indicator list's names did.
+  const language = i18n.language;
   useEffect(() => {
     fetchFileList();
-  }, [current_drive_user_id, fetchFileList]);
+  }, [current_drive_user_id, fetchFileList, language]);
 
   useEffect(() => {
     fetchBeneficiaryUsers();
