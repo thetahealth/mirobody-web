@@ -180,7 +180,9 @@ export const useUploadStore = create(
       return uploading_files.get(current_drive_user_id) || new Map();
     },
 
-    fetchFileList: async () => {
+    // `quiet`: refresh in place, without emptying the list behind a spinner,
+    // for the page asking again while a file is still processing.
+    fetchFileList: async ({ quiet = false } = {}) => {
       const { _uploadedFilesController, currentPage, pageSize } = get();
 
       // Cancel previous request if exists
@@ -192,8 +194,10 @@ export const useUploadStore = create(
       const newController = new AbortController();
       set((state) => {
         state._uploadedFilesController = newController;
-        state.isLoading = true;
-        state.file_list = [];
+        if (!quiet) {
+          state.isLoading = true;
+          state.file_list = [];
+        }
       });
 
       try {

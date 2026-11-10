@@ -103,6 +103,7 @@ const useUpload = () => {
   // Create message handlers (memoized to avoid recreation)
   const notePendingDate = useUploadStore((state) => state.notePendingDate);
   const fetchFileList = useUploadStore((state) => state.fetchFileList);
+  const removeUploadingFile = useUploadStore((state) => state.removeUploadingFile);
   const messageHandlers = useMemo(
     () =>
       createUploadMessageHandlers({
@@ -110,8 +111,9 @@ const useUpload = () => {
         updateUploadingProgress,
         notePendingDate,
         refreshFileList: fetchFileList,
+        removeUploadingFile,
       }),
-    [addUploadingFile, updateUploadingProgress, notePendingDate, fetchFileList],
+    [addUploadingFile, updateUploadingProgress, notePendingDate, fetchFileList, removeUploadingFile],
   );
 
   // Process WebSocket messages using Handler Map (Strategy Pattern)

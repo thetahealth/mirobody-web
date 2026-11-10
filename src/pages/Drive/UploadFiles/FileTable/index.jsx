@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./index.module.scss";
 import { useUploadStore } from "../../../../store/upload";
 import { useDriveStore } from "../../../../store/Drive";
@@ -10,6 +10,7 @@ import consola from "consola";
 import dayjs from "dayjs";
 import ReportDateModal from "./ReportDateModal";
 import { needsDateConfirm, reportDateOf } from "./reportDate";
+import { PROCESSING_POLL_MS, hasProcessingRows, rowActions } from "./rowActions";
 import useIsMobile from "../../../../hooks/useIsMobile";
 import { openProtectedFile } from "../../../../utils/protectedFile";
 
@@ -51,6 +52,15 @@ const FileTable = () => {
   const filteredFileList = useMemo(() => {
     return file_list.filter((item) => !uploading_files.has(item.id));
   }, [file_list, uploading_files]);
+
+  // A file the server is still reading turns complete or failed on its own;
+  // ask again until none is left (a reprocessed file has no upload socket to
+  // say so). Each answer is a new list, which arms the next ask.
+  useEffect(() => {
+    if (!hasProcessingRows(file_list)) return undefined;
+    const timer = setTimeout(() => fetchFileList({ quiet: true }), PROCESSING_POLL_MS);
+    return () => clearTimeout(timer);
+  }, [file_list, fetchFileList]);
 
   // A failed row says why: the server stores the reason on the row (`error`),
   // and the page showed only 处理失败, so an upload that waited on a local model
@@ -95,51 +105,33 @@ const FileTable = () => {
     }
   };
 
+  // Each action's button: its label, its style and what it does.
+  const ACTIONS = {
+    view: { label: "view", style: styles.viewButton, run: (data) => handleView(data) },
+    set_report_date: { label: "set_report_date", style: styles.viewButton, run: (data) => setDateTarget(data) },
+    reprocess: { label: "reprocess", style: styles.viewButton, run: (data) => handleReprocess(data) },
+    cancel: { label: "cancel", style: styles.deleteButton, run: (data) => handleCancel(data) },
+    delete: { label: "delete", style: styles.deleteButton, run: (data) => handleDelete(data) },
+  };
+
   const renderActions = (data) => {
-    const { upload_status } = data;
-    if (upload_status === "uploading") {
-      return null;
-    }
-    if (upload_status === "failed") {
-      return (
-        <div className={styles.actionButtons}>
-          <button
-            className={styles.deleteButton}
-            onClick={() => handleDelete(data)}
-          >
-            {t("delete")}
-          </button>
-        </div>
-      );
-    }
+    const actions = rowActions(data);
+    if (!actions.length) return null;
     return (
       <div className={styles.actionButtons}>
-        {data.upload_status === "complete" && (
-          <button
-            className={styles.viewButton}
-            onClick={() => handleView(data)}
-          >
-            {t("view")}
+        {actions.map((name) => (
+          <button key={name} className={ACTIONS[name].style} onClick={() => ACTIONS[name].run(data)}>
+            {t(ACTIONS[name].label)}
           </button>
-        )}
-        {/* only files that produced readings carry a date_source */}
-        {data.upload_status === "complete" && data.date_source && (
-          <button
-            className={styles.viewButton}
-            onClick={() => setDateTarget(data)}
-          >
-            {t("set_report_date")}
-          </button>
-        )}
-        <button
-          className={styles.deleteButton}
-          onClick={() => handleDelete(data)}
-        >
-          {t("delete")}
-        </button>
+        ))}
       </div>
     );
   };
+
+  // A row of the page's own, for an upload that never reached the server or
+  // was already gone from it, has nothing to delete there: the server says
+  // 404 and the row just leaves the page.
+  const nothingOnServer = (data, error) => data.isUploading && error?.code === 404;
 
   const handleDelete = (data) => {
     Modal.confirm({
@@ -150,14 +142,55 @@ const FileTable = () => {
         try {
           await api.deleteUploadedFile(data.id, data.file_key);
           message.success(t("file_deleted_successfully"));
-          removeUploadingFile(data.id);
-          fetchFileList();
         } catch (error) {
-          consola.error("ERROR: handleDelete", error);
-          message.error(t("delete_failed"));
+          if (!nothingOnServer(data, error)) {
+            consola.error("ERROR: handleDelete", error);
+            message.error(t("delete_failed"));
+            return;
+          }
         }
+        removeUploadingFile(data.id);
+        fetchFileList();
       },
     });
+  };
+
+  // An upload still in flight is named by its message id alone; the server
+  // cancels it and files nothing (thetahealth/mirobody#240).
+  const handleCancel = (data) => {
+    Modal.confirm({
+      content: t("cancel_upload_confirm"),
+      onOk: async () => {
+        try {
+          await api.deleteUploadedFile(data.id);
+          message.success(t("upload_cancelled"));
+        } catch (error) {
+          if (!nothingOnServer(data, error)) {
+            consola.error("ERROR: handleCancel", error);
+            message.error(t("cancel_failed"));
+            return;
+          }
+        }
+        removeUploadingFile(data.id);
+        fetchFileList();
+      },
+    });
+  };
+
+  // A failed file read again from its stored copy, its earlier readings
+  // replaced (thetahealth/mirobody#239). 409: it is already being read.
+  const handleReprocess = async (data) => {
+    try {
+      await api.reprocessUploadedFile(data.file_key);
+      message.success(t("reprocess_started"));
+    } catch (error) {
+      if (error?.code !== 409) {
+        consola.error("ERROR: handleReprocess", error);
+        message.error(t("reprocess_failed"));
+        return;
+      }
+    }
+    fetchFileList({ quiet: true });
   };
 
   const handleView = async (data) => {

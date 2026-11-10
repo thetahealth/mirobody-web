@@ -941,5 +941,11 @@
   "process_context_done": "對話摘要已產生",
   "process_context_hint": "對話較長，正在產生摘要，稍後繼續回覆。",
   "status_cancelled": "已停止接收這則回覆",
-  "copy_answer_failed": "複製失敗，請選取答案手動複製。"
+  "copy_answer_failed": "複製失敗，請選取答案手動複製。",
+  "reprocess": "重新處理",
+  "cancel_upload_confirm": "取消這次上傳？它的檔案和資料都不會儲存。",
+  "upload_cancelled": "已取消上傳",
+  "cancel_failed": "取消上傳失敗",
+  "reprocess_started": "正在重新處理檔案",
+  "reprocess_failed": "重新處理失敗"
 }
