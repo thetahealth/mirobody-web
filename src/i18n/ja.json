@@ -941,5 +941,11 @@
   "process_context_done": "会話の要約を作成しました",
   "process_context_hint": "会話が長くなったため、要約を作成してから回答を続けます。",
   "status_cancelled": "この回答の受信を停止しました",
-  "copy_answer_failed": "コピーできませんでした。回答を選択して手動でコピーしてください。"
+  "copy_answer_failed": "コピーできませんでした。回答を選択して手動でコピーしてください。",
+  "reprocess": "再処理",
+  "cancel_upload_confirm": "このアップロードをキャンセルしますか？ファイルもデータも保存されません。",
+  "upload_cancelled": "アップロードをキャンセルしました",
+  "cancel_failed": "アップロードをキャンセルできませんでした",
+  "reprocess_started": "ファイルを再処理しています",
+  "reprocess_failed": "ファイルを再処理できませんでした"
 }

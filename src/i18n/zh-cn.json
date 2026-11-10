@@ -941,5 +941,11 @@
   "process_context_done": "上下文摘要已生成",
   "process_context_hint": "对话较长，正在生成摘要，随后继续回答。",
   "status_cancelled": "已停止接收本次回答",
-  "copy_answer_failed": "复制失败，请选中答案手动复制。"
+  "copy_answer_failed": "复制失败，请选中答案手动复制。",
+  "reprocess": "重新处理",
+  "cancel_upload_confirm": "取消这次上传？它的文件和数据都不会保存。",
+  "upload_cancelled": "已取消上传",
+  "cancel_failed": "取消上传失败",
+  "reprocess_started": "正在重新处理文件",
+  "reprocess_failed": "重新处理失败"
 }

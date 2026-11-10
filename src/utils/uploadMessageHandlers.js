@@ -181,6 +181,17 @@ const handleExtractionCompleted = (message, { notePendingDate, refreshFileList }
 };
 
 /**
+ * The upload was cancelled before its files were filed
+ * (thetahealth/mirobody#240): nothing of it exists on the server, so its row
+ * leaves the page, in another tab too.
+ */
+const handleUploadCancelled = (message, { removeUploadingFile }) => {
+  const { messageId } = message;
+  if (!messageId) return;
+  removeUploadingFile?.(messageId, getCurrentUserId());
+};
+
+/**
  * Handle upload error messages
  */
 const handleUploadError = (message, { updateUploadingProgress }) => {
@@ -235,6 +246,7 @@ export const createUploadMessageHandlers = (deps) => ({
 
   // Completion messages
   upload_completed: (msg) => handleUploadCompleted(msg, deps),
+  upload_cancelled: (msg) => handleUploadCancelled(msg, deps),
 
   // Post-upload extraction (#53)
   report_date_detected: (msg) => handleReportDateDetected(msg, deps),

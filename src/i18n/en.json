@@ -941,5 +941,11 @@
   "process_context_done": "Context summary ready",
   "process_context_hint": "This conversation is long. Preparing a summary before continuing.",
   "status_cancelled": "Stopped receiving this response",
-  "copy_answer_failed": "Could not copy. Please select the answer and copy it manually."
+  "copy_answer_failed": "Could not copy. Please select the answer and copy it manually.",
+  "reprocess": "Reprocess",
+  "cancel_upload_confirm": "Cancel this upload? Nothing from it will be saved.",
+  "upload_cancelled": "Upload cancelled",
+  "cancel_failed": "Could not cancel the upload",
+  "reprocess_started": "Reprocessing the file",
+  "reprocess_failed": "Could not reprocess the file"
 }

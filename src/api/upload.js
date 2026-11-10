@@ -33,7 +33,9 @@ export const getUploadedFiles = ({ limit, offset, signal, user_id }) => {
     signal,
   });
 };
-/* delete uploaded file */
+/* Delete an uploaded file, or with no file_key every file of the upload
+   `message_id`, cancelling it if it is still in flight (the answer's
+   `cancelled`); one that matches nothing is rejected with code 404. */
 export const deleteUploadedFile = (message_id, file_key) => {
   const params = {
     message_id,
@@ -43,6 +45,12 @@ export const deleteUploadedFile = (message_id, file_key) => {
   }
   return mcpRequestInstance.post("/api/v1/data/delete-files", params);
 };
+
+/* Read a filed document again, replacing the readings taken from it
+   (thetahealth/mirobody#241): the retry for a failed file. Rejected with code
+   409 while it is still being processed. */
+export const reprocessUploadedFile = (file_key) =>
+  mcpRequestInstance.post("/api/v1/data/reprocess-file", { file_key });
 
 /* Re-file one document's readings under a report date, or confirm the upload
    day (#53: a multi-screenshot report carries its date on page 1 only, so the
