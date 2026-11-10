@@ -7,6 +7,7 @@ import { t } from "i18next";
 import { useUploadStore } from "../store/upload";
 import { useDriveStore } from "../store/Drive";
 import getWebSocketManager from "../utils/websocket/WebSocketManager";
+import { requestLanguage } from "../utils/i18n.js";
 import {
   createUploadMessageHandlers,
   processUploadMessage,
@@ -211,11 +212,18 @@ const useUpload = () => {
             );
           }
 
+          // Each message states the page's language: the socket's handshake
+          // carries only the browser's, and switching language does not reopen
+          // the socket, so what the server said while an upload ran came back
+          // in a language the page was not drawn in (thetahealth/mirobody#275).
+          const language = requestLanguage();
+
           // Send upload start for each file
           const startMessage = {
             type: "upload_start",
             messageId,
             sessionId,
+            language,
             query: uploadOptions.query || "",
             isFirstMessage: uploadOptions.isFirstMessage || false,
             files: [
@@ -248,6 +256,7 @@ const useUpload = () => {
                 chunkIndex: 0,
                 totalChunks: 1,
                 fileSize: file.size,
+                language,
               }),
             );
             if (!sent) {
@@ -270,6 +279,7 @@ const useUpload = () => {
                   chunkIndex,
                   totalChunks,
                   fileSize: file.size,
+                  language,
                 }),
               );
               if (!sent) {
@@ -284,6 +294,7 @@ const useUpload = () => {
               type: "upload_end",
               messageId,
               sessionId,
+              language,
             }),
           );
           if (!ended) {
