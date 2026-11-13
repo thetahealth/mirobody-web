@@ -1,7 +1,5 @@
 import { memo, useEffect, useState } from "react";
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkCjkFriendly from "remark-cjk-friendly";
 import { Drawer } from "antd";
 import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
@@ -14,6 +12,7 @@ import CiteSources from "../Citations/CiteSources";
 import { CiteGroupsContext, useCitationSession } from "../Citations/context";
 import { CITE_SCHEME, STATEMENT_SCHEME, prepareCitations, stripCitations } from "../Citations/markup";
 import { rehypeCiteAnchors } from "../Citations/anchors";
+import { remarkPlugins } from "./remarkPlugins";
 import useIsMobile from "../../../../../hooks/useIsMobile";
 
 // react-markdown drops a URL whose scheme it does not know; the markers are ours.
@@ -68,12 +67,7 @@ function Markdown({ content, cites = false }) {
     >
       <div className={styles.prose}>
         <ReactMarkdown
-          // cjk-friendly: CommonMark's emphasis delimiter rules treat
-          // full-width punctuation as punctuation, so the ** in
-          // `**基因位点（rsID）**数据` renders literally instead of as bold —
-          // and models write exactly that in Chinese answers. This plugin
-          // relaxes the delimiter test for CJK text.
-          remarkPlugins={[remarkGfm, remarkCjkFriendly]}
+          remarkPlugins={remarkPlugins}
           rehypePlugins={groups.length ? [[rehypeCiteAnchors, { groups }]] : []}
           urlTransform={urlTransform}
           components={{

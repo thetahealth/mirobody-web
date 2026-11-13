@@ -4,9 +4,8 @@
 import { describe, it, expect } from "vitest";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-import remarkCjkFriendly from "remark-cjk-friendly";
 import remarkRehype from "remark-rehype";
+import { remarkPlugins } from "../Markdown/remarkPlugins";
 import { prepareCitations } from "./markup";
 import { findValues, groupsOf, rehypeCiteAnchors } from "./anchors";
 
@@ -14,7 +13,7 @@ import { findValues, groupsOf, rehypeCiteAnchors } from "./anchors";
 // set as `[ids, kind, [texts]]`, in reading order.
 function anchors(text) {
   const { markdown, groups } = prepareCitations(text);
-  const parser = unified().use(remarkParse).use(remarkGfm).use(remarkCjkFriendly);
+  const parser = unified().use(remarkParse).use(remarkPlugins);
   const tree = unified().use(remarkRehype).runSync(parser.parse(markdown));
   rehypeCiteAnchors({ groups })(tree);
   const sets = new Map();
@@ -100,6 +99,14 @@ describe("rehypeCiteAnchors", () => {
     expect(
       anchors("空腹血糖 5.6 mmol/L（参考 3.9–6.1），没有标记，但距离上限 6.1 只差 0.5<cite>[r3]</cite>。"),
     ).toEqual([["r3", "value", ["5.6 mmol/L", "3.9–6.1", "6.1", "0.5"]]]);
+  });
+
+  // GFM's single-tilde strikethrough once split each range here into two
+  // values across a <del>; the shared parser options keep a range whole.
+  it("marks a range written with a tilde as one value", () => {
+    expect(anchors("<statement>谷丙转氨酶 11 U/L（7~40）、谷草转氨酶 16 U/L（13~35）<cite>[r1]</cite></statement>")).toEqual([
+      ["r1", "value", ["11 U/L", "7~40", "16 U/L", "13~35"]],
+    ]);
   });
 
   it("reads 「；」 as joining clauses one cite closes", () => {
