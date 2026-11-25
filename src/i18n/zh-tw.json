@@ -958,5 +958,10 @@
   "upload_cancelled": "已取消上傳",
   "cancel_failed": "取消上傳失敗",
   "reprocess_started": "正在重新處理檔案",
-  "reprocess_failed": "重新處理失敗"
+  "reprocess_failed": "重新處理失敗",
+  "report_bug": "回報問題",
+  "connect_provider_title": "連線至 {{name}}",
+  "account_label": "帳戶",
+  "account_entry_placeholder": "請輸入電子郵件或使用者 ID",
+  "password_entry_placeholder": "請輸入密碼"
 }

@@ -14,7 +14,7 @@ function FileItem({
   const isUploading = datasource?.status === FILE_STATUS.UPLOADING;
   const isError = datasource?.status === FILE_STATUS.ERROR;
   const isSuccess = datasource?.status === FILE_STATUS.SUCCESS;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <div
@@ -42,7 +42,7 @@ function FileItem({
           <FileType type={datasource.file_type} />
           <span>|</span>
           <div className={styles.file_size}>
-            {formatFileSize(datasource.file_size)}
+            {formatFileSize(datasource.file_size, i18n.language)}
           </div>
         </div>
         {isUploading && (

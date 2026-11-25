@@ -12,7 +12,7 @@ import styles from "./index.module.scss";
  *  every reading in the series' one unit; `unit` is the drawer's, for a
  *  series whose readings name none (`trendSeries`). */
 export default function TrendChart({ readings, unit, total = 0 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dark = usePrefersDark();
   const ref = useRef(null);
   const series = useMemo(() => trendSeries(readings, unit), [readings, unit]);
@@ -27,6 +27,7 @@ export default function TrendChart({ readings, unit, total = 0 }) {
       trendOption(points, {
         unit: series.unit,
         dark,
+        locale: i18n.language,
         labels: {
           range: t("indicator_ref_range"),
           ref: t("indicator_ref_short"),
@@ -42,7 +43,7 @@ export default function TrendChart({ readings, unit, total = 0 }) {
       observer.disconnect();
       chart.dispose();
     };
-  }, [enough, points, series.unit, t, dark]);
+  }, [enough, points, series.unit, t, i18n.language, dark]);
 
   if (!enough) return null;
   return (

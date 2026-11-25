@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "../i18n/en.json";
+import ru from "../i18n/ru.json";
 import zhCn from "../i18n/zh-cn.json";
 import zhTw from "../i18n/zh-tw.json";
 import ja from "../i18n/ja.json";
@@ -14,6 +15,11 @@ const initializeI18n = () => {
       [LANGUAGE_CODE.EN]: {
         translation: {
           ...en,
+        },
+      },
+      [LANGUAGE_CODE.RU]: {
+        translation: {
+          ...ru,
         },
       },
       [LANGUAGE_CODE.ZH_CN]: {
@@ -41,9 +47,9 @@ const initializeI18n = () => {
     // told `ja` while the UI rendered English.
     //
     // Invisible while zh-CN was the only non-English bundle, because English
-    // was the right answer for everyone else anyway. With 繁體中文 and 日本語
-    // shipping it means a Japanese visitor gets an English UI, which is the
-    // whole point of shipping them.
+    // was the right answer for everyone else anyway. With 繁體中文, 日本語 and
+    // Русский shipping, a visitor with one of those browser languages should
+    // see that bundle instead of English.
     lng: getLanguage(),
     fallbackLng: LANGUAGE_CODE.EN,
     interpolation: {
@@ -52,7 +58,7 @@ const initializeI18n = () => {
   });
 
   // `index.html` ships `<html lang="en">` and nothing ever changed it, so all
-  // four languages rendered inside a document declaring itself English. That is
+  // shipped languages rendered inside a document declaring itself English. That is
   // not cosmetic: assistive tech picks its voice and pronunciation from this
   // attribute, so Japanese copy was read out with an English voice, and the
   // browser's "translate this page" offered to translate 日本語 *from* English.

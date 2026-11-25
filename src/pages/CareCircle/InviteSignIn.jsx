@@ -13,7 +13,7 @@ const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || "").trim());
  * record you kept for them becomes theirs.
  */
 export default function InviteSignIn({ member, onClose }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [email, setEmail] = useState("");
   const [link, setLink] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -90,7 +90,9 @@ export default function InviteSignIn({ member, onClose }) {
             {t(link.sends_mail ? "invite_sign_in_hint_code" : "invite_sign_in_hint_password", {
               name,
               email: email.trim(),
-              date: new Date(link.expires_at).toLocaleDateString(),
+              date: new Date(link.expires_at).toLocaleDateString(
+                i18n.resolvedLanguage || i18n.language,
+              ),
             })}
           </p>
           <div className={styles.footer}>

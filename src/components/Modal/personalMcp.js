@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import { formatUiDate } from "../../utils/date.js";
 
 // The listing as the Settings page shows it. The caller's own link is the
 // one they made for themselves; links they made for a family member and links
@@ -13,7 +13,7 @@ export const splitLinks = (listing) => {
   };
 };
 
-export const linkDay = (iso) => (iso ? dayjs(iso).format("YYYY-MM-DD") : "");
+export const linkDay = (iso, language = "en") => formatUiDate(iso, language);
 
 // A person's display name, or their id when the account has none.
 export const personLabel = (name, id) => (name && String(name).trim()) || `#${id}`;

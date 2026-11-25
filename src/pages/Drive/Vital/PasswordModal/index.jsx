@@ -8,8 +8,10 @@ import { useDriveStore } from "../../../../store/Drive";
 import { useAccountStore } from "../../../../store/account";
 import { NotificationContext } from "../../../../context";
 import consola from "consola";
+import { useTranslation } from "react-i18next";
 
 const PasswordModel = ({ isOpen, onClose, datasource }) => {
+  const { t } = useTranslation();
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [accountError, setAccountError] = useState("");
@@ -41,11 +43,11 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
   const onClickOK = async () => {
     try {
       if (!account) {
-        setAccountError("Please fill the blank");
+        setAccountError(t("form_error_required"));
         return;
       }
       if (!password) {
-        setPasswordError("Please fill the blank");
+        setPasswordError(t("form_error_required"));
         return;
       }
       setAccountError("");
@@ -69,7 +71,7 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
       if (res?.state === "error") {
         throw new Error(res?.error);
       }
-      messageApi.success("Connect success");
+      messageApi.success(t("connected"));
       fetchProvidersList();
       setTimeout(() => {
         clear();
@@ -86,16 +88,16 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
     <Modal isOpen={isOpen} onClose={onClose} maskClosable={false}>
       <div className={styles.password_model}>
         <div className="text-[18px] font-[500] text-[var(--color-text-primary)] flex items-center border-b border-[var(--color-border)] pb-[16px] mb-[24px]">
-          <div className="flex-1">Connect {datasource?.name}</div>
+          <div className="flex-1">{t("connect_provider_title", { name: datasource?.name })}</div>
           <CloseButton onClick={onClose} />
         </div>
         <div className={styles.form_label}>
-          Account <span className={styles.required}>*</span>
+          {t("account_label")} <span className={styles.required}>*</span>
         </div>
         <div className={styles.form_input}>
           <input
             type="text"
-            placeholder="Enter your email or user ID"
+            placeholder={t("account_entry_placeholder")}
             className={styles.input}
             onChange={onChangeAccount}
             value={account}
@@ -103,12 +105,12 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
         </div>
         <div className={styles.error}>{accountError || ""}</div>
         <div className={styles.form_label}>
-          Password <span className={styles.required}>*</span>
+          {t("password_placeholder")} <span className={styles.required}>*</span>
         </div>
         <div className={styles.form_input}>
           <input
             type="password"
-            placeholder="Enter your password"
+            placeholder={t("password_entry_placeholder")}
             className={styles.input}
             onChange={onChangePassword}
             value={password}
@@ -117,12 +119,12 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
         <div className={styles.error}>{passwordError || ""}</div>
         {connectStatus === "error" && (
           <div className="flex items-center h-[24px] text-[var(--color-danger)] text-[16px] font-[500]">
-            Connect error please try again
+            {t("connect_provider_failed")}
           </div>
         )}
         {connectStatus === "success" && (
           <div className="flex items-center h-[24px] text-[var(--color-accent)] text-[16px] font-[500]">
-            Connect success
+            {t("connected")}
           </div>
         )}
         <div className="flex items-center justify-end mt-[24px] gap-[12px]">
@@ -130,7 +132,7 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
             className="flex px-[20px] py-[7px] text-[16px] font-[500] text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-[8px] cursor-pointer"
             onClick={onClickCancel}
           >
-            Cancel
+            {t("cancel")}
           </div>
           <div
             className={`flex items-center justify-center px-[20px] py-[7px] text-[16px] font-[500] text-[var(--color-action-fg)] rounded-[8px] ${
@@ -140,7 +142,7 @@ const PasswordModel = ({ isOpen, onClose, datasource }) => {
             }`}
             onClick={loading ? undefined : onClickOK}
           >
-            {loading ? "Connecting..." : "Connect"}
+            {loading ? t("connecting") : t("connect")}
           </div>
         </div>
       </div>

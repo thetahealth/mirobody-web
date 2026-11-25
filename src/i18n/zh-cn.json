@@ -958,5 +958,10 @@
   "upload_cancelled": "已取消上传",
   "cancel_failed": "取消上传失败",
   "reprocess_started": "正在重新处理文件",
-  "reprocess_failed": "重新处理失败"
+  "reprocess_failed": "重新处理失败",
+  "report_bug": "报告错误",
+  "connect_provider_title": "连接{{name}}",
+  "account_label": "账号",
+  "account_entry_placeholder": "请输入电子邮箱或用户 ID",
+  "password_entry_placeholder": "请输入密码"
 }

@@ -3,6 +3,8 @@ import { Empty, Spin, message } from "antd";
 import { useTranslation } from "react-i18next";
 import api from "../../api";
 import { sourceLabelKey } from "./delta";
+import { formatUiDate } from "../../utils/date.js";
+import { formatUiNumber } from "../../utils/number.js";
 import styles from "./RecordsList.module.scss";
 
 const PAGE_SIZE = 50;
@@ -94,9 +96,9 @@ const RecordsList = ({ userId, createdSince = null, onClearSince, canExport = fa
               <tr key={row.row_id}>
                 <td title={row.label ? row.indicator : undefined}>{row.label || row.indicator || row.name}</td>
                 <td title={row.converted && row.printed ? `${t("indicator_printed")}${row.printed.value} ${row.printed.unit}` : undefined}>
-                  {row.value || row.text || "—"}{row.value && row.unit ? ` ${row.unit}` : ""}
+                  {row.value ? formatUiNumber(row.value, language) : row.text || "—"}{row.value && row.unit ? ` ${row.unit}` : ""}
                 </td>
-                <td>{row.date}</td>
+                <td>{formatUiDate(row.date, language)}</td>
                 <td>{sourceLabelKey(row.source_kind) ? t(sourceLabelKey(row.source_kind)) : row.source_kind}</td>
               </tr>
             ))}

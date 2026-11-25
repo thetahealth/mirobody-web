@@ -958,5 +958,10 @@
   "upload_cancelled": "アップロードをキャンセルしました",
   "cancel_failed": "アップロードをキャンセルできませんでした",
   "reprocess_started": "ファイルを再処理しています",
-  "reprocess_failed": "ファイルを再処理できませんでした"
+  "reprocess_failed": "ファイルを再処理できませんでした",
+  "report_bug": "不具合を報告",
+  "connect_provider_title": "{{name}}に接続",
+  "account_label": "アカウント",
+  "account_entry_placeholder": "メールアドレスまたはユーザー ID を入力",
+  "password_entry_placeholder": "パスワードを入力"
 }

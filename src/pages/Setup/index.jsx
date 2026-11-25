@@ -87,7 +87,7 @@ const cx = (...names) => names.filter(Boolean).join(" ");
  * is set up a sign-in as well.
  */
 export default function Setup() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [token, setToken] = useState(() => captureSetupToken());
   const [askToken, setAskToken] = useState(() => !token);
@@ -549,6 +549,7 @@ export default function Setup() {
                         onServer={lookup ? tierOnServer(tier, lookup.served) : ""}
                         onSelect={() => pickSize(tier)}
                         t={t}
+                        language={i18n.language}
                       />
                     ))}
                   </div>
@@ -956,11 +957,11 @@ function Step({ n, children }) {
 }
 
 /** One size: what it runs, what it takes, and where that was measured. */
-function TierCard({ tier, on, onServer, onSelect, t }) {
+function TierCard({ tier, on, onServer, onSelect, t, language }) {
   const badge = tierBadge(tier.id);
   const hardware = tierHardware(tier.id);
-  const download = oneDecimal(tier.download_gb);
-  const memory = oneDecimal(tier.memory_gb);
+  const download = oneDecimal(tier.download_gb, language);
+  const memory = oneDecimal(tier.memory_gb, language);
   const answer = answerTime(tier.answer_s);
   // Null is unmeasured: said so, never filled with an estimate.
   const unmeasured = <span className={styles.unmeasured}>{t("setup_tier_unmeasured")}</span>;

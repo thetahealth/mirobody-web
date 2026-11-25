@@ -90,14 +90,19 @@ export const openSelectFileDialog = (accept = "*/*") => {
   });
 };
 
-export const formatFileSize = (size) => {
+export const formatFileSize = (size, locale = "en") => {
+  const integer = new Intl.NumberFormat(locale);
+  const decimal = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
   if (size < 1024) {
-    return `${size} B`;
+    return `${integer.format(size)} B`;
   }
   if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(2)} KB`;
+    return `${decimal.format(size / 1024)} KB`;
   }
-  return `${(size / 1024 / 1024).toFixed(2)} MB`;
+  return `${decimal.format(size / 1024 / 1024)} MB`;
 };
 
 export const handleOnDropFiles = (e) => {

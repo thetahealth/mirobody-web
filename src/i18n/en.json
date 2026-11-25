@@ -958,5 +958,10 @@
   "upload_cancelled": "Upload cancelled",
   "cancel_failed": "Could not cancel the upload",
   "reprocess_started": "Reprocessing the file",
-  "reprocess_failed": "Could not reprocess the file"
+  "reprocess_failed": "Could not reprocess the file",
+  "report_bug": "Report a bug",
+  "connect_provider_title": "Connect {{name}}",
+  "account_label": "Account",
+  "account_entry_placeholder": "Enter your email or user ID",
+  "password_entry_placeholder": "Enter your password"
 }

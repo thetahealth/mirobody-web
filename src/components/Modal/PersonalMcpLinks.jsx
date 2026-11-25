@@ -16,7 +16,7 @@ const isCancel = (error) => error?.name === "CanceledError" || error?.name === "
 // when closed), so a freshly made URL is dropped the moment Settings closes:
 // the server cannot show it again, and neither should a stale page.
 const PersonalMcpLinks = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const roster = useAccountStore((state) => state.beneficiary_users);
   const fetchBeneficiaryUsers = useAccountStore((state) => state.fetchBeneficiaryUsers);
   const [links, setLinks] = useState({ own: null, forOthers: [], holders: [] });
@@ -148,7 +148,9 @@ const PersonalMcpLinks = () => {
     );
 
   const lastUsed = (link) =>
-    link.last_used_at ? t("mcp_link_last_used", { date: linkDay(link.last_used_at) }) : t("mcp_link_never_used");
+    link.last_used_at
+      ? t("mcp_link_last_used", { date: linkDay(link.last_used_at, i18n.language) })
+      : t("mcp_link_never_used");
 
   const rowActions = (row) => {
     if (!row.link) {
@@ -207,7 +209,7 @@ const PersonalMcpLinks = () => {
               </div>
               <div className={styles.mcpLinkMeta}>
                 {row.link
-                  ? `${t("mcp_link_expires", { date: linkDay(row.link.expires_at) })} · ${lastUsed(row.link)}`
+                  ? `${t("mcp_link_expires", { date: linkDay(row.link.expires_at, i18n.language) })} · ${lastUsed(row.link)}`
                   : loaded && t("mcp_link_none")}
               </div>
             </div>
@@ -243,7 +245,7 @@ const PersonalMcpLinks = () => {
               <div className={styles.mcpLinkWho}>
                 <div>{t("mcp_link_by", { name: personLabel(link.creator_name, link.creator_id) })}</div>
                 <div className={styles.mcpLinkMeta}>
-                  {t("mcp_link_expires", { date: linkDay(link.expires_at) })} · {lastUsed(link)}
+                  {t("mcp_link_expires", { date: linkDay(link.expires_at, i18n.language) })} · {lastUsed(link)}
                 </div>
               </div>
               <div className={styles.mcpLinkActions}>{revokeButton(link)}</div>

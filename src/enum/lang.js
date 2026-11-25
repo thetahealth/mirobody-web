@@ -2,6 +2,7 @@
 // https://github.com/Byaidu/PDFMathTranslate/wiki/Language-Codes----%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81
 export const LANGUAGE_CODE = {
   EN: "en",
+  RU: "ru",
   ZH_CN: "zh-CN",
   // zh-TW, not a generic zh-Hant: the copy is written for Taiwan usage
   // (資料/檔案/登入, and 血紅素 rather than 血紅蛋白 for haemoglobin), which is
@@ -17,6 +18,10 @@ export const LANGUAGE_LIST = [
   {
     code: LANGUAGE_CODE.EN,
     name: "English",
+  },
+  {
+    code: LANGUAGE_CODE.RU,
+    name: "Русский",
   },
   {
     code: LANGUAGE_CODE.ZH_CN,

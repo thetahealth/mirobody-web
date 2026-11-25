@@ -497,6 +497,7 @@ describe("figures", () => {
     expect(oneDecimal(3)).toBe("3.0");
     expect(oneDecimal(14.5)).toBe("14.5");
     expect(oneDecimal(2.64)).toBe("2.6");
+    expect(oneDecimal(2.64, "ru")).toBe("2,6");
     expect(oneDecimal(null)).toBeNull();
     expect(oneDecimal(undefined)).toBeNull();
     expect(oneDecimal(Number.NaN)).toBeNull();

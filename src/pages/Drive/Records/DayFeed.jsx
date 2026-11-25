@@ -16,6 +16,7 @@ import {
   weekdayOf,
 } from "./entries.js";
 import { scheduleSummary } from "../../Indicators/Medications/form.js";
+import { formatUiDate } from "../../../utils/date.js";
 import styles from "./DayFeed.module.scss";
 
 /**
@@ -48,10 +49,10 @@ const DayFeed = ({ days, today, onRetract }) => {
           <section key={day.date} className={styles.day}>
             <header className={styles.dayHead}>
               <h3 className={styles.dayTitle}>
-                {token ? t(`journal_${token}`) : day.date}
+                {token ? t(`journal_${token}`) : formatUiDate(day.date, i18n.language)}
               </h3>
               <span className={styles.dayDate}>
-                {token ? `${day.date} ` : ""}
+                {token ? `${formatUiDate(day.date, i18n.language)} ` : ""}
                 {weekdayOf(day.date, i18n.language)}
               </span>
               <span className={styles.dayCount}>{day.entries.length}</span>

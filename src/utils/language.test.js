@@ -31,11 +31,16 @@ describe("getLanguage", () => {
   };
 
   beforeEach(() => vi.resetModules());
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
 
   it.each([
     ["ja-JP", "ja"],
     ["ja", "ja"],
+    ["ru-RU", "ru"],
+    ["ru", "ru"],
     ["en-GB", "en"],
     ["zh-CN", "zh-CN"],
     ["zh-SG", "zh-CN"],
@@ -49,12 +54,20 @@ describe("getLanguage", () => {
     expect(await load({ nav })).toBe(expected);
   });
 
-  it("falls back to English for a language we do not ship", async () => {
+  it("keeps the existing English fallback when no default is configured", async () => {
     expect(await load({ nav: "fi-FI" })).toBe("en");
+  });
+
+  it("allows a self-hosted build to choose its fallback without changing browser matching", async () => {
+    vi.stubEnv("VITE_DEFAULT_LANGUAGE", "ru");
+    expect(await load({ nav: "fi-FI" })).toBe("ru");
+    expect(await load({ nav: "en-US" })).toBe("en");
+    expect(await load({ nav: "ru-RU" })).toBe("ru");
   });
 
   it("honours ?lang= even when spelled with a region or script", async () => {
     expect(await load({ url: "https://app.example/?lang=ja-JP", nav: "en-US" })).toBe("ja");
+    expect(await load({ url: "https://app.example/?lang=ru-RU", nav: "en-US" })).toBe("ru");
     expect(await load({ url: "https://app.example/?lang=zh-Hant", nav: "en-US" })).toBe("zh-TW");
   });
 

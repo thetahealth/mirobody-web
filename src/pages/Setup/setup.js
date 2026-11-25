@@ -156,7 +156,13 @@ export const tierFor = (tiers, agent, ocr) =>
   (tiers || []).find((tier) => tier.agent === agent && (tier.ocr || "") === (ocr || "")) || null;
 
 /** A size in GB with one decimal, or null when unmeasured. */
-export const oneDecimal = (n) => (typeof n === "number" && Number.isFinite(n) ? n.toFixed(1) : null);
+export const oneDecimal = (n, locale = "en") =>
+  typeof n === "number" && Number.isFinite(n)
+    ? new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }).format(n)
+    : null;
 
 /**
  * Seconds per answer, the way a person reads it: seconds under a minute and

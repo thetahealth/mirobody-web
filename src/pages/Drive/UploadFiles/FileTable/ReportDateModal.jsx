@@ -9,10 +9,11 @@ import consola from "consola";
 import Modal from "../../../../components/Modal";
 import api from "../../../../api";
 import { needsDateConfirm, reportDateOf, siblingReportDates } from "./reportDate";
+import { formatUiDate } from "../../../../utils/date.js";
 import styles from "./ReportDateModal.module.scss";
 
 const ReportDateModal = ({ file, siblings, onClose, onDone }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [picked, setPicked] = useState("");
   const [busy, setBusy] = useState(false);
   if (!file) return null;
@@ -31,9 +32,16 @@ const ReportDateModal = ({ file, siblings, onClose, onDone }) => {
       if (!date) {
         message.success(t("report_date_kept"));
       } else if ((d?.skipped ?? 0) > 0) {
-        message.success(t("report_date_moved_skipped", { n: d.moved ?? 0, skipped: d.skipped, date }));
+        message.success(t("report_date_moved_skipped", {
+          n: d.moved ?? 0,
+          skipped: d.skipped,
+          date: formatUiDate(date, i18n.language),
+        }));
       } else {
-        message.success(t("report_date_moved", { n: d?.moved ?? 0, date }));
+        message.success(t("report_date_moved", {
+          n: d?.moved ?? 0,
+          date: formatUiDate(date, i18n.language),
+        }));
       }
       onDone?.();
     } catch (error) {
@@ -50,14 +58,18 @@ const ReportDateModal = ({ file, siblings, onClose, onDone }) => {
         <div className={styles.fileName}>{file.file_name}</div>
         <p className={styles.text}>
           {pending
-            ? t("report_date_ask", { date: reportDateOf(file) })
-            : t("report_date_current", { date: reportDateOf(file) || "-" })}
+            ? t("report_date_ask", { date: formatUiDate(reportDateOf(file), i18n.language) })
+            : t("report_date_current", {
+                date: formatUiDate(reportDateOf(file), i18n.language) || "-",
+              })}
         </p>
         {candidates.length > 0 && (
           <div className={styles.chips}>
             {candidates.map((d) => (
               <Button key={d} disabled={busy} onClick={() => submit(d)}>
-                {t("report_date_use_sibling", { date: d })}
+                {t("report_date_use_sibling", {
+                  date: formatUiDate(d, i18n.language),
+                })}
               </Button>
             ))}
           </div>
@@ -65,6 +77,7 @@ const ReportDateModal = ({ file, siblings, onClose, onDone }) => {
         <div className={styles.row}>
           <input
             type="date"
+            lang={i18n.resolvedLanguage || i18n.language}
             className={styles.dateInput}
             value={picked}
             max={today}

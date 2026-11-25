@@ -1,3 +1,5 @@
+import { formatUiDate } from "../../../../../utils/date.js";
+
 // What a cite group opens: its sources, arranged for reading rather than in
 // cite order. One sentence can rest on nineteen fasting-glucose readings
 // (TH-2134's sample); listed one by one with the indicator's name on each,
@@ -81,12 +83,11 @@ export function sectionsOf(ids, resolved = {}) {
 
 /** "2026-10-30" when only the day is known (a journal entry, a lab slip at
  *  00:00), "2026-10-30 08:10" when the clock was recorded. */
-export function when(time) {
+export function when(time, language = "en") {
   if (!time) return "";
   const text = String(time).replace("T", " ");
-  const day = text.slice(0, 10);
   const clock = text.slice(11, 16);
-  return !clock || clock === "00:00" ? day : `${day} ${clock}`;
+  return formatUiDate(text, language, { time: !!clock && clock !== "00:00" });
 }
 
 /** "high" | "low" for the flags a report prints, "" for normal or none, the
@@ -102,9 +103,13 @@ export function flagOf(flag) {
 
 /** The days an aggregate covers. A month's bucket is named by its first day
  *  ("2025-09-01"), which reads as that one day, so its bounds come first. */
-export function spanOf(row) {
+export function spanOf(row, language = "en") {
   const from = row.from || row.first_day;
   const to = row.to || row.last_day;
-  if (from && to && from !== to) return `${from} – ${to}`;
-  return from || to || row.period || "";
+  const display = (value) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(value || "")
+      ? formatUiDate(value, language)
+      : value;
+  if (from && to && from !== to) return `${display(from)} – ${display(to)}`;
+  return display(from || to || row.period || "");
 }

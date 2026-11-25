@@ -10,6 +10,8 @@
 
 import { flagOf } from "../../Chat/Dialog/Render/Citations/sources";
 import { chartPalette, tooltipColours } from "../../../utils/chartPalette";
+import { formatUiDate } from "../../../utils/date.js";
+import { formatUiNumber } from "../../../utils/number.js";
 
 const NUMBER = /^[-+−]?\d+(?:\.\d+)?$/;
 const toNumber = (text) => {
@@ -109,9 +111,11 @@ export function movingAverage(points, window = WINDOW) {
 /** The ECharts option for `points`; `labels` names the band, a tooltip's
  *  range and printed value and, for a dense series, its two lines, in the
  *  page's language. `dark` draws it for the dark page. */
-export function trendOption(points, { unit = "", labels = {}, dark = false } = {}) {
+export function trendOption(points, { unit = "", labels = {}, dark = false, locale = "en" } = {}) {
   const c = chartPalette(dark);
   const LABEL = { color: c.inkSoft, fontSize: 11, fontFamily: FONT };
+  const russian = String(locale).toLowerCase().startsWith("ru");
+  const formatNumber = (value) => formatUiNumber(value, locale);
   const range = latestRange(points);
   const dense = points.length > DENSE;
   const data = points.map((p) => ({
@@ -147,15 +151,40 @@ export function trendOption(points, { unit = "", labels = {}, dark = false } = {
         const source = printed
           ? `<br/>${escapeHtml(labels.printed)}${escapeHtml(printed.value)} ${escapeHtml(printed.unit)}`
           : "";
-        const mean = items[1] ? `<br/>${escapeHtml(items[1].seriesName)} ${items[1].value[1]} ${shownUnit}` : "";
-        return `${String(time).replace("T", " ").replace(/ 00:00(:00)?$/, "").slice(0, 16)}<br/><b>${value}</b> ${shownUnit}${ref}${source}${mean}`;
+        const mean = items[1] ? `<br/>${escapeHtml(items[1].seriesName)} ${formatNumber(items[1].value[1])} ${shownUnit}` : "";
+        const timeText = String(time).replace("T", " ");
+        const clock = timeText.slice(11, 16);
+        const shownTime = russian
+          ? formatUiDate(time, locale, { time: !!clock && clock !== "00:00" })
+          : timeText.replace(/ 00:00(:00)?$/, "").slice(0, 16);
+        return `${shownTime}<br/><b>${formatNumber(value)}</b> ${shownUnit}${ref}${source}${mean}`;
       },
     },
-    xAxis: { type: "time", axisLabel: { ...LABEL, hideOverlap: true }, splitLine: { show: false } },
+    xAxis: {
+      type: "time",
+      axisLabel: {
+        ...LABEL,
+        hideOverlap: true,
+        ...(russian
+          ? {
+              formatter: (value) =>
+                new Intl.DateTimeFormat(locale, {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                }).format(new Date(value)),
+            }
+          : {}),
+      },
+      splitLine: { show: false },
+    },
     yAxis: {
       type: "value",
       scale: true,
-      axisLabel: LABEL,
+      axisLabel: {
+        ...LABEL,
+        ...(russian ? { formatter: (value) => formatNumber(value) } : {}),
+      },
       splitLine: { lineStyle: { color: c.line } },
       // The band is drawn whole even when every reading sits inside it.
       min: range?.low != null ? (v) => Math.min(v.min, range.low) : undefined,

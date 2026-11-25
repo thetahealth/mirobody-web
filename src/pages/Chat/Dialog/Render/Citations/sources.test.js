@@ -67,6 +67,7 @@ describe("cite sources", () => {
     expect(when("2026-10-30 00:00:00")).toBe("2026-10-30");
     expect(when("2026-07-26 22:05:00")).toBe("2026-07-26 22:05");
     expect(when("2026-10-30")).toBe("2026-10-30");
+    expect(when("2026-10-30 08:10", "ru")).toBe("30.10.2026 08:10");
     expect(when("")).toBe("");
   });
 
@@ -86,6 +87,9 @@ describe("cite sources", () => {
     expect(spanOf({ period: "2025-09-01", from: "2025-09-01", to: "2025-09-30" })).toBe("2025-09-01 – 2025-09-30");
     expect(spanOf({ from: "2025-09-15", to: "2026-09-14" })).toBe("2025-09-15 – 2026-09-14");
     expect(spanOf({ first_day: "2026-10-30", last_day: "2026-10-30" })).toBe("2026-10-30");
+    expect(spanOf({ from: "2025-09-15", to: "2026-09-14" }, "ru")).toBe(
+      "15.09.2025 – 14.09.2026",
+    );
   });
 });
 

@@ -67,7 +67,9 @@ export const getLanguage = () => {
   if (isCnEnvironment()) {
     return LANGUAGE_CODE.ZH_CN;
   }
-  return LANGUAGE_CODE.EN;
+  // Keep the existing English fallback for upstream builds. Self-hosted builds
+  // can opt into another supported fallback without changing browser matching.
+  return normalizeLanguage(import.meta.env.VITE_DEFAULT_LANGUAGE) || LANGUAGE_CODE.EN;
 };
 
 /* is Text File */

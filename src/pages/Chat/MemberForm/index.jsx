@@ -11,6 +11,7 @@ import api from "../../../api";
 import { message } from "antd";
 import consola from "consola";
 import { asksFamilyNameFirst, fullName } from "../../../utils/personName";
+import { formatUiDate } from "../../../utils/date.js";
 
 function MemberForm({ onClose }) {
   const { t, i18n } = useTranslation();
@@ -80,7 +81,7 @@ function MemberForm({ onClose }) {
   };
 
   const onChangeDateOfBirth = (value) => {
-    handleFieldChange("dateOfBirth", dayjs(value).format("MM/DD/YYYY"));
+    handleFieldChange("dateOfBirth", dayjs(value).format("YYYY-MM-DD"));
   };
 
   const onChangeGender = (option) => {
@@ -107,9 +108,7 @@ function MemberForm({ onClose }) {
       setLoading(true);
       if (validateForm()) {
         const name = fullName(formData.firstName, formData.lastName);
-        const birth = formData.dateOfBirth
-          ? dayjs(formData.dateOfBirth, "MM/DD/YYYY").format("YYYY-MM-DD")
-          : "";
+        const birth = formData.dateOfBirth || "";
         await api.createVirtualUser({
           name,
           gender: formData.gender || "other", // backend maps the string
@@ -194,7 +193,7 @@ function MemberForm({ onClose }) {
         <FormItemDate
           label={t("date_of_birth")}
           onChange={onChangeDateOfBirth}
-          value={formData.dateOfBirth}
+          value={formatUiDate(formData.dateOfBirth, i18n.language)}
         />
         <FormItemSelect
           label={t("gender")}

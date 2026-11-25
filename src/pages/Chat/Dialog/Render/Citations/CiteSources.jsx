@@ -5,6 +5,7 @@ import { useCitationStore } from "./store";
 import { useCitationSession } from "./context";
 import { flagOf, sectionsOf, spanOf, when } from "./sources";
 import { openProtectedFile } from "../../../../../utils/protectedFile";
+import { formatUiNumber } from "../../../../../utils/number.js";
 import styles from "./index.module.scss";
 
 // Readings shown before "show N more": enough for a before-and-after, few
@@ -42,19 +43,19 @@ function Flag({ flag }) {
 }
 
 function Reading({ row }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <li className={styles.reading}>
       <div className={styles.line}>
         <span className={styles.value}>
-          {row.value}
+          {formatUiNumber(row.value, i18n.language)}
           {row.unit ? ` ${row.unit}` : ""}
         </span>
         <Flag flag={row.flag} />
         {row.ref ? <span className={styles.muted}>{t("cite_ref_range", { range: row.ref })}</span> : null}
       </div>
       <div className={styles.muted}>
-        {when(row.time)}
+        {when(row.time, i18n.language)}
         {row.time ? " · " : ""}
         <Source row={row} />
       </div>
@@ -97,12 +98,12 @@ function Readings({ section }) {
 // A statistic or a time bucket: what it was computed over, with the
 // readings it covered, newest first, the name said once.
 function Aggregate({ row }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [all, setAll] = useState(false);
   const readings = row.readings || [];
   const shown = all ? readings : readings.slice(0, MEMBERS);
   const total = row.total ?? readings.length;
-  const span = spanOf(row);
+  const span = spanOf(row, i18n.language);
   return (
     <section className={styles.section}>
       <header className={styles.head}>
@@ -115,9 +116,9 @@ function Aggregate({ row }) {
       <ul className={styles.members}>
         {shown.map((r, i) => (
           <li key={i}>
-            <span className={styles.muted}>{when(r.time)}</span>
+            <span className={styles.muted}>{when(r.time, i18n.language)}</span>
             <span className={styles.value}>
-              {r.value}
+              {formatUiNumber(r.value, i18n.language)}
               {r.unit ? ` ${r.unit}` : ""}
             </span>
             <Flag flag={r.flag} />

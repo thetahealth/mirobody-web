@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
 import { SENTRY_FEEDBACK_POSITION } from "../../enum/storage";
+import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
 
 const DEFAULT_POSITION = { x: null, y: 20 }; // null x means right-aligned
@@ -11,6 +12,7 @@ const DRAG_THRESHOLD = 5; // pixels to distinguish click from drag
  * Replaces the default fixed-position Sentry feedback widget.
  */
 export default function DraggableFeedbackButton() {
+  const { t } = useTranslation();
   const buttonRef = useRef(null);
   const [position, setPosition] = useState(() => {
     try {
@@ -203,7 +205,7 @@ export default function DraggableFeedbackButton() {
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
       onClick={handleClick}
-      aria-label="Report a Bug"
+      aria-label={t("report_bug")}
       type="button"
     >
       <svg
@@ -226,7 +228,7 @@ export default function DraggableFeedbackButton() {
           </clipPath>
         </defs>
       </svg>
-      <span className={styles.label}>Report a Bug</span>
+      <span className={styles.label}>{t("report_bug")}</span>
     </button>
   );
 }

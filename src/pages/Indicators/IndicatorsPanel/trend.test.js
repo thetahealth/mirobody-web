@@ -30,6 +30,12 @@ describe("trend", () => {
     expect(latestRange(pointsOf(readings))).toEqual({ low: 4, high: 6 });
   });
 
+  it("formats chart axes and tooltips using Russian date and number conventions", () => {
+    const option = trendOption(pointsOf(readings), { unit: "mmol/L", locale: "ru" });
+    expect(option.yAxis.axisLabel.formatter(1234.5)).toBe("1 234,5");
+    expect(option.xAxis.axisLabel.formatter(new Date(2026, 10, 24).getTime())).toBe("24.11.26");
+  });
+
   it("marks a reading its report flagged, or one outside the range", () => {
     const option = trendOption(pointsOf(readings), { unit: "%" });
     const colours = option.series[0].data.map((d) => d.itemStyle?.color || "");

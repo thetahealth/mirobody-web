@@ -8,9 +8,10 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import dayjs from "dayjs";
 import consola from "consola";
 import api from "../../../api";
+import { formatUiDate } from "../../../utils/date.js";
+import { formatUiNumber } from "../../../utils/number.js";
 import { useDriveStore } from "../../../store/Drive";
 import { useAccountStore } from "../../../store/account";
 import { openProtectedFile } from "../../../utils/protectedFile";
@@ -261,8 +262,9 @@ const IndicatorsPanel = ({
   };
 
   const formatTime = (value) =>
-    value ? dayjs(value).format("YYYY-MM-DD HH:mm") : "—";
-  const formatDate = (value) => (value ? dayjs(value).format("YYYY-MM-DD") : "—");
+    value ? formatUiDate(value, i18n.language, { time: true }) : "—";
+  const formatDate = (value) =>
+    value ? formatUiDate(value, i18n.language) : "—";
   // What the report printed beside the value: 偏高 / 偏低, in words, since
   // colour alone does not say which way.
   const flagChip = (flag) => {
@@ -453,7 +455,7 @@ const IndicatorsPanel = ({
                       <span className={styles.cardValue}>
                         {row.latest_value !== "" ? (
                           <>
-                            <span className={styles.value}>{row.latest_value}</span>
+                            <span className={styles.value}>{formatUiNumber(row.latest_value, i18n.language)}</span>
                             {row.unit && <span className={styles.unit}>{row.unit}</span>}
                           </>
                         ) : (
@@ -499,7 +501,7 @@ const IndicatorsPanel = ({
                         <td>
                           {row.latest_value !== "" ? (
                             <>
-                              <span className={styles.value}>{row.latest_value}</span>
+                              <span className={styles.value}>{formatUiNumber(row.latest_value, i18n.language)}</span>
                               {row.unit && (
                                 <span className={styles.unit}>{row.unit}</span>
                               )}
@@ -549,7 +551,7 @@ const IndicatorsPanel = ({
                         <span className={styles.cardName} title={row.label ? row.indicator : undefined}>
                           {displayName(row)}
                         </span>
-                        <span className={styles.cardText}>{row.latest_value || "—"}</span>
+                        <span className={styles.cardText}>{formatUiNumber(row.latest_value, i18n.language) || "—"}</span>
                         <span className={styles.cardMeta}>
                           {formatDate(row.latest_time)}
                           {row.count ? ` · ${t("cite_count", { count: row.count })}` : ""}
@@ -582,7 +584,7 @@ const IndicatorsPanel = ({
                             {displayName(row)}
                           </td>
                           <td className={styles.findingText}>
-                            {row.latest_value || <span className={styles.muted}>—</span>}
+                            {formatUiNumber(row.latest_value, i18n.language) || <span className={styles.muted}>—</span>}
                           </td>
                           <td>{row.count || "—"}</td>
                           <td className={styles.muted}>{formatDate(row.latest_time)}</td>
@@ -617,7 +619,7 @@ const IndicatorsPanel = ({
             )}
             {readings[0] && !selectedIsFinding && (
               <div className={styles.latest}>
-                <span className={styles.latestValue}>{readings[0].value}</span>
+                <span className={styles.latestValue}>{formatUiNumber(readings[0].value, i18n.language)}</span>
                 {(readings[0].unit || selected.unit) && (
                   <span className={styles.latestUnit}>
                     {readings[0].unit || selected.unit}
@@ -753,7 +755,7 @@ const IndicatorsPanel = ({
                             />
                           ) : (
                             <>
-                              <span className={styles.value}>{reading.value}</span>
+                              <span className={styles.value}>{formatUiNumber(reading.value, i18n.language)}</span>
                               {(reading.unit || selected.unit) && (
                                 <span className={styles.unit}>
                                   {reading.unit || selected.unit}

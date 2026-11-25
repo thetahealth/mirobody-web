@@ -24,6 +24,7 @@ describe("linkDay and personLabel", () => {
   it("shows a date, and nothing for no date", () => {
     expect(linkDay(own.expires_at)).toMatch(/^2026-10-0[89]$/);
     expect(linkDay(null)).toBe("");
+    expect(linkDay("2026-10-08T00:00:00Z", "ru")).toBe("08.10.2026");
   });
 
   it("falls back to the id for an account with no name", () => {

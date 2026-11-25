@@ -7,15 +7,16 @@ import api from "../../../../api";
 import { message } from "antd";
 import { useTranslation } from "react-i18next";
 import consola from "consola";
-import dayjs from "dayjs";
 import ReportDateModal from "./ReportDateModal";
 import { needsDateConfirm, reportDateOf } from "./reportDate";
 import { PROCESSING_POLL_MS, hasProcessingRows, rowActions } from "./rowActions";
 import useIsMobile from "../../../../hooks/useIsMobile";
 import { openProtectedFile } from "../../../../utils/protectedFile";
+import { formatUiDate } from "../../../../utils/date.js";
+import { formatFileSize } from "../../../../utils/file";
 
 const FileTable = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
   // Subscribe to uploading_files Map directly, then filter by current user
   const uploading_files_map = useUploadStore((state) => state.uploading_files);
@@ -233,14 +234,14 @@ const FileTable = () => {
         className={isUploading ? styles.uploadingRow : ""}
       >
         <td className={styles.tdUploadTime}>
-          {dayjs(item.upload_time).format("YYYY-MM-DD HH:mm:ss")}
+          {formatUiDate(item.upload_time, i18n.language, { time: true, seconds: true })}
         </td>
         <td className={styles.tdReportDate}>
           {/* the date the file's READINGS sit on — distinct from the upload
               time — and whether it was read off the document or guessed (#53) */}
           {reportDateOf(item) ? (
             <div className={styles.reportDate}>
-              <span>{reportDateOf(item)}</span>
+              <span>{formatUiDate(reportDateOf(item), i18n.language)}</span>
               {item.date_source && (
                 <span className={styles.reportDateHint}>
                   {t(`report_date_source_${item.date_source}`)}
@@ -268,7 +269,7 @@ const FileTable = () => {
         <td className={styles.tdType}>
           {item.file_type ? item.file_type.toUpperCase() : "-"}
         </td>
-        <td className={styles.tdSize}>{item.show_file_size}</td>
+        <td className={styles.tdSize}>{formatFileSize(item.file_size, i18n.language)}</td>
         <td className={styles.tdStatus}>{renderStatus(item.upload_status, item.error, item)}</td>
         <td className={styles.tdActions}>{renderActions(item)}</td>
       </tr>
@@ -290,8 +291,8 @@ const FileTable = () => {
       <div className={styles.cardName}>{item.file_name}</div>
       <div className={styles.cardMeta}>
         <span>{item.file_type ? item.file_type.toUpperCase() : "-"}</span>
-        <span>{item.show_file_size}</span>
-        <span>{dayjs(item.upload_time).format("YYYY-MM-DD HH:mm")}</span>
+        <span>{formatFileSize(item.file_size, i18n.language)}</span>
+        <span>{formatUiDate(item.upload_time, i18n.language, { time: true })}</span>
       </div>
       <div className={styles.cardFooter}>
         {renderStatus(item.upload_status, item.error, item)}
