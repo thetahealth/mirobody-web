@@ -17,6 +17,7 @@
  * drives the table rather than a hardcoded set of filenames.
  */
 import { describe, it, expect } from "vitest";
+import i18next from "i18next";
 
 import { LANGUAGE_LIST } from "../enum/lang.js";
 import en from "./en.json";
@@ -40,6 +41,13 @@ const flatten = (bundle, prefix = "", result = {}) => {
 };
 
 const ENGLISH_STRINGS = flatten(en);
+
+// The count strings: English keys with both a `_one` and an `_other` form.
+// A lone `_other` (`gender_other`) is a choice named "other", not a plural.
+const PLURAL_BASES = Object.keys(ENGLISH_STRINGS)
+  .filter((path) => path.endsWith("_one") && `${path.slice(0, -4)}_other` in ENGLISH_STRINGS)
+  .map((path) => path.slice(0, -4));
+const pluralCategories = (code) => new Intl.PluralRules(code).resolvedOptions().pluralCategories;
 const INTERPOLATION_TOKENS = /{{\s*[^{}]+\s*}}|<\/?\d+>|%(?:\d+\$)?[sdif]|\$\{[^}]+\}/g;
 const tokens = (value) => [...String(value).matchAll(INTERPOLATION_TOKENS)].map((m) => m[0]).sort();
 const RU_UNCHANGED_ALLOWLIST = new Set([
@@ -62,7 +70,40 @@ describe("i18n bundles", () => {
     "%s has the same nested string paths as en.json",
     (code) => {
       const translated = flatten(BUNDLES[code]);
-      expect(Object.keys(translated).sort()).toEqual(Object.keys(ENGLISH_STRINGS).sort());
+      const expected = new Set(Object.keys(ENGLISH_STRINGS));
+      // A count string carries a form per plural category of ITS language,
+      // which English's one/other does not cover (Russian adds few and many).
+      for (const base of PLURAL_BASES) {
+        for (const category of pluralCategories(code)) expected.add(`${base}_${category}`);
+      }
+      expect(Object.keys(translated).sort()).toEqual([...expected].sort());
+    },
+  );
+
+  // i18next picks a count string's form by the language's own plural rules
+  // and falls back to English for a form the bundle lacks: Russian shipped
+  // with only _one and _other, so "Размышление: 17 сек." rendered as
+  // "Thought for 17 seconds · 5 steps" (17 and 5 are `many` in Russian).
+  it("renders Russian counts in Russian, never the English fallback", async () => {
+    const t = await i18next.createInstance().init({
+      lng: "ru",
+      fallbackLng: "en",
+      resources: { en: { translation: en }, ru: { translation: ru } },
+    });
+    expect([1, 2, 5, 17].map((count) => t("process_steps", { count }))).toEqual([
+      "1 шаг", "2 шага", "5 шагов", "17 шагов",
+    ]);
+    expect(t("process_thought_for", { count: 17 })).toBe("Размышление: 17 сек.");
+  });
+
+  it.each(Object.keys(BUNDLES).filter((code) => code !== "en"))(
+    "%s has every plural form its language uses",
+    (code) => {
+      const translated = flatten(BUNDLES[code]);
+      const missing = PLURAL_BASES.flatMap((base) =>
+        pluralCategories(code).map((category) => `${base}_${category}`),
+      ).filter((path) => !(path in translated));
+      expect(missing).toEqual([]);
     },
   );
 
